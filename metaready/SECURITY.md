@@ -1,18 +1,18 @@
-# Security policy
+# Sikkerhet
 
-MetaReady is a static demonstration using synthetic data. Do not enter confidential, personal or production information.
+MetaReady er en statisk demo med syntetiske data. Ikke legg inn fortrolig informasjon, personopplysninger eller produksjonsdata.
 
-## Supported version
+## Vedlikeholdt versjon
 
-Only the current `main` branch is maintained.
+Det er bare gjeldende `main`-gren som vedlikeholdes.
 
-## Reporting a vulnerability
+## Meld fra om en sårbarhet
 
-Open a private security advisory in the GitHub repository where available. Do not include real sensitive information in a public issue.
+Bruk en privat security advisory i GitHub-repositoriet der det er mulig. Ikke legg reelle sensitive opplysninger i en offentlig issue.
 
-## Security boundaries
+## Viktige grenser
 
-- The demo role selector is not authentication.
-- LocalStorage is not a trusted audit or records store.
-- Exported files must be reviewed before operational use.
-- Readiness results are not legal approval or security accreditation.
+- Rollevelgeren i demoen er ikke autentisering.
+- `localStorage` er ikke et pålitelig revisjons- eller arkivlager.
+- Eksporterte filer må vurderes før de brukes operativt.
+- AI-beredskap er beslutningsstøtte, ikke juridisk godkjenning eller sikkerhetsakkreditering.

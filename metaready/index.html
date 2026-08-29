@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="MetaReady gjør metadata, informasjonskvalitet, livsløp og AI-beredskap synlig og handlingsrettet.">
   <meta name="theme-color" content="#0b2339">
-  <title>MetaReady — Information Governance & AI-Readiness Workbench</title>
+  <title>MetaReady — informasjonsstyring og AI-beredskap</title>
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
@@ -16,7 +16,7 @@
         <span class="brand-mark" aria-hidden="true">M</span>
         <span>
           <strong>MetaReady</strong>
-          <small>Information Governance Workbench</small>
+          <small>Arbeidsflate for informasjonsstyring</small>
         </span>
       </a>
       <div class="topbar-actions">
@@ -37,105 +37,56 @@
 
     <aside class="sidebar" aria-label="Hovednavigasjon">
       <nav id="primary-nav">
-        <button class="nav-item is-active" type="button" data-view="overview">
-          <span aria-hidden="true">▦</span><span>Portefølje</span>
-        </button>
-        <button class="nav-item" type="button" data-view="catalog">
-          <span aria-hidden="true">≡</span><span>Informasjonskatalog</span>
-        </button>
-        <button class="nav-item" type="button" data-view="readiness">
-          <span aria-hidden="true">◎</span><span>AI-beredskap</span>
-        </button>
-        <button class="nav-item" type="button" data-view="lineage">
-          <span aria-hidden="true">⌘</span><span>Linjer og konsekvens</span>
-        </button>
-        <button class="nav-item" type="button" data-view="backlog">
-          <span aria-hidden="true">✓</span><span>Tiltakslogg</span>
-        </button>
-        <button class="nav-item" type="button" data-view="audit">
-          <span aria-hidden="true">◷</span><span>Styring og spor</span>
-        </button>
+        <button class="nav-item is-active" type="button" data-view="overview"><span aria-hidden="true">▦</span><span>Oversikt</span></button>
+        <button class="nav-item" type="button" data-view="catalog"><span aria-hidden="true">≡</span><span>Informasjonskatalog</span></button>
+        <button class="nav-item" type="button" data-view="readiness"><span aria-hidden="true">◎</span><span>AI-beredskap</span></button>
+        <button class="nav-item" type="button" data-view="lineage"><span aria-hidden="true">⌘</span><span>Linjer og konsekvens</span></button>
+        <button class="nav-item" type="button" data-view="backlog"><span aria-hidden="true">✓</span><span>Tiltakslogg</span></button>
+        <button class="nav-item" type="button" data-view="audit"><span aria-hidden="true">◷</span><span>Styring og spor</span></button>
       </nav>
       <div class="sidebar-note">
         <strong>Aktiv profil</strong>
         <span>INTERNAL_ASSET_MINIMUM_V1</span>
-        <small>Begrenset demonstrasjonsprofil — ikke samsvarssertifisering.</small>
+        <small>Begrenset demoprofil — ikke en samsvarssertifisering.</small>
       </div>
     </aside>
 
     <main id="main-content" tabindex="-1">
-      <noscript>MetaReady krever JavaScript for den interaktive demonstrasjonen.</noscript>
+      <noscript>MetaReady krever JavaScript for den interaktive demoen.</noscript>
     </main>
   </div>
 
   <dialog id="asset-dialog" aria-labelledby="asset-dialog-title">
     <form id="asset-form" method="dialog">
       <div class="dialog-header">
-        <div>
-          <p class="eyebrow">Ny registrering</p>
-          <h2 id="asset-dialog-title">Registrer informasjonsressurs</h2>
-        </div>
+        <div><p class="eyebrow">Ny registrering</p><h2 id="asset-dialog-title">Registrer informasjonsressurs</h2></div>
         <button class="icon-button" type="button" data-action="close-dialog" aria-label="Lukk">×</button>
       </div>
       <div class="form-grid">
-        <label class="field field-wide">
-          <span>Tittel *</span>
-          <input name="title" required maxlength="120">
-        </label>
-        <label class="field">
-          <span>Type *</span>
-          <select name="type" required>
-            <option>Dataset</option>
-            <option>Data service/API</option>
-            <option>Document collection</option>
-            <option>Information model</option>
-            <option>Business term</option>
-            <option>Code list</option>
-            <option>Report/analytical product</option>
-          </select>
-        </label>
-        <label class="field">
-          <span>Sensitivitet</span>
-          <select name="sensitivity">
-            <option value="">Ikke vurdert</option>
-            <option>Public</option>
-            <option>Internal</option>
-            <option>Confidential</option>
-          </select>
-        </label>
-        <label class="field field-wide">
-          <span>Formål, omfang og avgrensning *</span>
-          <textarea name="description" required rows="4" maxlength="800"></textarea>
-          <small>Minst 80 tegn kreves av aktiv profil.</small>
-        </label>
-        <label class="field">
-          <span>Ansvarlig eier</span>
-          <input name="owner" maxlength="100">
-        </label>
-        <label class="field">
-          <span>Operativ forvalter</span>
-          <input name="steward" maxlength="100">
-        </label>
-        <label class="field">
-          <span>Neste revisjon</span>
-          <input name="reviewDate" type="date" min="2026-08-28">
-        </label>
-        <label class="field">
-          <span>Oppdateringsfrekvens</span>
-          <input name="updateFrequency" placeholder="For eksempel: månedlig">
-        </label>
-        <label class="field field-wide">
-          <span>Proveniens</span>
-          <textarea name="provenance" rows="2" maxlength="500"></textarea>
-        </label>
-        <label class="field field-wide">
-          <span>Tilgangsbetingelser</span>
-          <textarea name="accessRights" rows="2" maxlength="500"></textarea>
-        </label>
-        <label class="field field-wide">
-          <span>Bevaring og kassasjon</span>
-          <textarea name="retention" rows="2" maxlength="500"></textarea>
-        </label>
+        <label class="field field-wide"><span>Tittel *</span><input name="title" required maxlength="120"></label>
+        <label class="field"><span>Type *</span><select name="type" required>
+          <option value="Dataset">Datasett</option>
+          <option value="Data service/API">Datatjeneste / API</option>
+          <option value="Document collection">Dokumentsamling</option>
+          <option value="Information model">Informasjonsmodell</option>
+          <option value="Business term">Virksomhetsbegrep</option>
+          <option value="Code list">Kodeverk</option>
+          <option value="Report/analytical product">Rapport / analyseprodukt</option>
+        </select></label>
+        <label class="field"><span>Sensitivitet</span><select name="sensitivity">
+          <option value="">Ikke vurdert</option>
+          <option value="Public">Offentlig</option>
+          <option value="Internal">Intern</option>
+          <option value="Confidential">Konfidensiell</option>
+        </select></label>
+        <label class="field field-wide"><span>Formål, omfang og avgrensning *</span><textarea name="description" required rows="4" maxlength="800"></textarea><small>Aktiv profil krever minst 80 tegn.</small></label>
+        <label class="field"><span>Ansvarlig eier</span><input name="owner" maxlength="100"></label>
+        <label class="field"><span>Operativ forvalter</span><input name="steward" maxlength="100"></label>
+        <label class="field"><span>Neste revisjon</span><input name="reviewDate" type="date" min="2026-08-28"></label>
+        <label class="field"><span>Oppdateringsfrekvens</span><input name="updateFrequency" placeholder="For eksempel: månedlig"></label>
+        <label class="field field-wide"><span>Proveniens</span><textarea name="provenance" rows="2" maxlength="500"></textarea></label>
+        <label class="field field-wide"><span>Tilgangsbetingelser</span><textarea name="accessRights" rows="2" maxlength="500"></textarea></label>
+        <label class="field field-wide"><span>Bevaring og kassasjon</span><textarea name="retention" rows="2" maxlength="500"></textarea></label>
       </div>
       <div class="dialog-actions">
         <button class="button button-quiet" type="button" data-action="close-dialog">Avbryt</button>

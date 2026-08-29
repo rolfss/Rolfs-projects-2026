@@ -1,123 +1,126 @@
 # MetaReady
 
-**Information Governance & AI-Readiness Workbench**
+**Arbeidsflate for informasjonsstyring og AI-beredskap**
 
-MetaReady is a working static demonstration of how an organization can make information ownership, metadata quality, provenance, access, lifecycle controls, lineage and AI readiness visible and actionable.
+MetaReady er en statisk nettleserapp som viser hvordan en virksomhet kan få bedre kontroll på informasjon før den deles, analyseres eller brukes i AI-løsninger.
 
-The fictional organization and all catalog content are synthetic. The application works without an API key, backend or paid service.
+Virksomheten i demoen er oppdiktet, og alle data er syntetiske. Appen trenger verken API-nøkkel, backend eller betalte tjenester.
 
-## The problem
+## Hva problemet er
 
-Organizations often launch search, analytics and AI initiatives before they can answer basic questions about the information involved:
+Det er lett å starte et søke-, analyse- eller AI-prosjekt før noen har ryddet i grunnlaget. Da dukker ganske enkle spørsmål opp:
 
-- What is this asset, and what does it mean?
-- Who owns and maintains it?
-- Is it current, authoritative and traceable?
-- Who may access it, and how should it be retained or deleted?
-- Which systems, reports and services depend on it?
-- Is it suitable for this specific AI use case?
+- Hva er denne informasjonsressursen egentlig?
+- Hvem eier og vedlikeholder den?
+- Er den oppdatert og sporbar?
+- Hvem skal ha tilgang?
+- Hvor lenge skal innholdet bevares?
+- Hvilke andre systemer og rapporter er avhengige av den?
+- Er den egnet til akkurat dette AI-bruksområdet?
 
-MetaReady turns those questions into an operational workflow rather than a policy document.
+MetaReady gjør disse spørsmålene til en arbeidsflyt i stedet for et dokument som blir liggende i en mappe.
 
-## Working capabilities
+## Det som er bygget
 
-- Searchable catalog with **24 connected synthetic information assets** across seven asset types.
-- Versioned, deterministic metadata profile with **12 explainable rules**.
-- Separate quality dimensions with formulas, evidence and confidence.
-- Use-case-specific AI-readiness assessment across **13 dimensions**.
-- Register, validate, review, approve and publish workflow.
-- Deterministic remediation that creates a new asset version and audit event.
-- Relationship graph plus an accessible tabular alternative.
-- Impact analysis for downstream assets.
-- Prioritized remediation backlog with a visible formula.
-- Markdown governance brief and CSV backlog export.
-- Demo role model for viewer, steward, information architect, approver and administrator.
-- Local persistence and one-click reset.
-- Automated tests for validation, scoring, versioning, metrics and exports.
+- Søkbar katalog med **24 sammenkoblede, syntetiske informasjonsressurser** fordelt på sju typer.
+- En versjonert metadataprofil med **12 forklarbare regler**.
+- Egne kvalitetsdimensjoner med poeng, bevis og begrunnelse.
+- Vurdering av AI-beredskap på **13 dimensjoner**.
+- Registrering, validering, vurdering, godkjenning og publisering.
+- Foreslåtte utbedringer som lager ny versjon og hendelse i revisjonssporet.
+- Relasjonsoversikt med tabell som tilgjengelig alternativ.
+- Enkel konsekvensanalyse.
+- Prioritert tiltakslogg med synlig formel.
+- Eksport av styringsnotat i Markdown og tiltak i CSV.
+- Demoroller for leser, informasjonsforvalter, informasjonsarkitekt, godkjenner og administrator.
+- Lokal lagring og enkel nullstilling.
+- Automatiske tester av validering, poengberegning, versjonering, måltall og eksport.
 
-## Run locally
+## Kjør lokalt
 
 ```bash
 cd metaready
 python -m http.server 8080
 ```
 
-Open `http://localhost:8080`.
+Åpne `http://localhost:8080`.
 
-Run the deterministic engine tests:
+Kjør testene:
 
 ```bash
 npm test
 ```
 
-No installation is required beyond Node.js 20+ for tests.
+Node.js 20 eller nyere er nok for testene.
 
-## Architecture
+## Arkitektur
 
-The deployed version is a dependency-free static application:
+Den publiserte versjonen er en statisk app uten eksterne avhengigheter:
 
-- `index.html` — semantic application shell and registration dialog.
-- `styles.css` — responsive Nordic enterprise interface.
-- `data.mjs` — deterministic synthetic catalog, relationships, backlog and audit seed.
-- `engine.mjs` — validation, quality, AI readiness, prioritization, versioning and export logic.
-- `views.mjs` — pure templates for the six workspaces.
-- `app.mjs` — state, role guards, interactions, local persistence and exports.
-- `tests/` — Node test runner coverage of core deterministic behavior.
+- `index.html` — appskall og registreringsdialog.
+- `styles.css` — responsivt grensesnitt.
+- `data.mjs` — syntetisk katalog, relasjoner, tiltak og revisjonsspor.
+- `engine.mjs` — validering, kvalitet, AI-beredskap, prioritering, versjonering og eksport.
+- `views.mjs` — visningene i appen.
+- `app.mjs` — tilstand, demoroller, hendelser, lokal lagring og eksport.
+- `tests/` — tester av den deterministiske domenelogikken.
 
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for design details and Mermaid diagrams.
+Se [ARKITEKTUR.md](./ARKITEKTUR.md) for mer om valgene.
 
-## Standards profile
+## Standardprofil
 
-MetaReady records DCAT-AP-NO **v3.0.7** as the current external reference reviewed during implementation. The application implements only a deliberately limited internal demonstration profile. It does **not** claim full DCAT-AP-NO conformity or compliance certification.
+MetaReady bruker DCAT-AP-NO **v3.0.7** som ekstern referanse. Den interne profilen i demoen er med vilje mye mindre og gjelder også dokumenter, modeller, begreper og rapporter.
 
-See [docs/standards-profile.md](./docs/standards-profile.md).
+Appen hevder **ikke** full samsvar med DCAT-AP-NO og er ingen sertifiseringsløsning.
 
-## Main demonstration path
+Se [docs/standardprofil.md](./docs/standardprofil.md).
 
-1. Open **Informasjonskatalog**.
-2. Select **Legacy procedure archive**.
-3. Open its governance view and inspect missing ownership, provenance, review, access and lifecycle evidence.
-4. Apply a demonstrated remediation and observe version and audit updates.
-5. Open **AI-beredskap**, select **Retrieval-augmented assistant**, and inspect evidence by dimension.
-6. Create remediation items from blockers.
-7. Open **Linjer og konsekvens**, trace relationships, and export a governance brief.
+## En kort runde gjennom demoen
 
-See [docs/demo-script.md](./docs/demo-script.md) for 90-second and five-minute scripts.
+1. Åpne **Informasjonskatalog**.
+2. Velg **Eldre prosedyrearkiv**.
+3. Se hva som mangler av eierskap, proveniens, revisjon, tilgang og livsløp.
+4. Bruk ett foreslått tiltak og se at versjon og revisjonsspor endres.
+5. Åpne **AI-beredskap**, velg **Kunnskapsassistent med RAG**, og gå gjennom bevisene.
+6. Opprett tiltak fra sperrene.
+7. Åpne **Linjer og konsekvens**, se relasjonene og eksporter et styringsnotat.
 
-## Security and privacy
+Se [docs/demoflyt.md](./docs/demoflyt.md) for en litt mer detaljert gjennomgang.
 
-- Synthetic content only.
-- No external API calls.
-- No authentication claims: the role selector demonstrates authorization concepts in static mode.
-- No personal data processing.
-- Export values are escaped to reduce spreadsheet formula injection risk.
-- User-entered text is escaped before rendering.
+## Sikkerhet og personvern
 
-See [SECURITY.md](./SECURITY.md) and [docs/threat-model.md](./docs/threat-model.md).
+- Bare syntetisk innhold.
+- Ingen eksterne API-kall.
+- Rollevelgeren er en demonstrasjon, ikke autentisering.
+- Ingen behandling av personopplysninger.
+- CSV-eksport nøytraliserer farlige første tegn for å redusere risiko for formelinjeksjon.
+- Tekst som brukeren skriver inn, escapes før den vises som HTML.
 
-## Limitations
+Se [SECURITY.md](./SECURITY.md) og [docs/trusselmodell.md](./docs/trusselmodell.md).
 
-- Static-mode permissions are a UX simulation, not server-side authorization.
-- LocalStorage is suitable for a portfolio demonstration, not regulated production records.
-- The relationship graph supports direct relationships, not full graph traversal or graph persistence.
-- Standards mapping is partial and illustrative.
-- Readiness results are governance triage, not legal approval, security accreditation or model certification.
-- PDF-ready output is represented by print-friendly HTML and Markdown export; no server-side PDF renderer is included.
+## Begrensninger
 
-## Roadmap
+- Demorollene håndheves bare i nettleseren.
+- `localStorage` er ikke et egnet arkiv- eller revisjonssystem for produksjon.
+- Relasjonsvisningen viser direkte relasjoner, ikke vilkårlig graftraversering.
+- Standardkartleggingen er delvis.
+- AI-vurderingen er beslutningsstøtte, ikke juridisk godkjenning eller sikkerhetsakkreditering.
+- Utskriftsvennlig HTML og Markdown brukes i stedet for en egen PDF-tjeneste.
 
-A production pilot would add a FastAPI service, PostgreSQL, enterprise identity, server-enforced roles, append-only audit storage, imports with mapping preview, JSON-LD/RDF export, full profile configuration, richer version comparison and integration tests.
+## Videre arbeid
 
-## Documentation
+En produksjonspilot kunne fått FastAPI, PostgreSQL, virksomhetsidentitet, serverhåndhevede roller, uforanderlig hendelseslogg, import med forhåndsvisning, JSON-LD/RDF-eksport og flere integrasjonstester.
 
-- [Architecture](./ARCHITECTURE.md)
-- [Case study](./CASE_STUDY.md)
-- [AI-readiness model](./docs/ai-readiness-model.md)
-- [Standards profile](./docs/standards-profile.md)
-- [Threat model](./docs/threat-model.md)
-- [Demo script](./docs/demo-script.md)
-- [Evidence-based CV bullets](./CV_BULLETS.md)
+## Dokumentasjon
 
-## License
+- [Arkitektur](./ARKITEKTUR.md)
+- [Prosjekteksempel](./PROSJEKTEKSEMPEL.md)
+- [AI-beredskapsmodell](./docs/ai-beredskap.md)
+- [Standardprofil](./docs/standardprofil.md)
+- [Trusselmodell](./docs/trusselmodell.md)
+- [Demoflyt](./docs/demoflyt.md)
+- [Prosjektnotater](./PROSJEKTNOTATER.md)
 
-MIT. See [LICENSE](./LICENSE).
+## Lisens
+
+MIT. Se [LICENSE](./LICENSE).
