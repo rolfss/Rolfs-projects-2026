@@ -7,6 +7,7 @@ on:
     paths:
       - "site/**"
       - "metaready/**"
+      - "lumen-relay/**"
       - "npv-postverksted/**"
       - ".github/workflows/deploy-pages.yml"
   workflow_dispatch:
@@ -39,14 +40,20 @@ jobs:
         working-directory: ./metaready
         run: npm test
 
+      - name: Test Lumen Relay
+        working-directory: ./lumen-relay
+        run: npm test && npm run check
+
       - name: Assemble static site
         run: |
           rm -rf _site
           mkdir -p _site
           cp -R site/. _site/
           cp -R metaready _site/metaready
+          cp -R lumen-relay _site/lumen-relay
           cp -R npv-postverksted _site/npv-postverksted
           rm -rf _site/metaready/tests _site/metaready/package.json _site/metaready/README.md
+          rm -rf _site/lumen-relay/tests _site/lumen-relay/package.json _site/lumen-relay/README.md _site/lumen-relay/DESIGN.md _site/lumen-relay/LICENSE
           touch _site/.nojekyll
 
       - name: Configure GitHub Pages
