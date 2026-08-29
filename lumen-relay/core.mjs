@@ -1,7 +1,7 @@
 export const SIGNALS = Object.freeze([
-  Object.freeze({ id: 'circle', label: 'Pulse', glyph: '●', color: '#5de4ff', glow: 'rgba(93, 228, 255, .7)' }),
-  Object.freeze({ id: 'triangle', label: 'Vector', glyph: '▲', color: '#ffd166', glow: 'rgba(255, 209, 102, .7)' }),
-  Object.freeze({ id: 'square', label: 'Frame', glyph: '■', color: '#b69cff', glow: 'rgba(182, 156, 255, .7)' }),
+  Object.freeze({ id: 'circle', label: 'Puls', glyph: '●', color: '#5de4ff', glow: 'rgba(93, 228, 255, .7)' }),
+  Object.freeze({ id: 'triangle', label: 'Vektor', glyph: '▲', color: '#ffd166', glow: 'rgba(255, 209, 102, .7)' }),
+  Object.freeze({ id: 'square', label: 'Ramme', glyph: '■', color: '#b69cff', glow: 'rgba(182, 156, 255, .7)' }),
 ]);
 
 export function clamp(value, min, max) {
@@ -60,7 +60,7 @@ export function deliveryScore({ combo = 0, lifetime = 0, maxLifetime = 1 } = {})
 }
 
 export function formatScore(value) {
-  return Math.max(0, Math.round(value)).toLocaleString('en-US');
+  return Math.max(0, Math.round(value)).toLocaleString('nb-NO');
 }
 
 export function chooseSpawnPoint({ width, height, margin = 80, avoid = [], random = Math.random, attempts = 40 }) {

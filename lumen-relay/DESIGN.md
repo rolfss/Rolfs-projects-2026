@@ -1,53 +1,53 @@
-# Lumen Relay — design notes
+# Lumen Relay — designnotater
 
-## Core loop
+## Grunnsløyfen
 
-The player repeatedly reads a fragment's shape, reaches it, carries it across a hazardous field and completes the route at the matching gate. Each trip creates three small decisions:
+Spilleren leser formen på et fragment, henter det, krysser et felt med bevegelig interferens og leverer det til riktig port. På hver tur dukker tre små valg opp:
 
-1. Which fragment is safest to collect?
-2. Which path avoids the moving interference?
-3. Should dash be used now or saved for the return route?
+1. Hvilket fragment er tryggest å hente?
+2. Hvilken rute går utenom interferensen?
+3. Bør dash brukes nå, eller spares til returen?
 
-The loop stays legible because the player carries only one fragment and the three destinations never change position during a run.
+Du kan bare bære ett fragment om gangen, og de tre portene står på samme sted gjennom runden. Det gjør spillet lett å lese selv når tempoet øker.
 
-## Difficulty
+## Vanskelighetsgrad
 
-Difficulty advances every five successful deliveries. Each wave changes several independent values:
+Etter fem vellykkede leveringer går spillet til neste bølge. Flere ting endres samtidig:
 
-- fragment spawn interval;
-- fragment lifetime;
-- number of interference entities;
-- interference speed;
-- steering strength.
+- hvor ofte fragmenter dukker opp;
+- hvor lenge de blir liggende;
+- hvor mye interferens som finnes;
+- hastigheten på interferensen;
+- hvor kraftig den styrer.
 
-The pure `difficultyFor()` function keeps this progression inspectable and testable.
+Funksjonen `difficultyFor()` holder denne utviklingen enkel å inspisere og teste.
 
-## Scoring
+## Poeng
 
-A delivery starts at 100 points. Remaining fragment lifetime creates a speed bonus. Consecutive deliveries raise the multiplier by 0.25, capped at an eight-delivery chain. Contact with interference resets the chain.
+En levering starter på 100 poeng. Gjenstående levetid gir en fartsbonus. Leveringer på rad øker multiplikatoren med 0,25, opptil en rekke på åtte. Treffer du interferens, brytes rekken.
 
-This rewards fast routing without making a slow correct delivery worthless.
+Tanken er å belønne raske ruter uten å gjøre en treg, men riktig levering verdiløs.
 
-## Input model
+## Inndata
 
-Keyboard movement is direct. Pointer input uses press-and-drag steering toward a world-space target. Both feed the same normalized movement vector, so the simulation remains input-device independent.
+Tastatur gir direkte bevegelse. Med mus eller berøring styrer spilleren mot et punkt i spillverdenen. Begge ender i samme normaliserte bevegelsesvektor, så selve simuleringen er uavhengig av inndataenheten.
 
-Dash is a short speed and invulnerability window followed by a visible cooldown. It is defensive rather than an attack; interference is deflected but not destroyed.
+Dash gir et kort vindu med høy fart og midlertidig beskyttelse, etterfulgt av nedkjøling. Det er et defensivt verktøy: interferensen skyves unna, men ødelegges ikke.
 
-## Visual language
+## Visuelt språk
 
-The arena uses three redundant signal encodings:
+Arenaen bruker tre signaler som skiller seg både med form og farge:
 
-- cyan circle;
-- amber triangle;
-- violet square.
+- cyan sirkel;
+- ravgul trekant;
+- fiolett firkant.
 
-Interference uses irregular red forms, while the player is a bright directional diamond. A dotted route guide appears only while carrying a fragment.
+Interferens tegnes som ujevne røde former. Spilleren er en lys diamant med retning. En stiplet rute vises bare når spilleren bærer et fragment.
 
-All art is rendered at runtime. No image, font, audio or shader files are required.
+All grafikk tegnes mens spillet kjører. Det trengs ingen bilde-, font-, lyd- eller shaderfiler.
 
-## State and failure handling
+## Tilstand og feil
 
-The game has four explicit phases: `intro`, `playing`, `paused` and `gameover`. Hidden tabs pause automatically. Frame deltas are capped to prevent a long inactive frame from moving entities through the player.
+Spillet har fire tydelige faser: `intro`, `playing`, `paused` og `gameover`. Dette er interne tilstandsnavn. En skjult fane setter spillet på pause automatisk. Tidssteget begrenses slik at en lang pause mellom to bilder ikke flytter objekter tvers gjennom spilleren.
 
-Local storage access is guarded so restricted storage contexts do not prevent play. Audio is created only after user interaction and can be disabled.
+Tilgang til lokal lagring er pakket inn slik at spillet fortsatt fungerer hvis lagring er blokkert. Lyd opprettes først etter brukerinteraksjon og kan slås av.

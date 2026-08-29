@@ -1,60 +1,60 @@
 # Lumen Relay
 
-A compact signal-routing arcade game built for the browser with Canvas 2D, Web Audio and native JavaScript modules.
+Et lite arkadespill om signalruting, laget for nettleseren med Canvas 2D, Web Audio og vanlige JavaScript-moduler.
 
-## Play
+## Spill
 
-After deployment, open:
+Den publiserte versjonen ligger her:
 
 `https://rolfss.github.io/Rolfs-projects-2026/lumen-relay/`
 
-## Rules
+## Regler
 
-- Collect a glowing signal fragment.
-- Deliver it to the gate with the same symbol.
-- Complete deliveries quickly to build a score chain.
-- Avoid interference or dash through it while protected.
-- Survive the full 90-second run.
+- Samle et lysende signalfragment.
+- Lever det til porten med samme symbol.
+- Raske leveringer bygger opp poengrekken.
+- Unngå interferens, eller bruk dash når du må gjennom den.
+- En hel runde varer i 90 sekunder.
 
-The symbols—circle, triangle and square—make matching readable without relying on color alone.
+Sirkel, trekant og firkant gjør at signalene kan skilles fra hverandre uten at farge er avgjørende.
 
-## Controls
+## Kontroller
 
-| Input | Action |
+| Inndata | Handling |
 |---|---|
-| WASD / arrow keys | Move |
-| Space | Dash |
+| WASD / piltaster | Beveg deg |
+| Mellomrom | Dash |
 | P / Escape | Pause |
-| M | Toggle sound |
-| Pointer drag | Steer |
-| Double-click / Dash button | Dash |
+| M | Lyd av/på |
+| Dra med mus eller finger | Styr |
+| Dobbeltklikk / Dash-knapp | Dash |
 
-## Technical outline
+## Teknisk
 
-- High-DPI responsive Canvas rendering.
-- Fixed-duration game loop with capped frame deltas.
-- Seeded random helpers and deterministic domain tests.
-- Progressive wave and spawn system.
-- Particle, trail, glow, screen-shake and score-feedback effects.
-- Generated Web Audio cues with no downloaded media.
-- Keyboard, mouse and touch input.
-- Color-and-shape signal encoding.
-- Local best-score and sound preferences.
-- Automatic pause when the page is hidden.
-- Reduced-motion behavior.
-- No framework, build step, API key or external asset dependency.
+- Responsiv Canvas-rendering med støtte for høy pikseltetthet.
+- Spilløkke med fast rundelengde og begrenset tidssteg mellom bilder.
+- Seedet tilfeldighetsgenerator og deterministiske tester.
+- Bølger og gradvis økende vanskelighetsgrad.
+- Partikler, spor, glød, skjermristing og poengfeedback.
+- Lydeffekter genereres med Web Audio. Ingen lydfiler lastes ned.
+- Tastatur, mus og berøring bruker samme spillmodell.
+- Signaler kodes både med form og farge.
+- Beste poengsum og lydvalg lagres lokalt.
+- Spillet pauses automatisk når fanen skjules.
+- Tar hensyn til redusert bevegelse i operativsystemet.
+- Ingen rammeverk, byggetrinn, API-nøkkel eller eksterne ressurser.
 
-## Development
+## Kjør lokalt
 
-Serve the repository root or this directory with a local HTTP server. JavaScript modules do not run correctly from every browser's `file://` mode.
+Kjør en enkel HTTP-server fra repo-roten eller denne mappen. JavaScript-moduler fungerer ikke riktig fra `file://` i alle nettlesere.
 
 ```bash
 python -m http.server 8000
 ```
 
-Then open `http://localhost:8000/lumen-relay/`.
+Åpne deretter `http://localhost:8000/lumen-relay/`.
 
-Run the checks with Node 22 or newer:
+Kjør testene med Node 22 eller nyere:
 
 ```bash
 cd lumen-relay
@@ -62,16 +62,17 @@ npm test
 npm run check
 ```
 
-## Structure
+## Filer
 
-- `index.html` — interface, overlays, HUD and accessible text.
-- `styles.css` — responsive layout and visual system.
-- `game.mjs` — state machine, input, simulation and rendering.
-- `core.mjs` — pure scoring, difficulty, geometry and random helpers.
-- `audio.mjs` — generated sound effects.
-- `tests/` — automated tests for the pure game rules.
-- `DESIGN.md` — gameplay and implementation decisions.
+- `index.html` — grensesnitt, HUD, dialoger og tilgjengelig tekst.
+- `styles.css` — layout og visuell utforming.
+- `game.mjs` — spilltilstand, inndata, simulering og tegning.
+- `core.mjs` — poeng, vanskelighetsgrad, geometri og tilfeldighetsfunksjoner.
+- `audio.mjs` — genererte lydeffekter.
+- `nb.mjs` — norsk tekst for dynamiske spillmeldinger.
+- `tests/` — automatiske tester av spillreglene.
+- `DESIGN.md` — notater om spilldesign og tekniske valg.
 
-## Data and privacy
+## Data og personvern
 
-The game sends no analytics and makes no network requests. It stores only the local best score and sound preference in the browser.
+Spillet sender ingen analyse- eller bruksdata og gjør ingen nettverkskall. Det lagrer bare beste poengsum og lydvalg lokalt i nettleseren.

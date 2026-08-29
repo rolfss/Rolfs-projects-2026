@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="en">
+<html lang="nb">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="description" content="Lumen Relay is a compact browser arcade game about routing signals through a field of interference.">
+  <meta name="description" content="Lumen Relay er et lite arkadespill om å rute signaler gjennom et felt med interferens.">
   <meta name="theme-color" content="#050914">
-  <title>Lumen Relay — browser arcade game</title>
+  <title>Lumen Relay — nettleserspill</title>
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
@@ -13,42 +13,42 @@
   <div class="ambient ambient-two" aria-hidden="true"></div>
 
   <header class="topbar">
-    <a class="brand" href="../" aria-label="Back to selected work">
+    <a class="brand" href="../" aria-label="Tilbake til prosjektoversikten">
       <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
-      <span><strong>Lumen Relay</strong><small>signal-routing arcade</small></span>
+      <span><strong>Lumen Relay</strong><small>arkadespill om signalruting</small></span>
     </a>
-    <nav aria-label="Game options">
-      <button id="instructionsButton" type="button">How to play</button>
-      <button id="soundButton" type="button" aria-pressed="true">Sound: on</button>
-      <button id="fullscreenButton" type="button">Fullscreen</button>
+    <nav aria-label="Spillvalg">
+      <button id="instructionsButton" type="button">Slik spiller du</button>
+      <button id="soundButton" type="button" aria-pressed="true">Lyd: på</button>
+      <button id="fullscreenButton" type="button">Fullskjerm</button>
     </nav>
   </header>
 
   <main>
     <section class="game-intro" aria-labelledby="page-title">
       <div>
-        <p class="eyebrow">A 90-second signal run</p>
-        <h1 id="page-title">Keep the network alive.</h1>
+        <p class="eyebrow">En signalrunde på 90 sekunder</p>
+        <h1 id="page-title">Hold nettet i live.</h1>
       </div>
-      <p>Collect each fragment, route it to the matching gate, and dash through the interference before the field collapses.</p>
+      <p>Samle fragmenter, send dem til riktig port og bruk dash gjennom interferensen før feltet bryter sammen.</p>
     </section>
 
-    <section id="gameShell" class="game-shell" aria-label="Lumen Relay game">
+    <section id="gameShell" class="game-shell" aria-label="Lumen Relay-spill">
       <div class="game-frame">
-        <canvas id="gameCanvas" tabindex="0" aria-label="Game arena. Use W A S D or the arrow keys to move. Press Space to dash."></canvas>
+        <canvas id="gameCanvas" tabindex="0" aria-label="Spillarena. Bruk WASD eller piltastene for å bevege deg. Trykk mellomrom for dash."></canvas>
 
         <div class="hud" aria-hidden="true">
           <div class="hud-group">
-            <div class="hud-item"><span>Score</span><strong id="scoreValue">0</strong></div>
-            <div class="hud-item"><span>Best</span><strong id="bestValue">0</strong></div>
+            <div class="hud-item"><span>Poeng</span><strong id="scoreValue">0</strong></div>
+            <div class="hud-item"><span>Beste</span><strong id="bestValue">0</strong></div>
           </div>
           <div class="hud-center">
-            <span id="waveValue">Wave 1</span>
-            <strong id="timeValue">90.0</strong>
+            <span id="waveValue">Bølge 1</span>
+            <strong id="timeValue">90,0</strong>
           </div>
           <div class="hud-group hud-group-right">
-            <div class="hud-item"><span>Chain</span><strong id="comboValue">×1.00</strong></div>
-            <div class="hud-item integrity-item"><span>Integrity</span><strong id="integrityValue" aria-label="Three integrity remaining">◆ ◆ ◆</strong></div>
+            <div class="hud-item"><span>Rekke</span><strong id="comboValue">×1,00</strong></div>
+            <div class="hud-item integrity-item"><span>Integritet</span><strong id="integrityValue" aria-label="Tre integritet igjen">◆ ◆ ◆</strong></div>
           </div>
         </div>
 
@@ -57,25 +57,25 @@
         </div>
 
         <button id="dashButton" class="dash-button" type="button" aria-label="Dash">Dash</button>
-        <button id="pauseButton" class="pause-button" type="button" aria-label="Pause game">Ⅱ</button>
+        <button id="pauseButton" class="pause-button" type="button" aria-label="Sett spillet på pause">Ⅱ</button>
 
         <div id="gameOverlay" class="game-overlay is-visible">
           <div class="overlay-card">
-            <p id="overlayEyebrow" class="overlay-eyebrow">System ready</p>
-            <h2 id="overlayTitle">Route the light.</h2>
-            <p id="overlayCopy">Pick up glowing fragments and deliver them to the gate with the same symbol. Build a chain, protect your integrity, and use dash to pass safely through interference.</p>
-            <div class="signal-key" aria-label="Signal types">
-              <span><i class="signal-circle">●</i> Pulse</span>
-              <span><i class="signal-triangle">▲</i> Vector</span>
-              <span><i class="signal-square">■</i> Frame</span>
+            <p id="overlayEyebrow" class="overlay-eyebrow">System klart</p>
+            <h2 id="overlayTitle">Rut lyset.</h2>
+            <p id="overlayCopy">Plukk opp lysende fragmenter og lever dem til porten med samme symbol. Bygg en rekke, behold integriteten og bruk dash for å komme trygt gjennom interferens.</p>
+            <div class="signal-key" aria-label="Signaltyper">
+              <span><i class="signal-circle">●</i> Puls</span>
+              <span><i class="signal-triangle">▲</i> Vektor</span>
+              <span><i class="signal-square">■</i> Ramme</span>
             </div>
             <div id="resultGrid" class="result-grid" hidden>
-              <div><span>Final score</span><strong id="finalScore">0</strong></div>
-              <div><span>Best chain</span><strong id="finalCombo">×1</strong></div>
-              <div><span>Delivered</span><strong id="finalDeliveries">0</strong></div>
+              <div><span>Sluttpoeng</span><strong id="finalScore">0</strong></div>
+              <div><span>Beste rekke</span><strong id="finalCombo">×1</strong></div>
+              <div><span>Levert</span><strong id="finalDeliveries">0</strong></div>
             </div>
-            <button id="primaryButton" class="primary-button" type="button">Start run</button>
-            <p class="control-note"><kbd>WASD</kbd> / <kbd>Arrows</kbd> move · <kbd>Space</kbd> dash · drag to steer on touch</p>
+            <button id="primaryButton" class="primary-button" type="button">Start runde</button>
+            <p class="control-note"><kbd>WASD</kbd> / <kbd>Piltaster</kbd> flytter · <kbd>Mellomrom</kbd> gir dash · dra for å styre på berøringsskjerm</p>
           </div>
         </div>
 
@@ -83,31 +83,31 @@
       </div>
     </section>
 
-    <section class="game-notes" aria-label="Game details">
-      <div><span>01</span><strong>Match</strong><p>Every fragment has a symbol and a corresponding gate.</p></div>
-      <div><span>02</span><strong>Chain</strong><p>Quick, correct deliveries increase the score multiplier.</p></div>
-      <div><span>03</span><strong>Dash</strong><p>A well-timed dash passes through interference without damage.</p></div>
-      <div><span>04</span><strong>Adapt</strong><p>The field becomes faster and denser with every five deliveries.</p></div>
+    <section class="game-notes" aria-label="Spillregler">
+      <div><span>01</span><strong>Match</strong><p>Hvert fragment har et symbol og en port som passer til det.</p></div>
+      <div><span>02</span><strong>Rekke</strong><p>Raske og riktige leveringer øker poengmultiplikatoren.</p></div>
+      <div><span>03</span><strong>Dash</strong><p>Et godt timet dash lar deg gå gjennom interferens uten skade.</p></div>
+      <div><span>04</span><strong>Tilpass</strong><p>Feltet blir raskere og tettere for hver femte levering.</p></div>
     </section>
   </main>
 
   <dialog id="instructionsDialog">
     <form method="dialog" class="dialog-card">
       <div class="dialog-heading">
-        <div><p class="eyebrow">Field manual</p><h2>How to play</h2></div>
-        <button class="close-button" aria-label="Close instructions">×</button>
+        <div><p class="eyebrow">Feltmanual</p><h2>Slik spiller du</h2></div>
+        <button class="close-button" aria-label="Lukk instruksjonene">×</button>
       </div>
       <ol>
-        <li><strong>Collect a fragment.</strong><span>Move through a glowing circle, triangle, or square. You can carry one at a time.</span></li>
-        <li><strong>Find its matching gate.</strong><span>Deliver the fragment to the same symbol at the edge of the arena.</span></li>
-        <li><strong>Avoid interference.</strong><span>Contact costs integrity, breaks your chain, and drops the fragment.</span></li>
-        <li><strong>Use dash deliberately.</strong><span>Press Space or the Dash button. You are protected for a brief moment, followed by a cooldown.</span></li>
+        <li><strong>Hent et fragment.</strong><span>Beveg deg gjennom en lysende sirkel, trekant eller firkant. Du kan bære ett om gangen.</span></li>
+        <li><strong>Finn riktig port.</strong><span>Lever fragmentet til samme symbol langs kanten av arenaen.</span></li>
+        <li><strong>Unngå interferens.</strong><span>Et treff koster integritet, bryter rekken og gjør at du mister fragmentet.</span></li>
+        <li><strong>Bruk dash med vilje.</strong><span>Trykk mellomrom eller Dash-knappen. Du er beskyttet et kort øyeblikk før evnen må lades opp igjen.</span></li>
       </ol>
       <div class="controls-grid">
-        <div><span>Keyboard</span><strong>WASD / Arrows</strong><small>Move</small></div>
-        <div><span>Keyboard</span><strong>Space</strong><small>Dash</small></div>
-        <div><span>Keyboard</span><strong>P / Esc</strong><small>Pause</small></div>
-        <div><span>Touch / mouse</span><strong>Drag in arena</strong><small>Steer</small></div>
+        <div><span>Tastatur</span><strong>WASD / Piltaster</strong><small>Beveg</small></div>
+        <div><span>Tastatur</span><strong>Mellomrom</strong><small>Dash</small></div>
+        <div><span>Tastatur</span><strong>P / Esc</strong><small>Pause</small></div>
+        <div><span>Berøring / mus</span><strong>Dra i arenaen</strong><small>Styr</small></div>
       </div>
     </form>
   </dialog>
@@ -115,11 +115,12 @@
   <p id="liveStatus" class="sr-only" aria-live="polite"></p>
 
   <footer>
-    <a href="../">← Selected work</a>
-    <span>Built with Canvas, Web Audio and native browser APIs.</span>
-    <a href="https://github.com/rolfss/Rolfs-projects-2026/tree/main/lumen-relay">Source</a>
+    <a href="../">← Prosjektoversikt</a>
+    <span>Laget med Canvas, Web Audio og vanlige nettleser-API-er.</span>
+    <a href="https://github.com/rolfss/Rolfs-projects-2026/tree/main/lumen-relay">Kildekode</a>
   </footer>
 
   <script type="module" src="./game.mjs"></script>
+  <script type="module" src="./nb.mjs"></script>
 </body>
 </html>

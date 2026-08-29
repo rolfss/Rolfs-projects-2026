@@ -11,13 +11,13 @@ import {
   normalize,
 } from '../core.mjs';
 
-test('clamp keeps values inside a range', () => {
+test('clamp holder verdier innenfor et intervall', () => {
   assert.equal(clamp(-4, 0, 10), 0);
   assert.equal(clamp(14, 0, 10), 10);
   assert.equal(clamp(6, 0, 10), 6);
 });
 
-test('normalize handles zero and non-zero vectors', () => {
+test('normalize håndterer både nullvektor og vanlige vektorer', () => {
   assert.deepEqual(normalize(0, 0), { x: 0, y: 0, length: 0 });
   const vector = normalize(3, 4);
   assert.equal(vector.length, 5);
@@ -25,20 +25,20 @@ test('normalize handles zero and non-zero vectors', () => {
   assert.equal(vector.y, 0.8);
 });
 
-test('seeded random generator is deterministic', () => {
+test('seedet tilfeldig generator gir samme resultat hver gang', () => {
   const left = mulberry32(42);
   const right = mulberry32(42);
   assert.deepEqual([left(), left(), left()], [right(), right(), right()]);
 });
 
-test('difficulty rises in waves and remains bounded', () => {
+test('vanskelighetsgraden øker i bølger og holder seg innenfor grensene', () => {
   assert.equal(difficultyFor(0).wave, 1);
   assert.equal(difficultyFor(5).wave, 2);
   assert.equal(difficultyFor(250).interferenceCount, 10);
   assert.ok(difficultyFor(250).packetInterval >= 1.15);
 });
 
-test('delivery scoring rewards speed and a longer combo', () => {
+test('poengsystemet belønner fart og lengre rekker', () => {
   const quick = deliveryScore({ combo: 0, lifetime: 10, maxLifetime: 10 });
   const late = deliveryScore({ combo: 0, lifetime: 1, maxLifetime: 10 });
   const streak = deliveryScore({ combo: 4, lifetime: 10, maxLifetime: 10 });
@@ -47,19 +47,19 @@ test('delivery scoring rewards speed and a longer combo', () => {
   assert.equal(streak.nextCombo, 5);
 });
 
-test('circle collision includes radii and optional padding', () => {
+test('sirkelkollisjon tar hensyn til radius og ekstra klaring', () => {
   const a = { x: 0, y: 0, radius: 5 };
   const b = { x: 11, y: 0, radius: 5 };
   assert.equal(circlesOverlap(a, b), false);
   assert.equal(circlesOverlap(a, b, 1), true);
 });
 
-test('formatScore produces a stable, readable score', () => {
-  assert.equal(formatScore(12345.4), '12,345');
+test('formatScore gir en stabil og lesbar poengsum', () => {
+  assert.equal(formatScore(12345.4).replace(/\s/g, ' '), '12 345');
   assert.equal(formatScore(-1), '0');
 });
 
-test('spawn points honor avoid zones when room exists', () => {
+test('nye fragmenter unngår sperresoner når det finnes plass', () => {
   const random = mulberry32(7);
   const point = chooseSpawnPoint({
     width: 900,

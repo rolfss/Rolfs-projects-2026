@@ -1,41 +1,41 @@
-# Rolf Selås — selected digital projects
+# Rolf Selås — digitale prosjekter fra 2026
 
-[Open the live project site](https://rolfss.github.io/Rolfs-projects-2026/)
+[Åpne prosjektsiden](https://rolfss.github.io/Rolfs-projects-2026/)
 
 ## Lumen Relay
 
-**Playable signal-routing arcade game**
+**Lite nettleserspill om signalruting**
 
-[Play Lumen Relay](https://rolfss.github.io/Rolfs-projects-2026/lumen-relay/) · [Source and design notes](./lumen-relay/)
+[Spill Lumen Relay](https://rolfss.github.io/Rolfs-projects-2026/lumen-relay/) · [Kildekode og designnotater](./lumen-relay/)
 
-Lumen Relay is a 90-second browser game built with Canvas 2D, Web Audio and native JavaScript modules. Route shape-coded fragments to matching gates, build a score chain and dash through escalating interference.
+Lumen Relay er et 90-sekunders arkadespill laget med Canvas 2D, Web Audio og vanlige JavaScript-moduler. Du samler signalfragmenter, leverer dem til riktig port og prøver å holde poengrekken i gang mens feltet blir vanskeligere.
 
-- Responsive high-DPI rendering.
-- Keyboard, mouse and touch controls.
-- Progressive waves, scoring, collisions, particles and generated sound.
-- Local high score, pause handling and reduced-motion behavior.
-- Eight automated tests for scoring, difficulty, geometry and seeded spawning.
-- No framework, API key or external media dependency.
+- Tilpasser seg skjermstørrelse og høy pikseltetthet.
+- Kan spilles med tastatur, mus og berøring.
+- Har bølger, poengsystem, kollisjoner, partikler og generert lyd.
+- Lagrer beste poengsum lokalt.
+- Åtte automatiske tester av spillreglene.
+- Ingen rammeverk, API-nøkkel eller eksterne mediefiler.
 
 ## MetaReady
 
-**Information Governance & AI-Readiness Workbench**
+**Arbeidsflate for informasjonsstyring og AI-beredskap**
 
-[Launch MetaReady](https://rolfss.github.io/Rolfs-projects-2026/metaready/) · [Source and documentation](./metaready/)
+[Åpne MetaReady](https://rolfss.github.io/Rolfs-projects-2026/metaready/) · [Kildekode og dokumentasjon](./metaready/)
 
-MetaReady is a working browser application for making information ownership, metadata quality, provenance, access, lifecycle, lineage and AI readiness visible and actionable.
+MetaReady er en nettleserapp for å få oversikt over eierskap, metadata, proveniens, tilgang, livsløp, relasjoner og hvor egnet informasjon er for ulike AI-bruksområder.
 
-- 24 connected synthetic information assets across seven types.
-- 12 explainable validation rules.
-- 10 separate quality dimensions.
-- 13 use-case-specific AI-readiness dimensions.
-- Registration, workflow, versioning, remediation, audit and exports.
-- Direct relationship graph with accessible tabular alternative.
-- Local persistence, role simulation and deterministic reset.
-- Eight automated domain-engine tests.
+- 24 sammenkoblede, syntetiske informasjonsressurser fordelt på sju typer.
+- 12 forklarbare valideringsregler.
+- 10 kvalitetsdimensjoner.
+- 13 dimensjoner for AI-beredskap.
+- Registrering, arbeidsflyt, versjonering, tiltak, revisjonsspor og eksport.
+- Relasjonsoversikt med tabell som alternativ.
+- Lokal lagring og enkel nullstilling.
+- Åtte automatiske tester av domenelogikken.
 
 ## NPV Postverksted
 
-A browser-based communication tool for producing structured, scientifically responsible Norwegian social-media drafts.
+Et nettleserverktøy for å lage korte, forskningsnære utkast til sosiale medier for Norsk Psykedelisk Vitenskap.
 
-[Open NPV Postverksted](https://rolfss.github.io/Rolfs-projects-2026/npv-postverksted/)
+[Åpne NPV Postverksted](https://rolfss.github.io/Rolfs-projects-2026/npv-postverksted/)
