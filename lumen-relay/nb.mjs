@@ -36,6 +36,15 @@ function translated(value) {
   return text;
 }
 
+function textForNode(node) {
+  let next = translated(node.nodeValue);
+  const parent = node.parentElement;
+  if (parent && ['timeValue', 'comboValue', 'dashButton'].includes(parent.id)) {
+    next = next.replace('.', ',');
+  }
+  return next;
+}
+
 function localizeElement(element) {
   for (const attribute of ['aria-label', 'title', 'placeholder']) {
     if (element.hasAttribute?.(attribute)) {
@@ -50,7 +59,7 @@ function localize(root) {
   if (root.nodeType === Node.TEXT_NODE) {
     const parent = root.parentElement;
     if (!parent || ['SCRIPT', 'STYLE'].includes(parent.tagName)) return;
-    const next = translated(root.nodeValue);
+    const next = textForNode(root);
     if (next !== root.nodeValue) root.nodeValue = next;
     return;
   }
@@ -62,7 +71,7 @@ function localize(root) {
     if (node.nodeType === Node.TEXT_NODE) {
       const parent = node.parentElement;
       if (!parent || ['SCRIPT', 'STYLE'].includes(parent.tagName)) continue;
-      const next = translated(node.nodeValue);
+      const next = textForNode(node);
       if (next !== node.nodeValue) node.nodeValue = next;
     } else localizeElement(node);
   }
@@ -72,6 +81,7 @@ localize(document);
 new MutationObserver((mutations) => {
   for (const mutation of mutations) {
     if (mutation.type === 'characterData') localize(mutation.target);
+    if (mutation.type === 'attributes') localizeElement(mutation.target);
     for (const node of mutation.addedNodes) localize(node);
   }
 }).observe(document.documentElement, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['aria-label', 'title', 'placeholder'] });
