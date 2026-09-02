@@ -37,7 +37,7 @@ jobs:
         run: |
           set -euo pipefail
           rm -rf .archive-assist-bootstrap
-          rm -f .github/workflows/archive-assist-bootstrap.yml
+          git restore --source=HEAD -- .github/workflows
           git config user.name "Rolf Selås"
           git config user.email "64554963+rolfss@users.noreply.github.com"
           git add -A
