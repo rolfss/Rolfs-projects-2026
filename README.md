@@ -19,6 +19,23 @@ Archive Assist er en nettleserapp for å beskrive, kontrollere og pakke filer me
 - Tre eksempelfiler for direkte testing.
 - Tolv automatiske tester av domenelogikken og ZIP-byggeren.
 
+## MetaReady
+
+**Arbeidsflate for informasjonsstyring og AI-beredskap**
+
+[Åpne MetaReady](https://rolfss.github.io/Rolfs-projects-2026/metaready/) · [Kildekode og dokumentasjon](./metaready/)
+
+MetaReady er en nettleserapp for å få oversikt over eierskap, metadata, proveniens, tilgang, livsløp, relasjoner og hvor egnet informasjon er for ulike AI-bruksområder.
+
+- 24 sammenkoblede, syntetiske informasjonsressurser fordelt på sju typer.
+- 12 forklarbare valideringsregler.
+- 10 kvalitetsdimensjoner.
+- 13 dimensjoner for AI-beredskap.
+- Registrering, arbeidsflyt, versjonering, tiltak, revisjonsspor og eksport.
+- Relasjonsoversikt med tabell som alternativ.
+- Lokal lagring og enkel nullstilling.
+- Åtte automatiske tester av domenelogikken.
+
 ## Lumen Relay
 
 **Lite nettleserspill om signalruting**
