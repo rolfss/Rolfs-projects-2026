@@ -2,6 +2,23 @@
 
 [Åpne prosjektsiden](https://rolfss.github.io/Rolfs-projects-2026/)
 
+## Archive Assist
+
+**Metadatahjelp for arkivfiler**
+
+[Prøv Archive Assist](https://rolfss.github.io/Rolfs-projects-2026/archive-assist/) · [Kildekode og dokumentasjon](./archive-assist/)
+
+Archive Assist er en nettleserapp for å beskrive, kontrollere og pakke filer med strukturert metadata før videre overføring eller registrering.
+
+- Lokal filbehandling uten opplasting eller API-nøkkel.
+- Forslag basert på filnavn, dato, filtype og lesbart tekstinnhold.
+- Metadata for ansvar, emne, sak, klassifikasjon, tilgang, proveniens og livsløp.
+- SHA-256-kontrollsum og duplikatindikasjon.
+- Kvalitetskontroll med konkrete mangler og betingede krav.
+- Eksport til JSON, CSV og ZIP med dokumenter og metadata-sidecars.
+- Tre eksempelfiler for direkte testing.
+- Tolv automatiske tester av domenelogikken og ZIP-byggeren.
+
 ## Lumen Relay
 
 **Lite nettleserspill om signalruting**
@@ -16,20 +33,3 @@ Lumen Relay er et 90-sekunders arkadespill laget med Canvas 2D, Web Audio og van
 - Lagrer beste poengsum lokalt.
 - Åtte automatiske tester av spillreglene.
 - Ingen rammeverk, API-nøkkel eller eksterne mediefiler.
-
-## MetaReady
-
-**Arbeidsflate for informasjonsstyring og AI-beredskap**
-
-[Åpne MetaReady](https://rolfss.github.io/Rolfs-projects-2026/metaready/) · [Kildekode og dokumentasjon](./metaready/)
-
-MetaReady er en nettleserapp for å få oversikt over eierskap, metadata, proveniens, tilgang, livsløp, relasjoner og hvor egnet informasjon er for ulike AI-bruksområder.
-
-- 24 sammenkoblede, syntetiske informasjonsressurser fordelt på sju typer.
-- 12 forklarbare valideringsregler.
-- 10 kvalitetsdimensjoner.
-- 13 dimensjoner for AI-beredskap.
-- Registrering, arbeidsflyt, versjonering, tiltak, revisjonsspor og eksport.
-- Relasjonsoversikt med tabell som alternativ.
-- Lokal lagring og enkel nullstilling.
-- Åtte automatiske tester av domenelogikken.
