@@ -3,10 +3,13 @@ name: Valider nettleserprosjekter
 on:
   pull_request:
     paths:
+      - "site/**"
       - "archive-assist/**"
       - "metaready/**"
       - "lumen-relay/**"
+      - "noark-assistent/**"
       - ".github/workflows/validate-browser-projects.yml"
+      - ".github/workflows/deploy-pages.yml"
 
 permissions:
   contents: read
@@ -34,3 +37,7 @@ jobs:
       - name: Kjør tester for Lumen Relay
         working-directory: ./lumen-relay
         run: npm test && npm run check
+
+      - name: Kjør tester for Noark 5-arkivassistenten
+        working-directory: ./noark-assistent
+        run: npm run validate
