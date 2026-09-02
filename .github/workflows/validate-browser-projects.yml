@@ -3,7 +3,7 @@ name: Valider nettleserprosjekter
 on:
   pull_request:
     paths:
-      - "metaready/**"
+      - "archive-assist/**"
       - "lumen-relay/**"
       - ".github/workflows/validate-browser-projects.yml"
 
@@ -22,9 +22,9 @@ jobs:
         with:
           node-version: 22
 
-      - name: Kjør tester for MetaReady
-        working-directory: ./metaready
-        run: npm test
+      - name: Kjør tester for Archive Assist
+        working-directory: ./archive-assist
+        run: npm test && npm run check
 
       - name: Kjør tester for Lumen Relay
         working-directory: ./lumen-relay
