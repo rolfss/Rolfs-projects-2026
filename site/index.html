@@ -3,144 +3,136 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Et utvalg digitale prosjekter laget av Rolf Selås i 2026.">
-  <meta name="theme-color" content="#071827">
+  <meta name="description" content="Digitale prosjekter innen dokumentasjonsforvaltning, informasjonsstyring og interaktive systemer, laget av Rolf Selås.">
+  <meta name="theme-color" content="#0b2531">
+  <meta name="color-scheme" content="light">
   <title>Rolf Selås — digitale prosjekter</title>
   <link rel="stylesheet" href="./styles.css">
-  <link rel="stylesheet" href="./game-feature.css">
 </head>
 <body>
+  <a class="skip-link" href="#main">Hopp til innhold</a>
+
   <header class="site-header">
-    <a class="identity" href="./"><span>RS</span><strong>Rolf Selås</strong></a>
+    <a class="identity" href="./" aria-label="Rolf Selås, startside">
+      <span aria-hidden="true">RS</span>
+      <strong>Rolf Selås</strong>
+    </a>
     <nav aria-label="Hovednavigasjon">
+      <a href="#prosjekter">Prosjekter</a>
+      <a href="./noark-assistent/">Noark-assistent</a>
       <a href="./archive-assist/">Archive Assist</a>
-      <a href="./metaready/">MetaReady</a>
-      <a href="https://github.com/rolfss/Rolfs-projects-2026">Kildekode</a>
+      <a href="https://github.com/rolfss" rel="noreferrer">GitHub</a>
     </nav>
   </header>
 
-  <main>
-    <section class="intro">
-      <p class="eyebrow">Informasjonsforvaltning · digitale produkter · interaktive systemer</p>
-      <h1>Jeg liker å gjøre kompliserte krav om til verktøy som faktisk kan brukes.</h1>
-      <p class="intro-copy">Her samler jeg noen prosjekter fra 2026. De spenner fra dokumentasjons- og informasjonsforvaltning til et lite nettleserspill.</p>
+  <main id="main">
+    <section class="hero">
+      <p class="eyebrow">Dokumentasjonsforvaltning · digitale produkter · interaktive systemer</p>
+      <h1>Kompliserte krav bør ende som verktøy folk kan bruke.</h1>
+      <p class="hero-copy">Her ligger noen prosjekter fra 2026. De handler om arkivkrav, metadata, informasjonskvalitet og et lite nettleserspill.</p>
     </section>
 
-    <section id="selected-work" class="featured" aria-labelledby="archive-assist-title">
-      <div class="featured-copy">
-        <div class="label-row"><span class="featured-label">Utvalgt prosjekt</span><span class="live-label">Fungerende demo</span></div>
-        <p class="product-name">Archive Assist</p>
-        <h2 id="archive-assist-title">Metadatahjelp for arkivfiler</h2>
-        <p>Archive Assist tar utgangspunkt i et praktisk problem: <strong>filer mangler ofte konteksten som gjør dem forståelige, søkbare og håndterbare over tid.</strong></p>
-        <p>Appen analyserer filer lokalt, foreslår metadata og gjør mangler i ansvar, tilgang, klassifikasjon og livsløp synlige før resultatet pakkes for videre bruk.</p>
-        <div class="actions">
-          <a class="button button-primary" href="./archive-assist/">Prøv Archive Assist</a>
-          <a class="button button-secondary" href="https://github.com/rolfss/Rolfs-projects-2026/tree/main/archive-assist">Se kildekoden</a>
+    <section class="project project-featured" id="prosjekter" aria-labelledby="noark-title">
+      <div class="project-copy">
+        <div class="label-row">
+          <span class="label">Nytt prosjekt</span>
+          <span class="label label-outline">Fungerende demo</span>
         </div>
-        <ul class="proof-list" aria-label="Nøkkeltall for Archive Assist">
-          <li><strong>50</strong><span>filer per arbeidsøkt</span></li>
-          <li><strong>SHA-256</strong><span>integritetskontroll</span></li>
-          <li><strong>3</strong><span>eksportformater</span></li>
-          <li><strong>12</strong><span>automatiske tester</span></li>
+        <p class="project-name">Noark 5-arkivassistent</p>
+        <h2 id="noark-title">Finn kravet, se grunnlaget og åpne originalkilden.</h2>
+        <p>En kildebasert søke- og svarassistent for Noark 5 versjon 6.0 og arkivregelverket fra 2026. Den rangerer relevante kildeposter, lager et kort svar og viser kravnummer, seksjon og side.</p>
+        <p>Alt skjer lokalt i nettleseren. Ingen konto, API-nøkkel eller opplastning.</p>
+        <div class="actions">
+          <a class="button button-primary" href="./noark-assistent/">Åpne arkivassistenten</a>
+          <a class="button button-secondary" href="https://github.com/rolfss/Rolfs-projects-2026/tree/main/noark-assistent" rel="noreferrer">Se kildekoden</a>
+        </div>
+        <ul class="facts" aria-label="Om Noark 5-arkivassistenten">
+          <li><strong>71</strong><span>kontrollerte kildeposter</span></li>
+          <li><strong>10</strong><span>offisielle kilder</span></li>
+          <li><strong>13</strong><span>automatiske tester</span></li>
+          <li><strong>0</strong><span>eksterne avhengigheter</span></li>
         </ul>
       </div>
 
-      <a class="product-preview" href="./archive-assist/" aria-label="Åpne Archive Assist-demoen">
-        <div class="preview-top"><span><i></i><i></i><i></i></span><small>archive-assist / prosjekt</small></div>
-        <div class="preview-shell">
-          <div class="preview-nav"><b>A</b><span></span><span></span><span></span><span></span></div>
-          <div class="preview-main">
-            <div class="preview-title"><small>FRA LØSE FILER TIL KONTROLLERT METADATA</small><strong>Se hva som mangler før dokumentene går videre.</strong><span></span><span></span></div>
-            <div class="preview-metrics"><i></i><i></i><i></i><i></i></div>
-            <div class="preview-table"><span></span><span></span><span></span><span></span><span></span></div>
+      <a class="noark-preview" href="./noark-assistent/" aria-label="Åpne Noark 5-arkivassistenten">
+        <div class="preview-toolbar">
+          <span><i></i><i></i><i></i></span>
+          <small>noark-assistent / lokalt søk</small>
+        </div>
+        <div class="preview-body">
+          <div class="preview-brand"><b>N5</b><span>Noark 5-arkivassistent<small>Kildebasert fagstøtte</small></span></div>
+          <div class="preview-query">Er Noark fortsatt obligatorisk?</div>
+          <div class="preview-answer">
+            <span class="preview-confidence">Høy kildedekning</span>
+            <p><strong>Nei.</strong> Fra 1. januar 2026 er Noark en frivillig standard, men arkivkravene gjelder fortsatt.</p>
+            <ul><li><i>1</i> Noark – temaside</li><li><i>2</i> Arkivforskrifta §§ 5–7</li></ul>
           </div>
+          <div class="preview-source"><b>1</b><span>Noark er frivillig fra 2026<small>Nasjonalarkivet · offisiell veiledning</small></span></div>
         </div>
-        <span class="preview-cta">Utforsk demoen →</span>
+        <span class="preview-cta">Prøv den selv →</span>
       </a>
     </section>
 
-    <section id="metaready" class="featured" aria-labelledby="metaready-title">
-      <div class="featured-copy">
-        <div class="label-row"><span class="featured-label">Selvstendig prosjekt</span><span class="live-label">Fungerende demo</span></div>
-        <p class="product-name">MetaReady</p>
-        <h2 id="metaready-title">Arbeidsflate for informasjonsstyring og AI-beredskap</h2>
-        <p>MetaReady undersøker et annet nivå enn Archive Assist: <strong>er en informasjonsressurs godt nok styrt til å deles, søkes i, analyseres eller brukes av et AI-system?</strong></p>
-        <p>Appen samler eierskap, metadata, proveniens, tilgang, livsløp, relasjoner og kvalitet. Mangler blir gjort om til konkrete tiltak og beslutningsgrunnlag.</p>
+    <section class="project-grid" aria-label="Flere prosjekter">
+      <article class="project-card archive-card">
+        <div class="card-top"><span class="card-index">02</span><span class="label">Dokumentasjonsforvaltning</span></div>
+        <p class="project-name">Archive Assist</p>
+        <h2>Gi løse filer arkivkontekst før de går videre.</h2>
+        <p>En lokal nettleserapp som analyserer filer, foreslår strukturert metadata, synliggjør mangler og pakker dokumenter med manifest og metadata-sidecars.</p>
+        <ul class="compact-facts"><li>SHA-256-kontrollsum</li><li>JSON, CSV og ZIP</li><li>12 automatiske tester</li></ul>
         <div class="actions">
-          <a class="button button-primary" href="./metaready/">Åpne MetaReady</a>
-          <a class="button button-secondary" href="https://github.com/rolfss/Rolfs-projects-2026/tree/main/metaready">Se kildekoden</a>
+          <a class="button button-dark" href="./archive-assist/">Prøv Archive Assist</a>
+          <a class="text-action" href="https://github.com/rolfss/Rolfs-projects-2026/tree/main/archive-assist" rel="noreferrer">Kildekode →</a>
         </div>
-        <ul class="proof-list" aria-label="Nøkkeltall for MetaReady">
-          <li><strong>24</strong><span>sammenkoblede informasjonsressurser</span></li>
-          <li><strong>12</strong><span>forklarbare valideringsregler</span></li>
-          <li><strong>13</strong><span>dimensjoner for AI-beredskap</span></li>
-          <li><strong>8</strong><span>automatiske tester</span></li>
-        </ul>
-      </div>
+      </article>
 
-      <a class="product-preview" href="./metaready/" aria-label="Åpne MetaReady-demoen">
-        <div class="preview-top"><span><i></i><i></i><i></i></span><small>metaready / prosjekt</small></div>
-        <div class="preview-shell">
-          <div class="preview-nav"><b>M</b><span></span><span></span><span></span><span></span></div>
-          <div class="preview-main">
-            <div class="preview-title"><small>ORDEN FØR AUTOMATISERING</small><strong>Se hva du faktisk kan stole på.</strong><span></span><span></span></div>
-            <div class="preview-metrics"><i></i><i></i><i></i><i></i></div>
-            <div class="preview-table"><span></span><span></span><span></span><span></span><span></span></div>
-          </div>
-        </div>
-        <span class="preview-cta">Utforsk demoen →</span>
-      </a>
-    </section>
-
-    <section class="game-feature" aria-labelledby="lumen-title">
-      <div class="game-feature-copy">
-        <div class="label-row"><span class="featured-label">Interaktivt prosjekt</span><span class="live-label">Spill i nettleseren</span></div>
-        <p class="product-name">Lumen Relay</p>
-        <h2 id="lumen-title">Et lite arkadespill om å rute signaler.</h2>
-        <p>Samle lysende fragmenter, lever dem til riktig port og bruk dash for å komme gjennom et felt som blir raskere og tettere.</p>
-        <p>En runde varer i 90 sekunder. Symboler, generert lyd, Canvas-grafikk og berøringskontroller gjør at det fungerer på flere typer skjermer.</p>
+      <article class="project-card">
+        <div class="card-top"><span class="card-index">03</span><span class="label">Informasjonsstyring</span></div>
+        <p class="project-name">MetaReady</p>
+        <h2>Se hva informasjonen faktisk kan brukes til.</h2>
+        <p>Arbeidsflate for metadata, eierskap, proveniens, sensitivitet, livsløp, relasjoner, kvalitet og AI-beredskap. Mangler blir gjort om til konkrete tiltak.</p>
+        <ul class="compact-facts"><li>24 sammenkoblede ressurser</li><li>12 forklarbare regler</li><li>Lokal lagring og eksport</li></ul>
         <div class="actions">
-          <a class="button button-primary" href="./lumen-relay/">Spill Lumen Relay</a>
-          <a class="button button-secondary" href="https://github.com/rolfss/Rolfs-projects-2026/tree/main/lumen-relay">Se kildekoden</a>
+          <a class="button button-dark" href="./metaready/">Åpne MetaReady</a>
+          <a class="text-action" href="https://github.com/rolfss/Rolfs-projects-2026/tree/main/metaready" rel="noreferrer">Kildekode →</a>
         </div>
-        <ul class="game-facts" aria-label="Om spillet">
-          <li><strong>90 sek</strong><span>per runde</span></li>
-          <li><strong>3</strong><span>signaltyper</span></li>
-          <li><strong>3 måter</strong><span>tastatur, mus og berøring</span></li>
-          <li><strong>8</strong><span>automatiske tester</span></li>
-        </ul>
-      </div>
+      </article>
 
-      <a class="game-preview" href="./lumen-relay/" aria-label="Spill Lumen Relay">
-        <div class="game-preview-toolbar"><span><i></i><i></i><i></i></span><small>BØLGE 03 · 42,8</small></div>
-        <div class="mini-arena" aria-hidden="true">
-          <i class="mini-gate gate-circle"></i>
-          <i class="mini-gate gate-triangle"></i>
-          <i class="mini-gate gate-square"></i>
-          <i class="mini-signal signal-one"></i>
-          <i class="mini-signal signal-two"></i>
-          <i class="mini-signal signal-three"></i>
-          <i class="mini-noise noise-one"></i>
-          <i class="mini-noise noise-two"></i>
-          <i class="mini-noise noise-three"></i>
-          <i class="mini-player"></i>
-          <span class="mini-route"></span>
+      <article class="project-card game-card">
+        <div class="card-top"><span class="card-index">04</span><span class="label">Nettleserspill</span></div>
+        <p class="project-name">Lumen Relay</p>
+        <h2>Rut signaler før systemet tetner til.</h2>
+        <p>Et 90-sekunders arkadespill laget med Canvas 2D, Web Audio og vanlige JavaScript-moduler. Det kan spilles med tastatur, mus og berøring.</p>
+        <div class="mini-game" aria-hidden="true">
+          <i class="gate gate-one"></i><i class="gate gate-two"></i><i class="gate gate-three"></i>
+          <i class="signal signal-one"></i><i class="signal signal-two"></i><i class="signal signal-three"></i>
+          <i class="player"></i><span class="route"></span>
         </div>
-        <span class="preview-cta">Start en runde →</span>
-      </a>
+        <div class="actions">
+          <a class="button button-dark" href="./lumen-relay/">Spill Lumen Relay</a>
+          <a class="text-action" href="https://github.com/rolfss/Rolfs-projects-2026/tree/main/lumen-relay" rel="noreferrer">Kildekode →</a>
+        </div>
+      </article>
     </section>
 
-    <section class="capabilities" aria-labelledby="capabilities-title">
-      <div><p class="eyebrow">Inne i Archive Assist</p><h2 id="capabilities-title">Fire deler som henger sammen</h2></div>
-      <div class="capability-grid">
-        <article><span>01</span><h3>Lokal filanalyse</h3><p>Filnavn, dato, format, størrelse, MIME-type, kontrollsum og lesbart tekstinnhold.</p></article>
-        <article><span>02</span><h3>Arkivkontekst</h3><p>Tittel, ansvar, emne, sak, proveniens, nøkkelord, klassifikasjon og relasjoner.</p></article>
-        <article><span>03</span><h3>Tilgang og livsløp</h3><p>Kontrollpunkter for tilgangsnivå, hjemmel, personopplysninger, bevaring og kassasjon.</p></article>
-        <article><span>04</span><h3>Flyttbart resultat</h3><p>JSON- og CSV-manifest samt ZIP-pakke med normaliserte dokumenter og metadata-sidecars.</p></article>
+    <section class="principles" aria-labelledby="principles-title">
+      <div>
+        <p class="eyebrow">Felles for prosjektene</p>
+        <h2 id="principles-title">Faglig logikk først. Grensesnitt etterpå.</h2>
+      </div>
+      <div class="principle-grid">
+        <article><span>01</span><h3>Etterprøvbart</h3><p>Kilder, regler og begrensninger skal kunne forstås av andre enn den som skrev koden.</p></article>
+        <article><span>02</span><h3>Brukbart</h3><p>Et fagverktøy må fungere på vanlig skjerm, uten komplisert oppsett eller skjulte forutsetninger.</p></article>
+        <article><span>03</span><h3>Testet</h3><p>Domenelogikk blir kontrollert med automatiske tester før den publiseres.</p></article>
+        <article><span>04</span><h3>Nøkternt</h3><p>Systemet skal si fra når grunnlaget er svakt, i stedet for å late som det vet.</p></article>
       </div>
     </section>
   </main>
 
-  <footer><span>Rolf Selås</span><span>Oslo, Norge</span><a href="https://github.com/rolfss">GitHub</a></footer>
+  <footer>
+    <span>Rolf Selås</span>
+    <span>Oslo, Norge</span>
+    <a href="https://github.com/rolfss" rel="noreferrer">GitHub</a>
+  </footer>
 </body>
 </html>
