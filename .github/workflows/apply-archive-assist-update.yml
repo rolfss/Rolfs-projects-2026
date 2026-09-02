@@ -1,0 +1,113 @@
+name: Bruk Archive Assist-oppdatering
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".archive-assist-update.part1"
+      - ".archive-assist-update.part2"
+      - ".archive-assist-update.part3"
+      - ".archive-assist-update.part4"
+      - ".archive-assist-update.part5"
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  apply-test-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Hent kildekoden
+        uses: actions/checkout@v6
+
+      - name: Sett sammen og kontroller oppdateringen
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .archive-assist-update.part1 \
+              .archive-assist-update.part2 \
+              .archive-assist-update.part3 \
+              .archive-assist-update.part4 \
+              .archive-assist-update.part5 > /tmp/archive-assist-update.b64
+          base64 --decode /tmp/archive-assist-update.b64 > /tmp/archive-assist-update.tar.xz
+          echo "26e9e0ea66c2b0bdd8769976bce72645f3d5c86f30d3032a36210bde9a50c4af  /tmp/archive-assist-update.tar.xz" | sha256sum --check --strict
+          tar -xJf /tmp/archive-assist-update.tar.xz
+          rm .archive-assist-update.part1 \
+             .archive-assist-update.part2 \
+             .archive-assist-update.part3 \
+             .archive-assist-update.part4 \
+             .archive-assist-update.part5
+
+      - name: Sett opp Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Kjør tester for Archive Assist
+        working-directory: ./archive-assist
+        run: npm test && npm run check
+
+      - name: Kjør tester for MetaReady
+        working-directory: ./metaready
+        run: npm test
+
+      - name: Kjør tester for Lumen Relay
+        working-directory: ./lumen-relay
+        run: npm test && npm run check
+
+      - name: Kjør tester for Noark 5-arkivassistenten
+        working-directory: ./noark-assistent
+        run: npm run validate
+
+      - name: Lagre den testede oppdateringen
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --stat
+          git commit \
+            -m "Foreslå saksdokumenttittel fra filinnhold" \
+            -m "Les innhold fra PDF, Office, e-post og tekst; legg til lokal AI-forbedring, menneskelig kontroll, versjonert prompt og 27 tester."
+          git push
+
+      - name: Sett sammen den statiske siden
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf _site
+          mkdir -p _site
+          cp -R site/. _site/
+          cp -R archive-assist _site/archive-assist
+          cp -R metaready _site/metaready
+          cp -R lumen-relay _site/lumen-relay
+          cp -R noark-assistent _site/noark-assistent
+          rm -rf _site/archive-assist/tests _site/archive-assist/package.json _site/archive-assist/README.md _site/archive-assist/ARKITEKTUR.md _site/archive-assist/PROSJEKTGRUNNLAG.md _site/archive-assist/SECURITY.md _site/archive-assist/TITTELPROMPT.md _site/archive-assist/LICENSE
+          rm -rf _site/metaready/tests _site/metaready/package.json _site/metaready/README.md
+          rm -rf _site/lumen-relay/tests _site/lumen-relay/package.json _site/lumen-relay/README.md _site/lumen-relay/DESIGN.md _site/lumen-relay/LICENSE
+          rm -rf _site/noark-assistent/tests _site/noark-assistent/package.json _site/noark-assistent/README.md
+          touch _site/.nojekyll
+
+      - name: Konfigurer GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Last opp siden
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ./_site
+
+      - name: Publiser siden
+        id: deployment
+        uses: actions/deploy-pages@v4
