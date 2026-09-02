@@ -1,0 +1,32 @@
+name: Valider nettleserprosjekter
+
+on:
+  pull_request:
+    paths:
+      - "metaready/**"
+      - "lumen-relay/**"
+      - ".github/workflows/validate-browser-projects.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Kjør tester
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hent kode
+        uses: actions/checkout@v6
+
+      - name: Sett opp Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Test MetaReady
+        working-directory: ./metaready
+        run: npm test
+
+      - name: Test Lumen Relay
+        working-directory: ./lumen-relay
+        run: npm test && npm run check

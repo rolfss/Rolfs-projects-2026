@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="nb">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Utvalgte digitale prosjekter laget av Rolf Selås.">
+  <meta name="theme-color" content="#071827">
+  <title>Rolf Selås — digitale prosjekter</title>
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./game-feature.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="identity" href="./"><span>RS</span><strong>Rolf Selås</strong></a>
+    <nav aria-label="Hovedmeny">
+      <a href="#selected-work">Prosjekter</a>
+      <a href="./lumen-relay/">Spill Lumen Relay</a>
+      <a href="https://github.com/rolfss/Rolfs-projects-2026">Kildekode</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="intro">
+      <p class="eyebrow">Informasjonsstyring · digitale tjenester · interaktive ting</p>
+      <h1>Noen digitale prosjekter jeg har laget og prøvd ut.</h1>
+      <p class="intro-copy">Her ligger et styringsverktøy og et lite nettleserspill. Begge kan åpnes direkte i nettleseren.</p>
+    </section>
+
+    <section id="selected-work" class="featured" aria-labelledby="metaready-title">
+      <div class="featured-copy">
+        <div class="label-row"><span class="featured-label">MetaReady</span><span class="live-label">Fungerende demo</span></div>
+        <p class="product-name">Informasjonsstyring</p>
+        <h2 id="metaready-title">Er informasjonen god nok til å brukes videre?</h2>
+        <p>MetaReady samler eierskap, metadata, proveniens, tilgang, livsløp og relasjoner på ett sted.</p>
+        <p>Poenget er ganske enkelt: før informasjon brukes i søk, analyse eller KI, bør man vite hva den er, hvem som har ansvar for den og hvilke hull som finnes.</p>
+        <div class="actions">
+          <a class="button button-primary" href="./metaready/">Åpne MetaReady</a>
+          <a class="button button-secondary" href="https://github.com/rolfss/Rolfs-projects-2026/tree/main/metaready">Se koden</a>
+        </div>
+        <ul class="proof-list" aria-label="Om prosjektet">
+          <li><strong>24</strong><span>sammenkoblede informasjonsressurser</span></li>
+          <li><strong>12</strong><span>valideringsregler</span></li>
+          <li><strong>13</strong><span>dimensjoner for KI-beredskap</span></li>
+          <li><strong>8</strong><span>automatiske tester</span></li>
+        </ul>
+      </div>
+
+      <a class="product-preview" href="./metaready/" aria-label="Åpne MetaReady">
+        <div class="preview-top"><span><i></i><i></i><i></i></span><small>metaready / demo</small></div>
+        <div class="preview-shell">
+          <div class="preview-nav"><b>M</b><span></span><span></span><span></span><span></span></div>
+          <div class="preview-main">
+            <div class="preview-title"><small>TILLIT FØR AUTOMATISERING</small><strong>Gjør informasjonskvalitet synlig.</strong><span></span><span></span></div>
+            <div class="preview-metrics"><i></i><i></i><i></i><i></i></div>
+            <div class="preview-table"><span></span><span></span><span></span><span></span><span></span></div>
+          </div>
+        </div>
+        <span class="preview-cta">Åpne demoen →</span>
+      </a>
+    </section>
+
+    <section class="game-feature" aria-labelledby="lumen-title">
+      <div class="game-feature-copy">
+        <div class="label-row"><span class="featured-label">Lumen Relay</span><span class="live-label">Spillbart i nettleseren</span></div>
+        <p class="product-name">Lite arkadespill</p>
+        <h2 id="lumen-title">Lever signalene før feltet blir for kaotisk.</h2>
+        <p>Plukk opp et lysende signal, finn porten med samme symbol og unngå støyen som beveger seg rundt i feltet.</p>
+        <p>En runde varer i 90 sekunder. Spillet bruker Canvas, generert lyd og vanlige nettleser-API-er.</p>
+        <div class="actions">
+          <a class="button button-primary" href="./lumen-relay/">Spill Lumen Relay</a>
+          <a class="button button-secondary" href="https://github.com/rolfss/Rolfs-projects-2026/tree/main/lumen-relay">Se koden</a>
+        </div>
+        <ul class="game-facts" aria-label="Spilldetaljer">
+          <li><strong>90 sek</strong><span>per runde</span></li>
+          <li><strong>3</strong><span>signaltyper</span></li>
+          <li><strong>3 måter</strong><span>tastatur, mus og berøring</span></li>
+          <li><strong>8</strong><span>automatiske regeltester</span></li>
+        </ul>
+      </div>
+
+      <a class="game-preview" href="./lumen-relay/" aria-label="Spill Lumen Relay">
+        <div class="game-preview-toolbar"><span><i></i><i></i><i></i></span><small>BØLGE 03 · 42,8</small></div>
+        <div class="mini-arena" aria-hidden="true">
+          <i class="mini-gate gate-circle"></i>
+          <i class="mini-gate gate-triangle"></i>
+          <i class="mini-gate gate-square"></i>
+          <i class="mini-signal signal-one"></i>
+          <i class="mini-signal signal-two"></i>
+          <i class="mini-signal signal-three"></i>
+          <i class="mini-noise noise-one"></i>
+          <i class="mini-noise noise-two"></i>
+          <i class="mini-noise noise-three"></i>
+          <i class="mini-player"></i>
+          <span class="mini-route"></span>
+        </div>
+        <span class="preview-cta">Start en runde →</span>
+      </a>
+    </section>
+
+    <section class="capabilities" aria-labelledby="capabilities-title">
+      <div><p class="eyebrow">Inne i MetaReady</p><h2 id="capabilities-title">Fire deler som henger sammen</h2></div>
+      <div class="capability-grid">
+        <article><span>01</span><h3>Informasjonsstruktur</h3><p>Metadata, begreper, stabile ID-er, relasjoner og enkel konsekvensanalyse.</p></article>
+        <article><span>02</span><h3>Styring</h3><p>Eierskap, arbeidsflyt, versjoner, historikk, tilgang, sensitivitet og livsløp.</p></article>
+        <article><span>03</span><h3>KI-beredskap</h3><p>Vurdering for konkrete brukstilfeller, med bevis, antakelser, sperrer og tiltak.</p></article>
+        <article><span>04</span><h3>Selve løsningen</h3><p>Statisk nettleserapp med lokal lagring, eksport, demoroller og automatiske tester.</p></article>
+      </div>
+    </section>
+  </main>
+
+  <footer><span>Rolf Selås</span><span>Oslo, Norge</span><a href="https://github.com/rolfss">GitHub</a></footer>
+</body>
+</html>

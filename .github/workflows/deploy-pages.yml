@@ -1,0 +1,68 @@
+name: Publiser prosjektsiden
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "site/**"
+      - "metaready/**"
+      - "lumen-relay/**"
+      - ".github/workflows/deploy-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  test-and-deploy:
+    name: Test og publiser
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hent kode
+        uses: actions/checkout@v6
+
+      - name: Sett opp Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Test MetaReady
+        working-directory: ./metaready
+        run: npm test
+
+      - name: Test Lumen Relay
+        working-directory: ./lumen-relay
+        run: npm test && npm run check
+
+      - name: Bygg statisk side
+        run: |
+          rm -rf _site
+          mkdir -p _site
+          cp -R site/. _site/
+          cp -R metaready _site/metaready
+          cp -R lumen-relay _site/lumen-relay
+          rm -rf _site/metaready/tests _site/metaready/package.json _site/metaready/README.md
+          rm -rf _site/lumen-relay/tests _site/lumen-relay/package.json _site/lumen-relay/README.md _site/lumen-relay/DESIGN.md _site/lumen-relay/LICENSE
+          touch _site/.nojekyll
+
+      - name: Klargjør GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Last opp siden
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ./_site
+
+      - name: Publiser siden
+        id: deployment
+        uses: actions/deploy-pages@v4

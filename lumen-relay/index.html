@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="nb">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Lumen Relay er et lite nettleserspill om å frakte signaler gjennom et felt med støy.">
+  <meta name="theme-color" content="#050914">
+  <title>Lumen Relay — nettleserspill</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="brand" href="../" aria-label="Tilbake til prosjektoversikten">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span><strong>Lumen Relay</strong><small>signalspill</small></span>
+    </a>
+    <nav aria-label="Spillvalg">
+      <button id="instructionsButton" type="button">Slik spiller du</button>
+      <button id="soundButton" type="button" aria-pressed="true">Lyd: på</button>
+      <button id="fullscreenButton" type="button">Fullskjerm</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="game-intro" aria-labelledby="page-title">
+      <div>
+        <p class="eyebrow">En signalrunde på 90 sekunder</p>
+        <h1 id="page-title">Hold nettet i live.</h1>
+      </div>
+      <p>Plukk opp et signal, lever det til porten med samme symbol, og bruk dash når støyen kommer for tett på.</p>
+    </section>
+
+    <section id="gameShell" class="game-shell" aria-label="Lumen Relay">
+      <div class="game-frame">
+        <canvas id="gameCanvas" tabindex="0" aria-label="Spillområde. Bruk WASD eller piltastene for å bevege deg. Trykk mellomrom for dash."></canvas>
+
+        <div class="hud" aria-hidden="true">
+          <div class="hud-group">
+            <div class="hud-item"><span>Poeng</span><strong id="scoreValue">0</strong></div>
+            <div class="hud-item"><span>Beste</span><strong id="bestValue">0</strong></div>
+          </div>
+          <div class="hud-center">
+            <span id="waveValue">Bølge 1</span>
+            <strong id="timeValue">90,0</strong>
+          </div>
+          <div class="hud-group hud-group-right">
+            <div class="hud-item"><span>Kjede</span><strong id="comboValue">×1,00</strong></div>
+            <div class="hud-item integrity-item"><span>Integritet</span><strong id="integrityValue" aria-label="Tre integritet igjen">◆ ◆ ◆</strong></div>
+          </div>
+        </div>
+
+        <div class="dash-meter" aria-hidden="true">
+          <span>Dash</span><i><b id="dashFill"></b></i>
+        </div>
+
+        <button id="dashButton" class="dash-button" type="button" aria-label="Dash">Dash</button>
+        <button id="pauseButton" class="pause-button" type="button" aria-label="Sett spillet på pause">Ⅱ</button>
+
+        <div id="gameOverlay" class="game-overlay is-visible">
+          <div class="overlay-card">
+            <p id="overlayEyebrow" class="overlay-eyebrow">System klart</p>
+            <h2 id="overlayTitle">Få lyset frem.</h2>
+            <p id="overlayCopy">Plukk opp et lysende signal og lever det til porten med samme symbol. Bygg en poengkjede, ta vare på integriteten og bruk dash for å komme deg trygt gjennom støyen.</p>
+            <div class="signal-key" aria-label="Signaltyper">
+              <span><i class="signal-circle">●</i> Puls</span>
+              <span><i class="signal-triangle">▲</i> Vektor</span>
+              <span><i class="signal-square">■</i> Ramme</span>
+            </div>
+            <div id="resultGrid" class="result-grid" hidden>
+              <div><span>Sluttpoeng</span><strong id="finalScore">0</strong></div>
+              <div><span>Beste kjede</span><strong id="finalCombo">×1</strong></div>
+              <div><span>Levert</span><strong id="finalDeliveries">0</strong></div>
+            </div>
+            <button id="primaryButton" class="primary-button" type="button">Start runden</button>
+            <p class="control-note"><kbd>WASD</kbd> / <kbd>Piltaster</kbd> beveger · <kbd>Mellomrom</kbd> dash · dra for å styre med mus eller berøring</p>
+          </div>
+        </div>
+
+        <div id="announcement" class="announcement" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section class="game-notes" aria-label="Spilleregler">
+      <div><span>01</span><strong>Match</strong><p>Hvert signal har et symbol og en port med samme symbol.</p></div>
+      <div><span>02</span><strong>Kjede</strong><p>Raske, riktige leveringer øker poengmultiplikatoren.</p></div>
+      <div><span>03</span><strong>Dash</strong><p>Et godt timet dash lar deg passere gjennom støy uten skade.</p></div>
+      <div><span>04</span><strong>Tilpass deg</strong><p>Feltet blir raskere og tettere for hver femte levering.</p></div>
+    </section>
+  </main>
+
+  <dialog id="instructionsDialog">
+    <form method="dialog" class="dialog-card">
+      <div class="dialog-heading">
+        <div><p class="eyebrow">Kort bruksanvisning</p><h2>Slik spiller du</h2></div>
+        <button class="close-button" aria-label="Lukk instruksjonene">×</button>
+      </div>
+      <ol>
+        <li><strong>Plukk opp et signal.</strong><span>Beveg deg gjennom en lysende sirkel, trekant eller firkant. Du kan bære ett om gangen.</span></li>
+        <li><strong>Finn riktig port.</strong><span>Lever signalet til samme symbol langs kanten av banen.</span></li>
+        <li><strong>Unngå støyen.</strong><span>Kontakt koster integritet, bryter kjeden og gjør at du mister signalet.</span></li>
+        <li><strong>Bruk dash med litt omtanke.</strong><span>Trykk mellomrom eller Dash-knappen. Du er beskyttet et kort øyeblikk, og så må dash lade opp igjen.</span></li>
+      </ol>
+      <div class="controls-grid">
+        <div><span>Tastatur</span><strong>WASD / piltaster</strong><small>Bevegelse</small></div>
+        <div><span>Tastatur</span><strong>Mellomrom</strong><small>Dash</small></div>
+        <div><span>Tastatur</span><strong>P / Esc</strong><small>Pause</small></div>
+        <div><span>Berøring / mus</span><strong>Dra i banen</strong><small>Styring</small></div>
+      </div>
+    </form>
+  </dialog>
+
+  <p id="liveStatus" class="sr-only" aria-live="polite"></p>
+
+  <footer>
+    <a href="../">← Prosjektoversikt</a>
+    <span>Laget med Canvas, Web Audio og vanlige nettleser-API-er.</span>
+    <a href="https://github.com/rolfss/Rolfs-projects-2026/tree/main/lumen-relay">Kildekode</a>
+  </footer>
+
+  <script type="module" src="./game.mjs"></script>
+  <script type="module" src="./norsk.mjs"></script>
+</body>
+</html>
