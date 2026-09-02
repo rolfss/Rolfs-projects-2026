@@ -19,4 +19,4 @@ Archive Assist realiserer den opprinnelige ideen om et enkelt verktøy som knytt
 - **Menneskelig kontroll:** tilgang, arkivverdi og kassasjon blir aldri fremstilt som automatiske vedtak.
 - **Flyttbart resultat:** JSON, CSV og ZIP gjør veien videre mot import eller integrasjon konkret.
 
-Den tidligere migrerte mappen `metaready` utviklet seg til en bredere informasjonsstyringsdemo. Archive Assist erstatter denne med den filbaserte arbeidsflyten som prosjektet opprinnelig tok sikte på.
+Den tidligere migrerte mappen `metaready` utviklet seg til en bredere informasjonsstyringsdemo. MetaReady og Archive Assist beholdes derfor som to selvstendige prosjekter: MetaReady for informasjonsstyring og AI-beredskap, og Archive Assist for den konkrete filbaserte metadataflyten.
