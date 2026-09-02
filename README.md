@@ -17,16 +17,18 @@
 
 ## Archive Assist
 
-**Metadatahjelp for arkivfiler**
+**Innholdsbasert saksdokumenttittel og metadatahjelp for arkivfiler**
 
 [Prøv Archive Assist](https://rolfss.github.io/Rolfs-projects-2026/archive-assist/) · [Kildekode og dokumentasjon](./archive-assist/)
 
-Archive Assist analyserer filer lokalt, foreslår strukturert metadata, viser mangler og eksporterer dokumenter med manifest og metadata-sidecars.
+Archive Assist leser dokumentinnhold og tilgjengelige metadata, foreslår en redigerbar saksdokumenttittel og eksporterer dokumenter med manifest og metadata-sidecars.
 
-- Lokal filbehandling uten opplastning eller API-nøkkel.
-- SHA-256-kontrollsum og duplikatindikasjon.
-- Eksport til JSON, CSV og ZIP.
-- Tolv automatiske tester av domenelogikk og ZIP-bygger.
+- Tittel fra emne, overskrift, innhold og dokumenttype; filnavnet brukes bare som reserve.
+- Lokal tekstuttrekking fra PDF, moderne Office-/OpenDocument-filer, e-post og tekstformater.
+- Valgfri lokal nettleser-AI der dette støttes, uten API-nøkkel eller dokumentopplasting.
+- Menneskelig godkjenning eller redigering før tittelen regnes som kontrollert.
+- SHA-256, kvalitetskontroll og eksport til JSON, CSV og ZIP.
+- 27 automatiske tester av tittelregler, prompt, innholdsuttrekk, metadata og ZIP.
 
 ## MetaReady
 

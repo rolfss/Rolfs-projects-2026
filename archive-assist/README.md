@@ -1,31 +1,51 @@
 # Archive Assist
 
-**Metadatahjelp for arkivfiler**
+**Innholdsbasert saksdokumenttittel og metadatahjelp for arkivfiler**
 
 [Åpne den publiserte demoen](https://rolfss.github.io/Rolfs-projects-2026/archive-assist/)
 
-Archive Assist er en statisk nettleserapp som hjelper brukeren å beskrive, kontrollere og pakke filer med strukturert metadata før videre overføring eller registrering.
+Archive Assist er en statisk nettleserapp som leser dokumentinnhold, foreslår saksdokumenttittel og øvrige metadata, og lar saksbehandler eller arkivar kontrollere resultatet før videre overføring eller registrering.
+
+## Saksdokumenttittel
+
+Tittelen kommer ikke lenger bare fra filnavnet. Ved innlasting prioriterer motoren:
+
+1. oppgitt emne eller sak;
+2. uttrykkelig tittel i dokumentet;
+3. emnefelt i dokumentet eller e-posten;
+4. første tydelige overskrift;
+5. første meningsbærende setning;
+6. filnavnet som reserve.
+
+Forslaget settes direkte i det redigerbare tittelfeltet. Brukeren ser metode, begrunnelse, sikkerhet og kontrollstatus, og kan godkjenne forslaget eller skrive en annen tittel. En menneskeredigert tittel blir ikke overskrevet av en senere AI-analyse.
+
+Når nettleseren støtter en lokal språkmodell gjennom Prompt API, kan appen forbedre tittel, dokumenttype, emne, beskrivelse og andre uttrykkelige metadata på enheten. Funksjonen bruker ingen API-nøkkel og sender ikke dokumentinnhold til Archive Assist. Den deterministiske innholdsanalysen virker også uten denne nettleserfunksjonen.
+
+Se den versjonerte [prompten for saksdokumenttittel](./TITTELPROMPT.md).
 
 ## Dette virker i demoen
 
 - Dra inn inntil 50 filer.
-- Lokal analyse av filnavn, dato, filtype, størrelse, MIME-type og SHA-256.
-- Enkel innholdsanalyse for tekst, Markdown, CSV, JSON, XML, HTML og andre tekstbaserte formater.
-- Forslag til tittel, dokumentdato, dokumenttype, språk, beskrivelse og nøkkelord.
+- Lokal tekstuttrekking fra tekst, Markdown, CSV, JSON, XML, HTML, EML, PDF, DOCX, PPTX, XLSX, ODT, ODS og ODP.
+- Automatisk innholdsbasert forslag til saksdokumenttittel ved innlasting.
+- Valgfri forbedring med lokal nettleser-AI der dette støttes.
+- Forslag til dokumentdato, dokumenttype, språk, beskrivelse, emne, forfatter, organisasjonsenhet og nøkkelord når grunnlaget finnes.
 - Felles metadata for forfatter, organisasjonsenhet, sak, klassifikasjon, tilgang og livsløp.
-- Kontroll av obligatoriske felt og betingede krav.
+- Kontroll av obligatoriske felt, betingede krav og menneskelig tittelgjennomgang.
 - Indikasjon på mulige e-postadresser, telefonnumre, fødselsnumre og sensitive nøkkelord.
-- Duplikatindikasjon basert på identisk SHA-256.
-- Normaliserte filnavn.
+- SHA-256 og duplikatindikasjon.
+- Normaliserte filnavn basert på kontrollert saksdokumenttittel.
 - Eksport av JSON-manifest, CSV-manifest og ZIP-pakke med dokumenter og JSON-sidecars.
 - Tre syntetiske eksempelfiler for rask testing.
-- Automatiske tester av domenelogikken og ZIP-byggeren.
+- 27 automatiske tester av tittelregler, promptformat, innholdsuttrekk, metadata og ZIP-bygger.
 
 ## Personvern og sikkerhet
 
 Filene behandles lokalt i nettleseren. Appen har ingen backend, innlogging, analyse-API eller sporingskode. Binærfilene endres ikke. Metadata bindes til dokumentene i en eksportpakke.
 
-Bruk likevel ikke demoen som eneste kontroll for reelle personopplysninger, tilgangsvurdering, journalføring eller bevaring og kassasjon.
+Dokumentinnhold behandles som ubetrodd data i AI-prompten. Instruksjoner som ligger inne i en fil, skal ikke få endre rollen eller reglene til metadataassistenten.
+
+Bruk likevel ikke demoen som eneste kontroll for reelle personopplysninger, tilgangsvurdering, journalføring, arkivverdi eller bevaring og kassasjon. Skannede PDF-er krever OCR og kan derfor gi et tittelforslag basert på filnavn og tilgjengelige metadata.
 
 ## Kjør lokalt
 
@@ -47,9 +67,9 @@ Node.js 20 eller nyere er tilstrekkelig.
 
 ## Avgrensning
 
-Archive Assist er Noark-inspirert, men hevder ikke Noark-samsvar og er ikke et sak-/arkivsystem. En produksjonsversjon måtte ha virksomhetsspesifikk metadataprofil, autentisering, serverbasert autorisasjon, uforanderlig hendelseslogg og konkrete import-/API-integrasjoner.
+Archive Assist er Noark-inspirert, men hevder ikke Noark-samsvar og er ikke et sak-/arkivsystem. En produksjonsversjon måtte ha virksomhetsspesifikk metadataprofil, autentisering, serverbasert autorisasjon, uforanderlig hendelseslogg, godkjent AI-behandlingsgrunnlag og konkrete import-/API-integrasjoner.
 
-Se [ARKITEKTUR.md](./ARKITEKTUR.md), [PROSJEKTGRUNNLAG.md](./PROSJEKTGRUNNLAG.md) og [SECURITY.md](./SECURITY.md).
+Se [ARKITEKTUR.md](./ARKITEKTUR.md), [PROSJEKTGRUNNLAG.md](./PROSJEKTGRUNNLAG.md), [TITTELPROMPT.md](./TITTELPROMPT.md) og [SECURITY.md](./SECURITY.md).
 
 ## Lisens
 
