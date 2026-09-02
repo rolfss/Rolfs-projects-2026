@@ -5,8 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="description" content="Lumen Relay er et lite arkadespill om å rute signaler gjennom et felt med interferens.">
   <meta name="theme-color" content="#050914">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Lumen Relay — nettleserspill</title>
   <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./mobile.css">
 </head>
 <body>
   <div class="ambient ambient-one" aria-hidden="true"></div>
@@ -35,7 +39,7 @@
 
     <section id="gameShell" class="game-shell" aria-label="Lumen Relay-spill">
       <div class="game-frame">
-        <canvas id="gameCanvas" tabindex="0" aria-label="Spillarena. Bruk WASD eller piltastene for å bevege deg. Trykk mellomrom for dash."></canvas>
+        <canvas id="gameCanvas" tabindex="0" aria-label="Spillarena. Bruk WASD eller piltastene på datamaskin. Bruk styreskiven på telefon. Aktiver Dash for et kort fartsstøt."></canvas>
 
         <div class="hud" aria-hidden="true">
           <div class="hud-group">
@@ -56,7 +60,16 @@
           <span>Dash</span><i><b id="dashFill"></b></i>
         </div>
 
-        <button id="dashButton" class="dash-button" type="button" aria-label="Dash">Dash</button>
+        <div id="mobileControls" class="mobile-controls" hidden aria-label="Berøringskontroller">
+          <button id="movePad" class="move-pad" type="button" aria-label="Styreskive. Hold og dra i ønsket retning.">
+            <span class="move-pad-ring" aria-hidden="true">
+              <span id="moveKnob" class="move-pad-knob"></span>
+            </span>
+            <span class="move-pad-label" aria-hidden="true">Styr</span>
+          </button>
+          <button id="dashButton" class="dash-button" type="button" aria-label="Dash">Dash</button>
+        </div>
+
         <button id="pauseButton" class="pause-button" type="button" aria-label="Sett spillet på pause">Ⅱ</button>
 
         <div id="gameOverlay" class="game-overlay is-visible">
@@ -76,6 +89,7 @@
             </div>
             <button id="primaryButton" class="primary-button" type="button">Start runde</button>
             <p class="control-note"><kbd>WASD</kbd> / <kbd>Piltaster</kbd> flytter · <kbd>Mellomrom</kbd> gir dash · dra for å styre på berøringsskjerm</p>
+            <p class="touch-control-note">Venstre tommel styrer · høyre tommel bruker Dash</p>
           </div>
         </div>
 
@@ -107,7 +121,7 @@
         <div><span>Tastatur</span><strong>WASD / Piltaster</strong><small>Beveg</small></div>
         <div><span>Tastatur</span><strong>Mellomrom</strong><small>Dash</small></div>
         <div><span>Tastatur</span><strong>P / Esc</strong><small>Pause</small></div>
-        <div><span>Berøring / mus</span><strong>Dra i arenaen</strong><small>Styr</small></div>
+        <div><span>Telefon / nettbrett</span><strong>Styreskive + Dash</strong><small>Berøringskontroller</small></div>
       </div>
     </form>
   </dialog>
@@ -121,6 +135,7 @@
   </footer>
 
   <script type="module" src="./game.mjs"></script>
+  <script type="module" src="./mobile-controls.mjs"></script>
   <script type="module" src="./nb.mjs"></script>
 </body>
 </html>
