@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="nb">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Archive Assist foreslår, validerer og pakker metadata for arkivfiler direkte i nettleseren.">
+  <meta name="theme-color" content="#10243a">
+  <title>Archive Assist – metadatahjelp for arkivfiler</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="Archive Assist, startside"><span>AA</span><strong>Archive Assist</strong></a>
+    <nav aria-label="Prosjektnavigasjon">
+      <a href="../">Alle prosjekter</a>
+      <a href="https://github.com/rolfss/Rolfs-projects-2026/tree/main/archive-assist">Kildekode</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Metadatahjelp for dokumentasjonsforvaltning</p>
+        <h1>Gjør filer lettere å forstå, finne og ta vare på.</h1>
+        <p class="lead">Last inn dokumenter, få forklarbare metadataforslag, rett dem og last ned en samlet arkivpakke. Hele behandlingen skjer lokalt i nettleseren.</p>
+        <div class="trust-row" aria-label="Tekniske egenskaper">
+          <span>Ingen opplasting</span><span>Ingen API-nøkkel</span><span>Åpen kildekode</span>
+        </div>
+      </div>
+      <aside class="hero-note">
+        <strong>Hva blir faktisk gjort?</strong>
+        <p>Filene endres ikke. Archive Assist binder dem til strukturert metadata gjennom JSON-sidecars, CSV/JSON-manifest og normaliserte filnavn i én ZIP-pakke.</p>
+      </aside>
+    </section>
+
+    <section class="panel ingest-panel" aria-labelledby="load-heading">
+      <div class="section-heading">
+        <div><span class="step">1</span><div><p class="eyebrow">Velg materiale</p><h2 id="load-heading">Legg til filer</h2></div></div>
+        <button id="clear-button" class="text-button danger" type="button" hidden>Tøm arbeidsflaten</button>
+      </div>
+      <label id="dropzone" class="dropzone" tabindex="0" for="file-input">
+        <input id="file-input" type="file" multiple>
+        <span class="drop-icon" aria-hidden="true">⇧</span>
+        <strong>Slipp filer her, eller velg fra maskinen</strong>
+        <small>Inntil 50 filer, 100 MB per fil og 300 MB samlet. Tekstbaserte filer får også innholdsanalyse.</small>
+      </label>
+      <div class="sample-row">
+        <span>Vil du bare se hvordan løsningen virker?</span>
+        <button id="sample-button" class="button button-secondary" type="button">Bruk tre eksempelfiler</button>
+      </div>
+      <p id="status" class="status" role="status" aria-live="polite" hidden></p>
+    </section>
+
+    <section class="panel defaults-panel" aria-labelledby="defaults-heading">
+      <div class="section-heading">
+        <div><span class="step">2</span><div><p class="eyebrow">Felles kontekst</p><h2 id="defaults-heading">Metadata som gjelder flere filer</h2></div></div>
+      </div>
+      <form id="defaults-form" class="defaults-grid">
+        <label>Dokumentansvarlig eller forfatter<input name="creator" autocomplete="organization-title" placeholder="Eksempel: Kari Nordmann"></label>
+        <label>Organisasjonsenhet<input name="organizationalUnit" autocomplete="organization" placeholder="Eksempel: Digital forvaltning"></label>
+        <label>Emne eller sak<input name="subject" placeholder="Eksempel: Anskaffelse av nytt sak- og arkivsystem"></label>
+        <label>Saksreferanse<input name="caseReference" placeholder="Eksempel: 2026/1042"></label>
+        <label>Klassifikasjonskode<input name="classificationCode" placeholder="Eksempel: 041"></label>
+        <label>Tilgangsnivå<select name="accessLevel"><option>Ikke vurdert</option><option>Åpen</option><option>Intern</option><option>Unntatt offentlighet</option></select></label>
+        <label>Tilgangshjemmel<input name="accessBasis" placeholder="Bare ved behov"></label>
+        <label>Bevaring og kassasjon<select name="retentionDecision"><option>Ikke vurdert</option><option>Bevares</option><option>Kasseres etter angitt tid</option></select></label>
+        <label>Antall år før kassasjon<input name="retentionYears" type="number" min="1" max="100" inputmode="numeric" placeholder="Eksempel: 10"></label>
+        <label>Kilde eller proveniens<input name="source" placeholder="Eksempel: Prosjektrom for anskaffelsen"></label>
+        <label class="wide">Relasjon<input name="relation" placeholder="Eksempel: Tilhører sak 2026/1042 eller erstatter versjon 1"></label>
+      </form>
+      <div class="apply-row">
+        <label class="checkbox"><input id="overwrite-defaults" type="checkbox"> Overskriv også felt som allerede har en verdi</label>
+        <button id="apply-defaults" class="button button-primary" type="button">Bruk på alle filer</button>
+      </div>
+    </section>
+
+    <section id="empty-state" class="empty-state">
+      <span>3</span><h2>Gjennomgang og eksport åpnes når du har lagt til filer.</h2>
+      <p>Du kan bruke egne dokumenter eller eksempelfilene over.</p>
+    </section>
+
+    <section id="workspace" hidden>
+      <div class="summary-grid" aria-label="Status for arbeidsflaten">
+        <article><span>Filer</span><strong id="file-count">0</strong></article>
+        <article><span>Gjennomsnittlig utfylling</span><strong id="average-score">0 %</strong></article>
+        <article><span>Punkter til kontroll</span><strong id="warning-count">0</strong></article>
+        <article><span>Mulige duplikatgrupper</span><strong id="duplicate-count">0</strong></article>
+      </div>
+
+      <div class="workspace-grid">
+        <section class="panel file-panel" aria-labelledby="review-heading">
+          <div class="section-heading compact">
+            <div><span class="step">3</span><div><p class="eyebrow">Gjennomgang</p><h2 id="review-heading">Filer og kvalitet</h2></div></div>
+          </div>
+          <div id="file-list" class="file-list" role="list"></div>
+        </section>
+
+        <section class="panel editor-panel">
+          <div id="editor-empty" class="editor-empty"><p>Velg en fil for å kontrollere metadata.</p></div>
+          <div id="metadata-editor" hidden>
+            <div class="editor-head">
+              <div><p class="eyebrow">Valgt fil</p><h2 id="editor-heading"></h2><code id="editor-filename"></code></div>
+              <span id="editor-score" class="score-badge">0 %</span>
+            </div>
+            <form id="editor-form" class="editor-form">
+              <fieldset><legend>Beskrivelse</legend>
+                <label class="wide">Tittel<input name="title" required></label>
+                <label class="wide">Beskrivelse<textarea name="description" rows="3"></textarea></label>
+                <label>Dokumenttype<input name="documentType"></label>
+                <label>Dokumentdato<input name="documentDate" type="date"></label>
+                <label>Språk<select name="language"><option value="nb">Norsk bokmål</option><option value="nn">Norsk nynorsk</option><option value="en">Engelsk</option><option value="und">Ikke bestemt</option></select></label>
+                <label>Nøkkelord<input name="keywords" placeholder="skill med komma"></label>
+              </fieldset>
+              <fieldset><legend>Ansvar og sammenheng</legend>
+                <label>Dokumentansvarlig<input name="creator"></label>
+                <label>Organisasjonsenhet<input name="organizationalUnit"></label>
+                <label class="wide">Emne eller sak<input name="subject"></label>
+                <label>Saksreferanse<input name="caseReference"></label>
+                <label>Klassifikasjonskode<input name="classificationCode"></label>
+                <label class="wide">Kilde eller proveniens<input name="source"></label>
+                <label class="wide">Relasjon<input name="relation"></label>
+              </fieldset>
+              <fieldset><legend>Tilgang og livsløp</legend>
+                <label>Tilgangsnivå<select name="accessLevel"><option>Ikke vurdert</option><option>Åpen</option><option>Intern</option><option>Unntatt offentlighet</option></select></label>
+                <label>Tilgangshjemmel<input name="accessBasis"></label>
+                <label>Bevaring og kassasjon<select name="retentionDecision"><option>Ikke vurdert</option><option>Bevares</option><option>Kasseres etter angitt tid</option></select></label>
+                <label>Antall år før kassasjon<input name="retentionYears" type="number" min="1" max="100"></label>
+                <label>Kassasjonsår<input name="disposalYear" readonly></label>
+                <label class="wide">Personopplysningsvurdering<input name="personalDataAssessment"></label>
+              </fieldset>
+              <fieldset><legend>Teknisk og kontroll</legend>
+                <label>Format<input name="format" readonly></label>
+                <label>MIME-type<input name="mimeType" readonly></label>
+                <label class="wide">SHA-256<input name="sha256" readonly class="monospace"></label>
+                <label class="wide">Merknader<textarea name="notes" rows="2"></textarea></label>
+              </fieldset>
+            </form>
+            <div class="review-box">
+              <div><h3>Punkter til kontroll</h3><ul id="findings"></ul></div>
+              <div><h3>Mulige personopplysningssignaler</h3><ul id="signal-list"></ul><small>Automatisk mønstergjenkjenning er bare en indikasjon.</small></div>
+            </div>
+            <div class="editor-actions">
+              <button id="reset-suggestion" class="button button-secondary" type="button">Lag forslag på nytt</button>
+              <button id="remove-file" class="text-button danger" type="button">Fjern filen</button>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <section class="panel export-panel" aria-labelledby="export-heading">
+        <div>
+          <p class="eyebrow">Resultat</p><h2 id="export-heading">Last ned metadata og dokumentpakke</h2>
+          <p id="export-note"></p>
+        </div>
+        <div class="export-actions">
+          <button id="download-json" class="button button-secondary" type="button">JSON-manifest</button>
+          <button id="download-csv" class="button button-secondary" type="button">CSV-manifest</button>
+          <button id="download-zip" class="button button-primary" type="button">Komplett ZIP-pakke</button>
+        </div>
+      </section>
+    </section>
+
+    <section class="explanation-grid">
+      <article><span>01</span><h2>Forklarbare forslag</h2><p>Forslagene bygges av filnavn, tekniske egenskaper og lesbart tekstinnhold. Du kan rette alt før eksport.</p></article>
+      <article><span>02</span><h2>Arkivfaglig kontrollpunkt</h2><p>Løsningen synliggjør manglende ansvar, tilgang, emne, klassifikasjon og bevaring uten å late som den gjør selve vurderingen.</p></article>
+      <article><span>03</span><h2>Flyttbart resultat</h2><p>Manifest og sidecars kan kontrolleres, versjoneres og senere kobles til en import eller integrasjon mot et sak-/arkivsystem.</p></article>
+    </section>
+  </main>
+
+  <footer><span>Archive Assist</span><span>En åpen demonstrasjon av Rolf Selås</span><a href="https://github.com/rolfss">GitHub</a></footer>
+  <script type="module" src="./app.mjs"></script>
+</body>
+</html>
