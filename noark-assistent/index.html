@@ -9,6 +9,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>Noark 5-arkivassistent</title>
   <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./notice.css">
   <script type="module" src="./app.mjs"></script>
 </head>
 <body>
@@ -38,7 +39,13 @@
         <div class="hero-copy">
           <p class="eyebrow">Noark 5 v6.0 · regelverk fra 2026</p>
           <h1>Finn kravet. Se grunnlaget. Åpne originalkilden.</h1>
-          <p>Assistenten henter relevante kildeposter og setter sammen et kort svar med sporbare henvisninger. Ingen API-nøkkel, server eller opplastning.</p>
+          <p class="hero-description">Assistenten henter relevante kildeposter og setter sammen et kort svar med sporbare henvisninger. Ingen API-nøkkel, server eller opplastning.</p>
+
+          <aside class="concept-note" aria-labelledby="concept-note-title">
+            <div class="concept-note-heading" id="concept-note-title">Proof-of-concept med begrenset resonnering</div>
+            <p>Denne versjonen bruker lokal, deterministisk kildesyntese – <strong>ikke en avansert språkmodell</strong>. Den har derfor begrenset evne til å tolke komplekse spørsmål, resonnere på tvers av mange kilder og føre lange oppfølgingsdialoger.</p>
+            <p>Som <strong>proof-of-concept</strong> viser den likevel hvordan Noark-kunnskap kan hentes, rangeres og dokumenteres med sporbare kilder. Løsningen kan kobles til <strong>avanserte språkmodeller via en sikker backend</strong> for vesentlig bedre forståelse og resonnering.</p>
+          </aside>
         </div>
         <dl class="hero-stats" aria-label="Kildegrunnlag">
           <div><dt id="stat-records">—</dt><dd>kildeposter</dd></div>
