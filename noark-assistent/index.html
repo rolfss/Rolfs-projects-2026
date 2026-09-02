@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="nb">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Kildebasert søke- og svarassistent for Noark 5 versjon 6.0 og arkivregelverket fra 2026.">
+  <meta name="theme-color" content="#102c3a">
+  <meta name="color-scheme" content="light">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>Noark 5-arkivassistent</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./app.mjs"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Hopp til innhold</a>
+
+  <header class="app-header">
+    <a class="brand" href="./" aria-label="Noark 5-arkivassistent, startside">
+      <span class="brand-mark" aria-hidden="true">N5</span>
+      <span><strong>Noark 5-arkivassistent</strong><small>Kildebasert fagstøtte</small></span>
+    </a>
+    <div class="header-actions">
+      <span class="privacy-badge" title="Spørsmål og søk behandles bare i nettleseren">Lokal behandling</span>
+      <a class="text-link" href="../">Alle prosjekter</a>
+      <a class="text-link" href="https://github.com/rolfss/Rolfs-projects-2026/tree/main/noark-assistent" rel="noreferrer">Kildekode</a>
+    </div>
+  </header>
+
+  <nav class="tab-nav" aria-label="Innhold">
+    <button class="tab-button is-active" type="button" data-tab="chat" aria-selected="true">Spør assistenten</button>
+    <button class="tab-button" type="button" data-tab="library" aria-selected="false">Kravbibliotek</button>
+    <button class="tab-button" type="button" data-tab="sources" aria-selected="false">Kilder og metode</button>
+  </nav>
+
+  <main id="main-content">
+    <section class="tab-panel" id="panel-chat" data-panel="chat">
+      <div class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Noark 5 v6.0 · regelverk fra 2026</p>
+          <h1>Finn kravet. Se grunnlaget. Åpne originalkilden.</h1>
+          <p>Assistenten henter relevante kildeposter og setter sammen et kort svar med sporbare henvisninger. Ingen API-nøkkel, server eller opplastning.</p>
+        </div>
+        <dl class="hero-stats" aria-label="Kildegrunnlag">
+          <div><dt id="stat-records">—</dt><dd>kildeposter</dd></div>
+          <div><dt id="stat-sources">—</dt><dd>offisielle kilder</dd></div>
+          <div><dt id="stat-requirements">—</dt><dd>krav og metadata</dd></div>
+        </dl>
+      </div>
+
+      <div class="suggestions" aria-labelledby="suggestions-title">
+        <div class="section-heading compact">
+          <div><p class="eyebrow">Prøv et spørsmål</p><h2 id="suggestions-title">Vanlige problemstillinger</h2></div>
+          <button class="quiet-button" id="clear-chat" type="button">Nullstill samtalen</button>
+        </div>
+        <div class="suggestion-list" id="suggestion-list"></div>
+      </div>
+
+      <div class="workspace">
+        <section class="chat-card" aria-labelledby="chat-title">
+          <div class="panel-heading">
+            <div><p class="eyebrow">Samtale</p><h2 id="chat-title">Spør om Noark og arkivkrav</h2></div>
+            <span class="status-dot"><i aria-hidden="true"></i>Klar</span>
+          </div>
+
+          <div class="conversation" id="conversation" aria-live="polite" aria-label="Samtale med assistenten">
+            <article class="message assistant-message">
+              <div class="message-role">Assistent</div>
+              <div class="message-content">
+                <p>Jeg søker i et kuratert grunnlag fra Noark 5 versjon 6.0, standardvedleggene og Nasjonalarkivets veiledning til regelverket fra 2026.</p>
+                <p class="message-note">Svarene er fagstøtte, ikke en erstatning for juridisk vurdering eller kontroll av originalkilden.</p>
+              </div>
+            </article>
+          </div>
+
+          <form class="question-form" id="question-form">
+            <label for="question">Spørsmål</label>
+            <textarea id="question" name="question" rows="3" maxlength="600" required placeholder="Eksempel: Må fagsystemet vårt integreres med en Noark-kjerne?"></textarea>
+            <div class="form-row">
+              <span><kbd>Ctrl</kbd> + <kbd>Enter</kbd> sender</span>
+              <button class="primary-button" type="submit">Finn kildebasert svar</button>
+            </div>
+          </form>
+        </section>
+
+        <aside class="evidence-card" aria-labelledby="evidence-title">
+          <div class="panel-heading">
+            <div><p class="eyebrow">Dokumentasjon</p><h2 id="evidence-title">Kildegrunnlag</h2></div>
+            <span class="result-count" id="result-count">Ingen søk</span>
+          </div>
+          <div class="evidence-empty" id="evidence-empty">
+            <span aria-hidden="true">§</span>
+            <h3>Kildene vises her</h3>
+            <p>Hvert svar kobles til konkrete seksjoner, sider og kravnummer der dette finnes.</p>
+          </div>
+          <div class="evidence-list" id="evidence-list"></div>
+        </aside>
+      </div>
+
+      <section class="history-section" id="history-section" hidden aria-labelledby="history-title">
+        <div class="section-heading compact">
+          <div><p class="eyebrow">På denne enheten</p><h2 id="history-title">Nylige spørsmål</h2></div>
+          <button class="quiet-button" id="clear-history" type="button">Slett historikk</button>
+        </div>
+        <div class="history-list" id="history-list"></div>
+      </section>
+    </section>
+
+    <section class="tab-panel" id="panel-library" data-panel="library" hidden>
+      <div class="section-heading library-heading">
+        <div>
+          <p class="eyebrow">Utforsk grunnlaget</p>
+          <h1>Kravbibliotek</h1>
+          <p>Søk direkte i oppsummerte krav, metadataelementer og veiledning. Kortene peker til originaldokumentene.</p>
+        </div>
+        <div class="library-count" id="library-count">—</div>
+      </div>
+
+      <form class="library-filters" id="library-filters" role="search">
+        <label class="search-field"><span>Søk</span><input id="library-query" type="search" placeholder="Kravnummer, tema eller metadataelement"></label>
+        <label><span>Tema</span><select id="library-topic"></select></label>
+        <label><span>Kravtype</span><select id="library-type"><option>Alle</option><option value="O">O – obligatorisk</option><option value="B">B – betinget obligatorisk</option><option value="V">V – valgfritt</option><option value="M">M – blandede kravtyper</option></select></label>
+        <button class="secondary-button" type="reset">Nullstill</button>
+      </form>
+
+      <div class="requirement-legend" aria-label="Forklaring av kravtyper">
+        <span><b>O</b> Obligatorisk</span>
+        <span><b>B</b> Obligatorisk når vilkåret gjelder</span>
+        <span><b>V</b> Valgfritt</span>
+        <span><b>M</b> Samlepost med flere kravtyper</span>
+      </div>
+      <div class="library-grid" id="library-grid"></div>
+      <button class="secondary-button load-more" id="library-more" type="button" hidden>Vis flere</button>
+    </section>
+
+    <section class="tab-panel" id="panel-sources" data-panel="sources" hidden>
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Etterprøvbart fra start</p>
+          <h1>Kilder og metode</h1>
+          <p>Appen bruker bare kildene nedenfor. Den sender ingenting ut av nettleseren og later ikke som den har funnet noe som ikke finnes i grunnlaget.</p>
+        </div>
+      </div>
+
+      <div class="method-grid">
+        <article><span>01</span><h2>Hent</h2><p>Spørsmålet normaliseres, utvides med et avgrenset norsk arkivfaglig synonymsett og rangeres mot kildepostene.</p></article>
+        <article><span>02</span><h2>Ranger</h2><p>En lokal BM25-lignende søkemotor vektlegger kravnummer, titler, emneord, seksjoner og kildeinnhold.</p></article>
+        <article><span>03</span><h2>Sett sammen</h2><p>Svaret bygges deterministisk av de høyest rangerte, forhåndskontrollerte oppsummeringene. Det genereres ikke frie påstander.</p></article>
+        <article><span>04</span><h2>Kontroller</h2><p>Hvert resultat viser kilde, plassering og direkte lenke. Ved svake treff sier appen fra i stedet for å gjette.</p></article>
+      </div>
+
+      <div class="source-grid" id="source-grid"></div>
+
+      <aside class="method-note">
+        <h2>Avgrensning</h2>
+        <p>Kildebasen er kuratert for sentrale spørsmål om Noark 5 v6.0 og overgang til regelverket fra 2026. Den er ikke en fulltekstkopi av lov, forskrift eller standard. Kontroller alltid ordlyden i originalkilden før juridiske, tekniske eller anskaffelsesmessige beslutninger.</p>
+      </aside>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <span>Noark 5-arkivassistent · versjon <span id="app-version">—</span></span>
+    <span>Kildegrunnlag oppdatert <time id="corpus-date">—</time></span>
+    <a href="https://github.com/rolfss" rel="noreferrer">Rolf Selås på GitHub</a>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>
