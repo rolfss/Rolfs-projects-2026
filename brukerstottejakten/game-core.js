@@ -1,8 +1,29 @@
 export const TARGET_CASES = 10;
-export const QUIZ_MILESTONES = Object.freeze([3, 6, 9]);
+export const QUIZ_CHANCE = 0.3;
+
+// game.js originally consumed fixed quiz milestones. This array-like compatibility
+// view now exposes the independent quiz roll made by the most recent shot.
+// Its length converts to a large number for Array#slice, but to "?" in the HUD.
+const randomQuizCount = Object.freeze({
+  valueOf: () => Number.MAX_SAFE_INTEGER,
+  toString: () => '?',
+});
+let pendingQuizAtCase = Number.POSITIVE_INFINITY;
+
+export const QUIZ_MILESTONES = new Proxy(Object.create(null), {
+  get(_target, property) {
+    if (property === 'length') return randomQuizCount;
+    if (typeof property === 'string' && /^\d+$/.test(property)) return pendingQuizAtCase;
+    return undefined;
+  },
+});
 
 export function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
+}
+
+export function shouldOfferQuiz(randomValue = Math.random()) {
+  return Number.isFinite(randomValue) && randomValue >= 0 && randomValue < QUIZ_CHANCE;
 }
 
 export function levelForCases(casesSolved) {
@@ -30,6 +51,7 @@ export function createGameState() {
 }
 
 export function startGame(_state, now = Date.now()) {
+  pendingQuizAtCase = Number.POSITIVE_INFINITY;
   return {
     ...createGameState(),
     status: 'running',
@@ -37,17 +59,19 @@ export function startGame(_state, now = Date.now()) {
   };
 }
 
-export function recordShot(state, hit, now = Date.now()) {
+export function recordShot(state, hit, now = Date.now(), randomValue = Math.random()) {
   if (state.status !== 'running') return state;
 
   const shots = state.shots + 1;
   if (!hit) {
+    pendingQuizAtCase = Number.POSITIVE_INFINITY;
     return { ...state, shots, streak: 0 };
   }
 
   const casesSolved = clamp(state.casesSolved + 1, 0, TARGET_CASES);
   const streak = state.streak + 1;
   const won = casesSolved === TARGET_CASES;
+  pendingQuizAtCase = shouldOfferQuiz(randomValue) ? casesSolved : Number.POSITIVE_INFINITY;
 
   return {
     ...state,
