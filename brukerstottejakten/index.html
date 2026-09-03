@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="nb">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Brukerstøttejakten er et lite retro nettleserspill. Løs ti flyvende brukerstøttesaker med Service Manager og bli årets ansatt.">
+  <meta name="theme-color" content="#102a33">
+  <title>Brukerstøttejakten — Service Manager</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="game-shell">
+    <header class="game-header">
+      <a class="brand" href="../" aria-label="Tilbake til Rolf Selås sine prosjekter">
+        <span class="brand-mark" aria-hidden="true">BS</span>
+        <span><strong>Brukerstøttejakten</strong><small>En helt vanlig arbeidsdag</small></span>
+      </a>
+
+      <div class="header-actions">
+        <span class="status-chip"><i aria-hidden="true"></i><span>Vakt: <b id="dutyStatus">frakoblet</b></span></span>
+        <button class="sound-button" id="soundButton" type="button" aria-pressed="true">Lyd: på</button>
+      </div>
+    </header>
+
+    <main class="game-board" id="gameBoard">
+      <canvas id="gameCanvas" tabindex="0" aria-label="Spillområde. Treff de flyvende brukerstøttesakene. Bruk mus eller berøring, eller flytt siktet med piltastene og skyt med mellomrom."></canvas>
+
+      <div class="top-hud" aria-live="polite">
+        <span>Saker løst <strong id="scoreText">0/10</strong></span>
+        <span>Skudd <strong id="shotsText">0</strong></span>
+        <span>Eskalert <strong id="missesText">0</strong></span>
+      </div>
+
+      <div class="message" id="message" role="status" aria-live="polite"></div>
+      <div class="crosshair" id="crosshair" aria-hidden="true"><i></i></div>
+
+      <div class="weapon-hud" id="weaponHud" aria-label="Våpen: Service Manager">
+        <div class="pixel-gun" aria-hidden="true">
+          <span class="gun-barrel"></span>
+          <span class="gun-body"></span>
+          <span class="gun-screen">SM</span>
+          <span class="gun-grip"></span>
+        </div>
+        <span class="weapon-name">Service Manager</span>
+      </div>
+
+      <aside class="score-panel" aria-label="Fremdrift mot årets ansatt">
+        <div class="score-heading"><span>Årets ansatt</span><strong id="scorePercent">0 %</strong></div>
+        <div class="score-track" role="progressbar" aria-label="Saker løst" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0" id="scoreTrack">
+          <span class="score-fill" id="scoreFill"></span>
+          <span class="score-grid" aria-hidden="true"></span>
+        </div>
+        <p><b id="casesRemaining">10</b> <span id="remainingWord">saker</span> gjenstår</p>
+      </aside>
+
+      <section class="overlay is-visible" id="startOverlay" aria-labelledby="startTitle">
+        <div class="overlay-card start-card">
+          <p class="kicker">Sykehuspartner arkade presenterer</p>
+          <h1 id="startTitle">Brukerstøtte&shy;jakten</h1>
+          <p>Ti <strong>Brukerstøttesaker</strong> er på avveie. Bruk <strong>Service Manager</strong>, løs dem og fyll måleren til «årets ansatt».</p>
+          <ul>
+            <li>Klikk eller trykk på sakene for å skyte.</li>
+            <li>Piltaster og mellomrom virker også.</li>
+            <li>Du kan ikke tape. Mandagen er allerede hard nok.</li>
+          </ul>
+          <button class="primary-button" id="startButton" type="button">Logg på Service Manager</button>
+          <a class="back-link" href="../">← Tilbake til prosjektene</a>
+        </div>
+      </section>
+
+      <section class="overlay" id="winOverlay" aria-labelledby="winTitle" hidden>
+        <div class="overlay-card win-card">
+          <div class="trophy" aria-hidden="true"><span>★</span></div>
+          <p class="kicker">10 av 10 saker løst</p>
+          <h2 id="winTitle">Du er årets ansatt!</h2>
+          <p id="winSummary">Service Manager har aldri sett maken.</p>
+          <button class="primary-button" id="restartButton" type="button">Ta en ny vakt</button>
+          <a class="back-link" href="../">Se flere prosjekter →</a>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="./game.js"></script>
+</body>
+</html>

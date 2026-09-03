@@ -7,6 +7,7 @@ on:
       - "archive-assist/**"
       - "metaready/**"
       - "lumen-relay/**"
+      - "brukerstottejakten/**"
       - "noark-assistent/**"
       - ".github/workflows/validate-browser-projects.yml"
       - ".github/workflows/deploy-pages.yml"
@@ -36,6 +37,10 @@ jobs:
 
       - name: Kjør tester for Lumen Relay
         working-directory: ./lumen-relay
+        run: npm test && npm run check
+
+      - name: Kjør tester for Brukerstøttejakten
+        working-directory: ./brukerstottejakten
         run: npm test && npm run check
 
       - name: Kjør tester for Noark 5-arkivassistenten

@@ -9,6 +9,7 @@ on:
       - "archive-assist/**"
       - "metaready/**"
       - "lumen-relay/**"
+      - "brukerstottejakten/**"
       - "noark-assistent/**"
       - ".github/workflows/deploy-pages.yml"
   workflow_dispatch:
@@ -49,6 +50,10 @@ jobs:
         working-directory: ./lumen-relay
         run: npm test && npm run check
 
+      - name: Kjør tester for Brukerstøttejakten
+        working-directory: ./brukerstottejakten
+        run: npm test && npm run check
+
       - name: Kjør tester for Noark 5-arkivassistenten
         working-directory: ./noark-assistent
         run: npm run validate
@@ -61,10 +66,12 @@ jobs:
           cp -R archive-assist _site/archive-assist
           cp -R metaready _site/metaready
           cp -R lumen-relay _site/lumen-relay
+          cp -R brukerstottejakten _site/brukerstottejakten
           cp -R noark-assistent _site/noark-assistent
           rm -rf _site/archive-assist/tests _site/archive-assist/package.json _site/archive-assist/README.md _site/archive-assist/ARKITEKTUR.md _site/archive-assist/PROSJEKTGRUNNLAG.md _site/archive-assist/SECURITY.md _site/archive-assist/LICENSE
           rm -rf _site/metaready/tests _site/metaready/package.json _site/metaready/README.md
           rm -rf _site/lumen-relay/tests _site/lumen-relay/package.json _site/lumen-relay/README.md _site/lumen-relay/DESIGN.md _site/lumen-relay/LICENSE
+          rm -rf _site/brukerstottejakten/tests _site/brukerstottejakten/package.json _site/brukerstottejakten/README.md
           rm -rf _site/noark-assistent/tests _site/noark-assistent/package.json _site/noark-assistent/README.md
           touch _site/.nojekyll
 

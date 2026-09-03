@@ -1,0 +1,264 @@
+.support-hunt-card {
+  grid-column: 1 / -1;
+  min-height: 430px;
+  display: grid;
+  grid-template-columns: minmax(0, .92fr) minmax(420px, 1.08fr);
+  gap: clamp(1.5rem, 5vw, 4.5rem);
+  align-items: center;
+  overflow: hidden;
+  border-color: #c7d9d3;
+  background: #e8f2e8;
+}
+
+.support-hunt-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+}
+
+.support-hunt-copy .card-top { margin-bottom: 1.6rem; }
+.support-hunt-copy > p:not(.project-name) { max-width: 640px; color: var(--muted); }
+.support-hunt-copy .actions { margin-top: auto; margin-bottom: 0; }
+
+.support-hunt-preview {
+  position: relative;
+  min-height: 330px;
+  display: block;
+  overflow: hidden;
+  border: 7px solid #102a33;
+  border-radius: 8px;
+  background: linear-gradient(#70cbd4 0 60%, #153f3a 60% 100%);
+  color: #102a33;
+  text-decoration: none;
+  box-shadow: 11px 11px 0 rgba(11, 37, 49, .18);
+  image-rendering: pixelated;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.support-hunt-preview:hover,
+.support-hunt-preview:focus-visible {
+  transform: translate(-2px, -4px);
+  box-shadow: 14px 15px 0 rgba(11, 37, 49, .16);
+}
+
+.support-hunt-preview::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: .16;
+  background: repeating-linear-gradient(to bottom, transparent 0 3px, rgba(7, 23, 29, .26) 4px);
+}
+
+.hunt-sun,
+.hunt-cloud,
+.hunt-horizon,
+.hunt-ticket,
+.hunt-crosshair,
+.hunt-weapon,
+.hunt-score {
+  position: absolute;
+  display: block;
+}
+
+.hunt-sun {
+  top: 34px;
+  right: 11%;
+  width: 58px;
+  height: 58px;
+  background: #ffd34d;
+  box-shadow: inset 0 9px rgba(255, 255, 255, .25);
+}
+
+.hunt-cloud {
+  top: 55px;
+  left: 16%;
+  width: 78px;
+  height: 19px;
+  background: rgba(255, 254, 243, .82);
+}
+.hunt-cloud::before,
+.hunt-cloud::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  background: inherit;
+}
+.hunt-cloud::before { left: 14px; width: 31px; height: 31px; }
+.hunt-cloud::after { right: 8px; width: 24px; height: 25px; }
+
+.hunt-horizon {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 41%;
+  background:
+    linear-gradient(150deg, transparent 0 18%, #315f55 18% 34%, transparent 34%) 0 0 / 48% 64% no-repeat,
+    linear-gradient(210deg, transparent 0 24%, #315f55 24% 45%, transparent 45%) 100% 0 / 64% 70% no-repeat,
+    #153f3a;
+}
+.hunt-horizon::after {
+  content: "";
+  position: absolute;
+  inset: 44% 0 auto;
+  height: 14px;
+  background: repeating-linear-gradient(90deg, #0d302d 0 8px, transparent 8px 24px);
+}
+
+.hunt-ticket {
+  z-index: 2;
+  top: 105px;
+  left: 18%;
+  width: clamp(145px, 32vw, 205px);
+  height: 78px;
+  border: 5px solid #07171d;
+  background:
+    linear-gradient(#71331f 0 3px, transparent 3px 100%),
+    repeating-linear-gradient(0deg, transparent 0 23px, #71331f 23px 26px),
+    #d7652f;
+  transform: rotate(-8deg);
+  box-shadow: 8px 8px 0 rgba(7, 23, 29, .35);
+  animation: hunt-ticket-drift 3.4s ease-in-out infinite;
+}
+.hunt-ticket::before {
+  content: "";
+  position: absolute;
+  top: 24px;
+  left: 8px;
+  right: 8px;
+  height: 29px;
+  border: 3px solid #07171d;
+  background: #fff2c9;
+}
+.hunt-ticket b {
+  position: absolute;
+  z-index: 1;
+  top: 31px;
+  left: 13px;
+  right: 13px;
+  overflow: hidden;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: clamp(.55rem, 1.3vw, .73rem);
+  letter-spacing: -.03em;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hunt-crosshair {
+  z-index: 3;
+  top: 115px;
+  left: 56%;
+  width: 54px;
+  height: 54px;
+  border: 4px solid white;
+  border-radius: 50%;
+  filter: drop-shadow(2px 2px #07171d);
+}
+.hunt-crosshair::before,
+.hunt-crosshair::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  background: white;
+  transform: translate(-50%, -50%);
+}
+.hunt-crosshair::before { width: 72px; height: 4px; }
+.hunt-crosshair::after { width: 4px; height: 72px; }
+
+.hunt-weapon {
+  z-index: 3;
+  left: 50%;
+  bottom: 15px;
+  width: 170px;
+  padding: 45px 7px 5px;
+  border: 4px solid #07171d;
+  background: #102a33;
+  color: white;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .62rem;
+  font-weight: 900;
+  letter-spacing: .06em;
+  text-align: center;
+  text-transform: uppercase;
+  transform: translateX(-50%);
+}
+.hunt-weapon::before {
+  content: "SM";
+  position: absolute;
+  top: -24px;
+  left: 35px;
+  width: 100px;
+  height: 57px;
+  display: grid;
+  place-items: center;
+  border: 5px solid #07171d;
+  background: #e5e1c4;
+  color: #07171d;
+  font-size: .78rem;
+  box-shadow: -72px -15px 0 -14px #bcc6b9;
+}
+
+.hunt-score {
+  z-index: 3;
+  right: 13px;
+  bottom: 13px;
+  width: 145px;
+  padding: 8px;
+  border: 4px solid #07171d;
+  background: #fff2c9;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .54rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+.hunt-score > b,
+.hunt-score > small { display: block; }
+.hunt-score i {
+  display: block;
+  height: 16px;
+  margin: 5px 0;
+  border: 3px solid #07171d;
+  background: #9aa9a2;
+}
+.hunt-score em { display: block; width: 70%; height: 100%; background: linear-gradient(90deg, #d7652f, #ffd34d); }
+
+.support-hunt-preview .preview-cta {
+  position: absolute;
+  z-index: 5;
+  right: 12px;
+  top: 10px;
+  padding: .45rem .6rem;
+  border: 3px solid #07171d;
+  background: #ffd34d;
+  color: #07171d;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .62rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+@keyframes hunt-ticket-drift {
+  0%, 100% { transform: translate(-8px, 7px) rotate(-8deg); }
+  50% { transform: translate(24px, -10px) rotate(4deg); }
+}
+
+@media (max-width: 950px) {
+  .support-hunt-card { grid-template-columns: 1fr; }
+  .support-hunt-preview { min-height: 315px; }
+}
+
+@media (max-width: 560px) {
+  .support-hunt-card { padding: 1.2rem; }
+  .support-hunt-preview { min-height: 285px; }
+  .hunt-ticket { left: 8%; width: 165px; }
+  .hunt-crosshair { left: 63%; }
+  .hunt-score { width: 125px; }
+  .hunt-weapon { left: 41%; transform: translateX(-50%) scale(.8); transform-origin: bottom center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hunt-ticket { animation: none; }
+}

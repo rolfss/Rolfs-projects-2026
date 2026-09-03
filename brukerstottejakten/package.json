@@ -1,0 +1,9 @@
+{
+  "name": "brukerstottejakten",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "check": "node --check game-core.js && node --check game.js"
+  }
+}

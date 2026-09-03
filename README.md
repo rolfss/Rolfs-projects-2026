@@ -45,3 +45,11 @@ MetaReady samler metadata, eierskap, proveniens, sensitivitet, livsløp, relasjo
 [Spill Lumen Relay](https://rolfss.github.io/Rolfs-projects-2026/lumen-relay/) · [Kildekode og designnotater](./lumen-relay/)
 
 Et 90-sekunders arkadespill laget med Canvas 2D, Web Audio og vanlige JavaScript-moduler. Kan spilles med tastatur, mus og berøring.
+
+## Brukerstøttejakten
+
+**Duck Hunt-inspirert arkadespill om den endeløse saksstrømmen**
+
+[Spill Brukerstøttejakten](https://rolfss.github.io/Rolfs-projects-2026/brukerstottejakten/) · [Kildekode](./brukerstottejakten/)
+
+De flyvende målene er små mursteinsaktige «Brukerstøttesaker». Våpenet heter Service Manager, og etter ti treff fylles måleren helt opp: spilleren blir årets ansatt. Spillet virker med mus, berøring og tastatur og bruker ingen eksterne ressurser.
