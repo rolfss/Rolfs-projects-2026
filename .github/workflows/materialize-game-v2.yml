@@ -1,0 +1,34 @@
+name: Materialize Brukerstottejakten v2 engine
+
+on:
+  push:
+    branches:
+      - upgrade/brukerstottejakten-2
+    paths:
+      - .github/workflows/materialize-game-v2.yml
+
+permissions:
+  contents: write
+
+jobs:
+  write-engine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: upgrade/brukerstottejakten-2
+      - name: Decode, verify and test engine
+        run: |
+          cat brukerstottejakten/.engine-payload/part-* | base64 --decode | gzip --decompress > /tmp/game.js
+          test "$(sha256sum /tmp/game.js | cut -d' ' -f1)" = "acebffa3a25d891fd049091c99ff7b80a0b3aa99b33f12047c0bd965b5e91648"
+          mv /tmp/game.js brukerstottejakten/game.js
+          npm --prefix brukerstottejakten test
+          npm --prefix brukerstottejakten run check
+      - name: Commit verified engine
+        run: |
+          rm -rf brukerstottejakten/.engine-payload
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A brukerstottejakten
+          git diff --cached --quiet || git commit -m "feat: legg til nivåer, Noark-bonus og 3D-spillmotor"
+          git push origin HEAD:upgrade/brukerstottejakten-2
