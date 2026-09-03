@@ -6,6 +6,11 @@ on:
       - upgrade/brukerstottejakten-2
     paths:
       - .github/workflows/materialize-game-v2.yml
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
 
 permissions:
   contents: write
