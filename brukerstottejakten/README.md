@@ -1,8 +1,10 @@
-# Brukerstøttejakten 2.0
+# Brukerstøttejakten 2.1
 
 Et Duck Hunt-inspirert nettleserspill med en intern IT-vri. De flyvende målene er tredimensjonale **Brukerstøttesaker**, våpenet heter **Service Manager**, og ti faktiske treff gjør spilleren til **årets ansatt**.
 
-Versjon 2.0 legger til nivåer, komboserier, fire delmål, resultatstatistikk, lokal rekord og tre enkle **Noark 5-bonusspørsmål** per vakt. Riktig svar gir ett prestasjonspoeng og midlertidig sakte film. Feil svar trekker ett poeng. Spillet bruker bare HTML, CSS, JavaScript og Canvas; ingen eksterne ressurser eller API-nøkler.
+Spillet har nivåer, komboserier, fire delmål, resultatstatistikk, lokal rekord og enkle **Noark 5-bonusspørsmål** med to svaralternativer. Hvert vellykket treff har en uavhengig sannsynlighet på 30 prosent for å utløse en quiz; bom utløser aldri quiz. Riktig svar gir ett prestasjonspoeng og midlertidig sakte film. Feil svar trekker ett poeng, men totalsummen går aldri under null.
+
+Spillet bruker bare HTML, CSS, JavaScript og Canvas; ingen eksterne ressurser eller API-nøkler.
 
 ## Kjør lokalt
 
