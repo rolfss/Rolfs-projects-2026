@@ -6,6 +6,7 @@ on:
       - chatgpt/public360-rag-build
     paths:
       - '.chatgpt_tmp/**'
+      - 'tools/public360_fast_build.py'
       - '.github/workflows/public360-rag-build.yml'
 
 permissions:
@@ -30,13 +31,13 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install requests beautifulsoup4 lxml playwright pymupdf
+          pip install httpx[http2] beautifulsoup4 lxml playwright pymupdf
 
       - name: Install Chromium
         run: python -m playwright install --with-deps chromium
 
       - name: Build Public 360 PDF corpus
-        run: python .chatgpt_tmp/public360_rag_build.py
+        run: python tools/public360_fast_build.py
 
       - name: Upload final ZIP
         if: success()
@@ -56,8 +57,8 @@ jobs:
         with:
           name: Public360-build-diagnostics
           path: |
-            build/public360/_tmp/**
-            build/public360/Public360_Hjelp_6.10_PDF-artikler/manifest.*
-            build/public360/Public360_Hjelp_6.10_PDF-artikler/README.txt
+            build/public360_fast/_tmp/**
+            build/public360_fast/Public360_Hjelp_6.10_PDF-artikler/manifest.*
+            build/public360_fast/Public360_Hjelp_6.10_PDF-artikler/README.txt
           if-no-files-found: warn
           retention-days: 3
