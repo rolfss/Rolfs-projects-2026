@@ -1,0 +1,31 @@
+name: Temporary Public 360 TOC probe
+
+on:
+  push:
+    branches:
+      - chatgpt/public360-toc-reconstruction
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4 playwright
+      - name: Verify preinstalled Chrome
+        run: google-chrome --version
+      - name: Probe Public 360 help structure
+        run: python .chatgpt_tmp/public360_toc_probe.py
+      - name: Upload TOC diagnostics
+        uses: actions/upload-artifact@v4
+        with:
+          name: public360-toc-probe
+          path: toc_probe/**
+          retention-days: 1
