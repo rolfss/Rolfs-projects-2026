@@ -1,6 +1,12 @@
-# Rolf Selås — digitale prosjekter fra 2026
+# Rolf Selås — nyeste digitale prosjekter (2026–)
 
-[Åpne prosjektsiden](https://rolfss.github.io/Rolfs-projects-2026/)
+**Hovedinngangen til mine nyeste nettleserapper, AI-prototyper og verktøy for informasjons- og dokumentasjonsforvaltning.**
+
+## [Se og prøv de nyeste prosjektene →](https://rolfss.github.io/Rolfs-projects-2026/)
+
+**Nyest:** Noark 5-arkivassistent · Archive Assist · MetaReady · Lumen Relay · Brukerstøttejakten
+
+---
 
 ## Noark 5-arkivassistent
 
