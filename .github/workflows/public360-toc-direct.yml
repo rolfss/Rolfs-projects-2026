@@ -1,0 +1,29 @@
+name: Temporary Public 360 direct TOC fetch
+on:
+  push:
+    branches: [chatgpt/public360-toc-direct]
+permissions:
+  contents: read
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Fetch likely navigation resources
+        shell: bash
+        run: |
+          set -u
+          mkdir -p out
+          base='https://help.360online.com/6.10.0000/full_public_360/1044/360CompleteHelp/'
+          files=(HH_Start.htm hmcontent.htm hmcontent.html hmcontent.js hm_content.js helpman_settings.js helpman_navigation.js helpman_topicinit.js hm_navigation.js hmnavigation.js settings.js toc.js tocdata.js toc.json toc.xml hmcontent.xml)
+          : > out/status.tsv
+          for f in "${files[@]}"; do
+            code=$(curl --connect-timeout 5 --max-time 12 -L -sS -w '%{http_code}' -o "out/${f//\//__}" "$base$f" || true)
+            printf '%s\t%s\n' "$code" "$f" >> out/status.tsv
+          done
+          grep -RIlE '\.htm|toc|contents|children|parent|level|topic' out | sort > out/likely.txt || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: public360-toc-direct
+          path: out/**
+          retention-days: 1
