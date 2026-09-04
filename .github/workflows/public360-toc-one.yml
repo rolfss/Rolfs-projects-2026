@@ -1,0 +1,22 @@
+name: Temporary Public 360 hmcontent fetch
+on:
+  push:
+    branches: [chatgpt/public360-toc-direct]
+permissions:
+  contents: read
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Fetch hmcontent and shell
+        run: |
+          mkdir out
+          curl --connect-timeout 5 --max-time 20 -L -fsS -o out/hmcontent.htm 'https://help.360online.com/6.10.0000/full_public_360/1044/360CompleteHelp/hmcontent.htm' || true
+          curl --connect-timeout 5 --max-time 20 -L -fsS -o out/HH_Start.htm 'https://help.360online.com/6.10.0000/full_public_360/1044/360CompleteHelp/HH_Start.htm' || true
+          wc -c out/* || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: public360-hmcontent
+          path: out/**
+          retention-days: 1
