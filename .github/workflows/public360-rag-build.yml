@@ -33,8 +33,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install httpx[http2] beautifulsoup4 lxml playwright pymupdf
 
-      - name: Install Chromium
-        run: python -m playwright install --with-deps chromium
+      - name: Use preinstalled Chrome
+        run: |
+          google-chrome --version
+          sed -i 's/chromium.launch(headless=True)/chromium.launch(channel="chrome",headless=True)/g' tools/public360_fast_build.py
 
       - name: Build Public 360 PDF corpus
         run: python tools/public360_fast_build.py
