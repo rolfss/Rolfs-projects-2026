@@ -1,0 +1,63 @@
+name: Temporary Public 360 RAG corpus build
+
+on:
+  push:
+    branches:
+      - chatgpt/public360-rag-build
+    paths:
+      - '.chatgpt_tmp/**'
+      - '.github/workflows/public360-rag-build.yml'
+
+permissions:
+  contents: read
+
+env:
+  PYTHONUNBUFFERED: '1'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests beautifulsoup4 lxml playwright pymupdf
+
+      - name: Install Chromium
+        run: python -m playwright install --with-deps chromium
+
+      - name: Build Public 360 PDF corpus
+        run: python .chatgpt_tmp/public360_rag_build.py
+
+      - name: Upload final ZIP
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Public360-Hjelp-6.10-RAG-PDF-artikler
+          path: |
+            dist/Public360_Hjelp_6.10_RAG_PDF-artikler.zip
+            dist/build_summary.json
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 3
+
+      - name: Upload diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Public360-build-diagnostics
+          path: |
+            build/public360/_tmp/**
+            build/public360/Public360_Hjelp_6.10_PDF-artikler/manifest.*
+            build/public360/Public360_Hjelp_6.10_PDF-artikler/README.txt
+          if-no-files-found: warn
+          retention-days: 3
