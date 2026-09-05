@@ -1,0 +1,59 @@
+name: Materialiser Brukerstøttejakten 4.0 kampanje
+
+on:
+  push:
+    branches:
+      - upgrade/brukerstottejakten-4-campaign
+    paths:
+      - ".github/workflows/materialize-brukerstotte-v4-campaign.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  materialize-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hent kampanjegrenen
+        uses: actions/checkout@v4
+        with:
+          ref: upgrade/brukerstottejakten-4-campaign
+          fetch-depth: 0
+
+      - name: Pakk ut og kontroller kampanjen
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat brukerstottejakten/.v4-campaign-payload/part-* \
+            | tr -d '[:space:]' \
+            | base64 --decode > /tmp/brukerstotte-v4.tar.gz
+          actual="$(sha256sum /tmp/brukerstotte-v4.tar.gz | cut -d' ' -f1)"
+          expected="4c861ce9986b00dbb884fe3a49157f1de62f63bc6d059d35c9445e08288851d4"
+          test "$actual" = "$expected"
+
+          rm -rf /tmp/brukerstotte-ready
+          mkdir -p /tmp/brukerstotte-ready
+          tar -xzf /tmp/brukerstotte-v4.tar.gz -C /tmp/brukerstotte-ready
+          test -f /tmp/brukerstotte-ready/game.js
+          test -f /tmp/brukerstotte-ready/renderer.js
+          grep -q "Service Manager Mk V" /tmp/brukerstotte-ready/index.html
+          grep -q "80" /tmp/brukerstotte-ready/index.html
+
+          rm -rf brukerstottejakten
+          mv /tmp/brukerstotte-ready brukerstottejakten
+
+      - name: Kjør tester og syntakskontroll
+        run: |
+          npm --prefix brukerstottejakten test
+          npm --prefix brukerstottejakten run check
+
+      - name: Lagre verifisert kampanje
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/materialize-brukerstotte-v4-campaign.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit -m "feat: bygg Brukerstøttejakten som ti-nivåers kaffepausekampanje"
+          git push origin HEAD:upgrade/brukerstottejakten-4-campaign
