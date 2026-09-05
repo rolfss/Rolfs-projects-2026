@@ -1,4 +1,4 @@
-# Brukerstøttejakten 4.0 — Kaffepausekampanjen
+# Brukerstøttejakten 4.1 — Kaffepausekampanjen
 
 Et norsk, Duck Hunt-inspirert nettleserspill laget for en fem minutters kaffepause. Spilleren bruker **Service Manager Mk V** til å håndtere 80 flyvende brukerstøttesaker gjennom ti nivåer, velger moduloppgraderinger mellom nivåene, svarer på tilfeldige Noark 5-spørsmål og avslutter med en flerfaset hovedhendelse.
 

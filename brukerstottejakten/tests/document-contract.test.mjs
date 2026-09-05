@@ -10,7 +10,7 @@ const [html, css, game] = await Promise.all([
 ]);
 
 test('spillsiden beskriver den utvidede kaffepausekampanjen', () => {
-  assert.match(html, /Brukerstøttejakten 4\.0/);
+  assert.match(html, /Brukerstøttejakten 4\.1/);
   assert.match(html, /10<\/b><span>nivåer/);
   assert.match(html, /80<\/b><span>saker/);
   assert.match(html, /Service Manager Mk V/);
