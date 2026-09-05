@@ -6,7 +6,7 @@ export const FLOW_MAX = 100;
 export const QUEUE_MAX = 100;
 
 export const LEVELS = Object.freeze([
-  Object.freeze({ id: 1, name: 'Pålogging', subtitle: 'Kalibrer Service Manager Mk IV', mechanic: 'Grunnleggende saker', objective: 'Løs 8 saker' }),
+  Object.freeze({ id: 1, name: 'Pålogging', subtitle: 'Kalibrer Service Manager Mk V', mechanic: 'Grunnleggende saker', objective: 'Løs 8 saker' }),
   Object.freeze({ id: 2, name: 'Førstelinje', subtitle: 'Bygg rytme og komboserier', mechanic: 'Kombobonus', objective: 'Oppnå en komboserie på 5' }),
   Object.freeze({ id: 3, name: 'Køkontroll', subtitle: 'Prioriter før SLA-en ryker', mechanic: 'Prioritetssaker', objective: 'Lukk 3 prioritetssaker' }),
   Object.freeze({ id: 4, name: 'Endringsvindu', subtitle: 'Bryt skjerming før saken kan lukkes', mechanic: 'Skjermede saker', objective: 'Bryt 2 skjerminger' }),

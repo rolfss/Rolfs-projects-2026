@@ -515,7 +515,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .reticle.is-firing { animation: reticle-kick .18s ease; }
 @keyframes reticle-kick { 45% { transform: scale(1.45) rotate(8deg); opacity: .68; } }
 
-/* Service Manager Mk IV — layered CSS 3D weapon */
+/* Service Manager Mk V — layered CSS 3D weapon */
 .weapon-rig {
   --gun-yaw: 0deg;
   --gun-pitch: 0deg;
