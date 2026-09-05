@@ -1,27 +1,20 @@
-# Brukerstøttejakten 3.0
+# Brukerstøttejakten 4.0 — Kaffepauseprotokollen
 
-Et tredimensjonalt, Duck Hunt-inspirert nettleserspill med en intern IT-vri. De flyvende målene er **Brukerstøttesaker**, våpenet heter **Service Manager**, og ti faktisk løste saker gjør spilleren til **årets ansatt**.
+Et norsk, Duck Hunt-inspirert nettleserspill laget for en femminutters kaffepause. Spilleren bruker **Service Manager** til å lukke 40 flyvende **Brukerstøttesaker** gjennom åtte operative nivåer.
 
-Versjon 3.0 er bygget som en egen, avhengighetsfri spillmotor med WebGL som hovedmodus og Canvas 2D som automatisk reserve. Scenen bruker ekte perspektiv, belyste 3D-objekter, atmosfærisk tåke, parallakse, kamerabevegelse, partikkeleffekter, førstepersonsvåpen og responsiv HUD.
+## Hva versjon 4.0 tilfører
 
-## Spillmekanikk
+- åtte nivåer og en maksimal vaktlengde på fem minutter
+- fem sakstyper, inkludert SLA-vinduer og en hovedhendelse med fem delhendelser
+- poeng for måltype, presisjon, treffrekke, nivåer og dynamiske vaktmål
+- Saksflyt, sakte film og to strategiske forbedringsvalg per vakt
+- en bank med enkle Noark 5-spørsmål; hvert vellykket treff har 30 prosent sjanse for et tilfeldig kontrollpunkt
+- Dagens kø, tilfeldig vakt og delbare kollegadueller med identisk kø
+- lokal karriere med 15 titler, XP, dagsrekke, utmerkelser og topplister
+- responsiv styring med mus, tastatur og berøring
+- prosedyregenerert Canvas-grafikk og Web Audio uten eksterne ressurser eller API-nøkler
 
-- Ti treff gir alltid seier.
-- Hvert vellykket treff har en uavhengig sannsynlighet på 30 prosent for å utløse en enkel Noark 5-quiz. Bom utløser aldri quiz.
-- Riktig svar gir ett bonuspoeng og seks sekunder sakte film. Feil svar trekker ett poeng; totalsummen går aldri under null.
-- Fire operative faser øker tempo og kompleksitet: Førstelinje, SLA-koordinator, Problemløser og en avsluttende Hovedhendelse.
-- Den tiende saken presenteres som en stor, belyst hovedhendelse med egen introduksjon, radarprofil og lydsignatur.
-- Fem utmerkelser belønner køkontroll, treffserier, kritiske saker og fagkunnskap.
-- Resultatskjermen beregner prestasjon, treffsikkerhet, beste serie, gjennomføringstid og karakter fra D til S.
-- Lokal rekord lagres i nettleseren.
-
-## Kontroller
-
-- **Mus:** sikt og klikk.
-- **Berøring:** trykk direkte på saken.
-- **Tastatur:** piltaster eller WASD flytter siktet; mellomrom eller Enter skyter.
-- **P:** pause eller fortsett.
-- **Fullskjerm:** tilgjengelig der nettleseren tillater det.
+All lagring skjer lokalt i nettleseren. Duell-lenker inneholder bare kø-seed, poengsum, resultatkode og navnet spilleren selv valgte.
 
 ## Kjør lokalt
 
@@ -29,21 +22,21 @@ Versjon 3.0 er bygget som en egen, avhengighetsfri spillmotor med WebGL som hove
 python -m http.server 8080
 ```
 
-Åpne `http://localhost:8080/brukerstottejakten/` når prosjektet ligger i repositoryroten, eller start serveren direkte i denne mappen.
+Åpne `http://localhost:8080/brukerstottejakten/`.
 
-## Kontroller kode og spillregler
+## Kontroller
+
+- **Mus eller berøring:** sikt og skyt direkte på saken
+- **WASD eller piltaster:** flytt siktet
+- **Mellomrom eller Enter:** skyt
+- **P:** pause eller fortsett
+- **F:** fullskjerm
+- **1–3:** velg forbedring
+- **1–2:** svar på Noark-kontrollpunkt
+
+## Tester
 
 ```bash
-npm run check
 npm test
+npm run check
 ```
-
-Testpakken dekker spilltilstand, poengregler, tilfeldig quiz, seier, nivåer, utmerkelser, prestasjonskarakter, 3D-matematikk, HTML-kontrakt og begge grafikkmodusene.
-
-## Teknologi
-
-- HTML, CSS og JavaScript-moduler
-- WebGL 1.0 uten tredjepartsbiblioteker
-- Canvas 2D-reserve ved manglende WebGL-støtte
-- Web Audio-genererte lydeffekter
-- Ingen API-nøkkel, konto, serverlogikk eller eksterne ressurser
