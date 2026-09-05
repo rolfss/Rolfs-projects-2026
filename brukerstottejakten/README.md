@@ -2,6 +2,8 @@
 
 Et norsk, Duck Hunt-inspirert nettleserspill laget for en fem minutters kaffepause. Spilleren bruker **Service Manager Mk V** til å håndtere 80 flyvende brukerstøttesaker gjennom ti nivåer, velger moduloppgraderinger mellom nivåene, svarer på tilfeldige Noark 5-spørsmål og avslutter med en flerfaset hovedhendelse.
 
+Versjon 4.1 dobler kampanjelengden fra den forrige utgaven og gjør våpenets visuelle utvikling til en del av progresjonen.
+
 ## Kampanjen
 
 - **10 nivåer / 80 løste saker** — omtrent fem minutter aktiv spilletid.
