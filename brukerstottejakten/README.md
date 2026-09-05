@@ -1,10 +1,10 @@
-# Brukerstøttejakten 2.1
+# Brukerstøttejakten 3.0
 
-Et Duck Hunt-inspirert nettleserspill med en intern IT-vri. De flyvende målene er tredimensjonale **Brukerstøttesaker**, våpenet heter **Service Manager**, og ti faktiske treff gjør spilleren til **årets ansatt**.
+Et Duck Hunt-inspirert nettleserspill med norsk servicedesk-vri. De flyvende målene er tredimensjonale **Brukerstøttesaker**, verktøyet heter **Service Manager**, og ti faktiske treff gjør spilleren til **årets ansatt**.
 
-Spillet har nivåer, komboserier, fire delmål, resultatstatistikk, lokal rekord og enkle **Noark 5-bonusspørsmål** med to svaralternativer. Hvert vellykket treff har en uavhengig sannsynlighet på 30 prosent for å utløse en quiz; bom utløser aldri quiz. Riktig svar gir ett prestasjonspoeng og midlertidig sakte film. Feil svar trekker ett poeng, men totalsummen går aldri under null.
+Versjon 3.0 bruker et egenutviklet perspektivsystem for avstand, banking, projiserte 3D-flater, skygger og målhitbokser. Spillet har fire operative faser, flere sakstyper, en avsluttende hovedhendelse, saksflyt, treffrekker, fem utmerkelser, rangering, resultatdeling og adaptiv Web Audio-lyd. Alt kjører lokalt i nettleseren uten API-nøkler eller tredjepartsbiblioteker.
 
-Spillet bruker bare HTML, CSS, JavaScript og Canvas; ingen eksterne ressurser eller API-nøkler.
+Hvert vellykket treff har en uavhengig **30 % sannsynlighet** for å utløse et enkelt Noark 5-kontrollpunkt med to svaralternativer. Riktig svar gir ett prestisjepoeng og seks sekunder faglig flyt. Feil svar trekker ett poeng, men poengsummen går aldri under null. Seier krever alltid ti faktisk løste saker.
 
 ## Kjør lokalt
 
@@ -12,7 +12,7 @@ Spillet bruker bare HTML, CSS, JavaScript og Canvas; ingen eksterne ressurser el
 python -m http.server 8080
 ```
 
-Åpne deretter `http://localhost:8080/brukerstottejakten/`.
+Åpne `http://localhost:8080/brukerstottejakten/`.
 
 ## Kontroller
 
@@ -20,6 +20,7 @@ python -m http.server 8080
 - Berøring: trykk direkte på saken.
 - Tastatur: piltaster eller WASD for å sikte, mellomrom eller Enter for å skyte.
 - P: pause eller fortsett.
+- F: fullskjerm.
 
 ## Tester
 
