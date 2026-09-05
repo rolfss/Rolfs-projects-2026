@@ -5,6 +5,6 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "check": "node --check game-core.js && node --check scene-engine.js && node --check audio-engine.js && node --check game.js"
+    "check": "node --check game-core.js && node --check math3d.js && node --check renderer.js && node --check game.js"
   }
 }
