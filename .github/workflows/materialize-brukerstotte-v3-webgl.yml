@@ -1,0 +1,39 @@
+name: Materialiser Brukerstøttejakten WebGL
+
+on:
+  push:
+    branches:
+      - upgrade/brukerstottejakten-3-webgl
+    paths:
+      - .github/workflows/materialize-brukerstotte-v3-webgl.yml
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: upgrade/brukerstottejakten-3-webgl
+
+      - name: Pakk ut og kontroller
+        run: |
+          cat .build/brukerstotte-v3/part-* | base64 --decode > /tmp/brukerstotte-v3.tar.gz
+          test "$(sha256sum /tmp/brukerstotte-v3.tar.gz | cut -d' ' -f1)" = "8939ff37c999693724b137edebe802665378003668ce134314be20cd9384ba0a"
+          rm -rf brukerstottejakten
+          mkdir -p brukerstottejakten
+          tar -xzf /tmp/brukerstotte-v3.tar.gz -C brukerstottejakten
+          npm --prefix brukerstottejakten run check
+          npm --prefix brukerstottejakten test
+
+      - name: Commit ferdig versjon
+        run: |
+          rm -rf .build/brukerstotte-v3
+          rm -f .github/workflows/materialize-brukerstotte-v3-webgl.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit -m "feat: bygg Brukerstøttejakten med ekte WebGL-dybde"
+          git push origin HEAD:upgrade/brukerstottejakten-3-webgl
