@@ -38,9 +38,13 @@ jobs:
           package = json.loads(package_path.read_text(encoding='utf-8'))
           package['version'] = '4.1.0'
           package_path.write_text(json.dumps(package, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+          contract = Path('brukerstottejakten/tests/document-contract.test.mjs')
+          contract.write_text(contract.read_text(encoding='utf-8').replace('Brukerstøttejakten 4\\.0', 'Brukerstøttejakten 4\\.1'), encoding='utf-8')
           PY
           grep -q "Kaffepausekampanjen · v4.1" brukerstottejakten/index.html
           grep -q '"version": "4.1.0"' brukerstottejakten/package.json
+          grep -q 'Brukerstøttejakten 4\\.1' brukerstottejakten/tests/document-contract.test.mjs
           npm --prefix brukerstottejakten test
           npm --prefix brukerstottejakten run check
 
