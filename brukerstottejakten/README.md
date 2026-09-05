@@ -1,20 +1,23 @@
-# Brukerstøttejakten 4.0 — Kaffepauseprotokollen
+# Brukerstøttejakten 4.0 — Kaffepausekampanjen
 
-Et norsk, Duck Hunt-inspirert nettleserspill laget for en femminutters kaffepause. Spilleren bruker **Service Manager** til å lukke 40 flyvende **Brukerstøttesaker** gjennom åtte operative nivåer.
+Et norsk, Duck Hunt-inspirert nettleserspill laget for en fem minutters kaffepause. Spilleren bruker **Service Manager Mk IV** til å håndtere 80 flyvende brukerstøttesaker gjennom ti nivåer, velger moduloppgraderinger mellom nivåene, svarer på tilfeldige Noark 5-spørsmål og avslutter med en flerfaset hovedhendelse.
 
-## Hva versjon 4.0 tilfører
+## Kampanjen
 
-- åtte nivåer og en maksimal vaktlengde på fem minutter
-- fem sakstyper, inkludert SLA-vinduer og en hovedhendelse med fem delhendelser
-- poeng for måltype, presisjon, treffrekke, nivåer og dynamiske vaktmål
-- Saksflyt, sakte film og to strategiske forbedringsvalg per vakt
-- en bank med enkle Noark 5-spørsmål; hvert vellykket treff har 30 prosent sjanse for et tilfeldig kontrollpunkt
-- Dagens kø, tilfeldig vakt og delbare kollegadueller med identisk kø
-- lokal karriere med 15 titler, XP, dagsrekke, utmerkelser og topplister
-- responsiv styring med mus, tastatur og berøring
-- prosedyregenerert Canvas-grafikk og Web Audio uten eksterne ressurser eller API-nøkler
+- **10 nivåer / 80 løste saker** — omtrent fem minutter aktiv spilletid.
+- Nye mekanikker introduseres gradvis: komboserier, prioritetssaker, skjerming, duplikater, legacy-bevegelse, køtrykk, kritiske saker, revisjon og hovedhendelse.
+- Etter hvert nivå velger spilleren én av tre tilfeldige oppgraderinger til Service Manager Mk IV.
+- Saksflyt bygges gjennom gode treffserier og utløser midlertidig sakte film og doble arkadepoeng.
+- Fem nivåmål, åtte utmerkelser, stjerner, lokal rekord, karriere-XP og prestasjonskarakter D–S.
+- Dagens utfordring er lik for alle den aktuelle dagen, slik at kolleger kan sammenligne resultat.
 
-All lagring skjer lokalt i nettleseren. Duell-lenker inneholder bare kø-seed, poengsum, resultatkode og navnet spilleren selv valgte.
+## Noark 5
+
+Hvert vellykket treff har en uavhengig 30 % sannsynlighet for å åpne et enkelt spørsmål med to svaralternativer. Riktig svar gir +1 prestasjonspoeng og sakte film. Feil svar trekker ett prestasjonspoeng, aldri under null. Quiz påvirker poengsummen, men ikke kravet om å løse 80 saker.
+
+## Teknologi
+
+Spillet bruker HTML, CSS, JavaScript og en egen Canvas-basert perspektivmotor. Det krever ingen server, eksterne biblioteker, API-nøkler eller nettressurser.
 
 ## Kjør lokalt
 
@@ -26,13 +29,10 @@ python -m http.server 8080
 
 ## Kontroller
 
-- **Mus eller berøring:** sikt og skyt direkte på saken
-- **WASD eller piltaster:** flytt siktet
-- **Mellomrom eller Enter:** skyt
-- **P:** pause eller fortsett
-- **F:** fullskjerm
-- **1–3:** velg forbedring
-- **1–2:** svar på Noark-kontrollpunkt
+- Mus eller berøring: sikt og skyt.
+- Piltaster eller WASD: flytt siktet.
+- Mellomrom eller Enter: skyt.
+- P: pause.
 
 ## Tester
 

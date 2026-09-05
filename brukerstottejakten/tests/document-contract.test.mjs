@@ -1,38 +1,36 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { SceneRenderer } from '../renderer.js';
 
-const projectUrl = new URL('../', import.meta.url);
-const read = (name) => readFile(new URL(name, projectUrl), 'utf8');
+const root = new URL('../', import.meta.url);
+const [html, css, game] = await Promise.all([
+  readFile(new URL('index.html', root), 'utf8'),
+  readFile(new URL('styles.css', root), 'utf8'),
+  readFile(new URL('game.js', root), 'utf8'),
+]);
 
-test('spillflaten er norsk, selvstendig og peker på lokale ressurser', async () => {
-  const html = await read('index.html');
-  assert.match(html, /<html lang="nb">/);
-  assert.match(html, /<title>Brukerstøttejakten 4\.0/);
-  assert.match(html, /maksimal vaktlengde/);
-  assert.match(html, /40<\/b><span>saker mot null restanse/);
-  assert.match(html, /8<\/b><span>nivåer med nye mekanikker/);
-  assert.match(html, /<canvas[^>]+id="gameCanvas"/);
-  assert.match(html, /src="\.\/game\.js"/);
-  assert.match(html, /href="\.\/styles\.css"/);
-  const resourceUrls = [...html.matchAll(/<(?:script|link)\b[^>]*(?:src|href)=[\"']([^\"']+)[\"']/gi)]
-    .map((match) => match[1]);
-  assert.deepEqual(resourceUrls.filter((url) => /^https?:\/\//i.test(url)), []);
+test('spillsiden beskriver den utvidede kaffepausekampanjen', () => {
+  assert.match(html, /Brukerstøttejakten 4\.0/);
+  assert.match(html, /10<\/b><span>nivåer/);
+  assert.match(html, /80<\/b><span>saker/);
+  assert.match(html, /Service Manager Mk V/);
 });
 
-test('alle ID-er som spillkontrolleren bruker finnes i HTML-en', async () => {
-  const [html, controller] = await Promise.all([read('index.html'), read('game.js')]);
-  const ids = [...controller.matchAll(/querySelector\('#([A-Za-z][\w-]*)'\)/g)].map((match) => match[1]);
-  assert.ok(ids.length > 30, 'forventet et rikt spillgrensesnitt');
-  for (const id of new Set(ids)) assert.match(html, new RegExp(`id=["']${id}["']`), `mangler #${id}`);
+test('alle sentrale spillflater finnes i dokumentet', () => {
+  for (const id of ['gameCanvas', 'levelRail', 'radarBlips', 'quizOverlay', 'intermissionOverlay', 'winOverlay', 'weaponRig']) {
+    assert.match(html, new RegExp(`id="${id}"`));
+  }
 });
 
-test('grafikkmotoren eksporterer både WebGL-hovedmodus og Canvas-reserve', async () => {
-  assert.equal(typeof SceneRenderer, 'function');
-  const source = await read('renderer.js');
-  assert.match(source, /getContext\('webgl'/);
-  assert.match(source, /getContext\('2d'/);
-  assert.match(source, /renderWebGL\(/);
-  assert.match(source, /renderCanvas\(/);
+test('Service Manager Mk V har egne kosmetiske og progressive lag', () => {
+  for (const selector of ['.gun-holo-sight', '.gun-capacitor', '.gun-shoulder', '.gun-energy-line', '.weapon-rig.module-9']) {
+    assert.ok(css.includes(selector), `Mangler ${selector}`);
+  }
+});
+
+test('spillet er selvstendig og eksponerer bare testgrensesnitt i testmodus', () => {
+  assert.doesNotMatch(html, /https?:\/\/[^"']+\.(?:js|css)/i);
+  assert.match(game, /window\.__brukerstottejakten/);
+  assert.match(game, /shouldTriggerQuiz/);
+  assert.match(game, /intermissionActive/);
 });

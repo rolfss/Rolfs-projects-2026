@@ -1,171 +1,218 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  FINAL_BOSS_HITS,
-  FLOW_THRESHOLD,
-  ROUND_SECONDS,
-  STAGES,
+  CASES_PER_LEVEL,
+  LEVEL_COUNT,
+  QUIZ_TRIGGER_PROBABILITY,
   TARGET_CASES,
   accuracyPercent,
-  awardScore,
-  comboMultiplier,
+  achievementCount,
+  applyUpgrade,
+  beginLevel,
+  careerRank,
+  careerXpForRun,
   createGameState,
-  experienceAward,
-  finishByTimeout,
-  hitScore,
-  missionStatus,
-  performanceRank,
-  progressPercent,
+  levelForCases,
+  levelObjectiveComplete,
+  levelProgressPercent,
+  levelStars,
+  multiplierForStreak,
+  performanceGrade,
+  recordDecoyHit,
   recordEscape,
   recordQuizAnswer,
-  remainingSeconds,
-  resolveShot,
-  shouldOfferQuiz,
-  stageForCases,
-  stageProgressPercent,
+  recordShot,
+  shouldTriggerQuiz,
   startGame,
+  upgradeModifiers,
 } from '../game-core.js';
 
-test('v4 har åtte faser, førti saker og en femminuttersvakt', () => {
-  assert.equal(STAGES.length, 8);
-  assert.equal(TARGET_CASES, 40);
-  assert.equal(FINAL_BOSS_HITS, 5);
-  assert.equal(ROUND_SECONDS, 300);
+test('kampanjen har ti nivåer og åtti saker', () => {
+  assert.equal(TARGET_CASES, 80);
+  assert.equal(CASES_PER_LEVEL, 8);
+  assert.equal(LEVEL_COUNT, 10);
+  assert.equal(levelForCases(0), 1);
+  assert.equal(levelForCases(7), 1);
+  assert.equal(levelForCases(8), 2);
+  assert.equal(levelForCases(72), 10);
+  assert.equal(levelForCases(80), 10);
 });
 
-test('fasegrensene følger progresjonen', () => {
-  assert.deepEqual([0, 4, 5, 9, 10, 34, 35, 40].map(stageForCases), [1, 1, 2, 2, 3, 7, 8, 8]);
-  assert.equal(stageProgressPercent(0), 0);
-  assert.equal(stageProgressPercent(3), 60);
-  assert.equal(stageProgressPercent(5), 0);
-  assert.equal(stageProgressPercent(40), 100);
+test('nivåfremdrift nullstilles etter hvert åttende treff', () => {
+  assert.equal(levelProgressPercent(0), 0);
+  assert.equal(levelProgressPercent(4), 50);
+  assert.equal(levelProgressPercent(7), 87.5);
+  assert.equal(levelProgressPercent(8), 0);
+  assert.equal(levelProgressPercent(80), 100);
 });
 
-test('quizsannsynligheten er nøyaktig tretti prosent', () => {
-  assert.equal(shouldOfferQuiz(0), true);
-  assert.equal(shouldOfferQuiz(0.299999), true);
-  assert.equal(shouldOfferQuiz(0.3), false);
-  assert.equal(shouldOfferQuiz(0.999), false);
-});
-
-test('treff gir poeng, progresjon, presisjon og treffrekke', () => {
+test('ny vakt starter rent', () => {
   const state = startGame(createGameState(), 1_000);
-  const result = resolveShot(state, { hit: true, kind: 'priority', precision: 0.9, randomValue: 0.9 });
-  assert.equal(result.state.casesSolved, 1);
-  assert.equal(result.state.hits, 1);
-  assert.equal(result.state.shots, 1);
-  assert.equal(result.state.streak, 1);
-  assert.equal(result.state.priorityHits, 1);
-  assert.equal(result.state.perfectHits, 1);
-  assert.ok(result.state.score > 165);
-  assert.equal(result.events.perfectHit, true);
-  assert.equal(result.events.quizTriggered, false);
+  assert.equal(state.status, 'running');
+  assert.equal(state.level, 1);
+  assert.equal(state.casesSolved, 0);
+  assert.equal(state.startedAt, 1_000);
 });
 
-test('bom bryter rekken med mindre kombobuffer brukes', () => {
-  let state = startGame(createGameState());
-  state = resolveShot(state, { hit: true, randomValue: 0.9 }).state;
-  state = resolveShot(state, { hit: true, randomValue: 0.9 }).state;
-  const guarded = resolveShot(state, { hit: false, protectStreak: true });
-  assert.equal(guarded.state.streak, 2);
-  assert.equal(guarded.events.guardUsed, true);
-  const missed = resolveShot(guarded.state, { hit: false });
-  assert.equal(missed.state.streak, 0);
+test('delvis treff på skjermet sak gir score, men ikke løst sak', () => {
+  const started = startGame(createGameState());
+  const { state, events } = recordShot(started, { hit: true, resolved: false, kind: 'shield' });
+  assert.equal(state.shots, 1);
+  assert.equal(state.hits, 1);
+  assert.equal(state.casesSolved, 0);
+  assert.equal(state.points, 0);
+  assert.ok(state.score > 0);
+  assert.equal(events.resolved, false);
 });
 
-test('Saksflyt aktiveres og restverdien beholdes', () => {
-  let state = { ...startGame(createGameState()), flow: FLOW_THRESHOLD - 5, streak: 5 };
-  const result = resolveShot(state, { hit: true, precision: 1, flowMultiplier: 1.5, randomValue: 0.9 });
-  assert.equal(result.events.flowActivated, true);
-  assert.equal(result.state.flowActivations, 1);
-  assert.ok(result.state.flow >= 0 && result.state.flow < FLOW_THRESHOLD);
-});
-
-test('skjold stopper eskalering uten å nullstille rekken', () => {
-  const state = { ...startGame(createGameState()), streak: 4, flow: 60 };
-  const shielded = recordEscape(state, { shielded: true });
-  assert.equal(shielded.escalations, 0);
-  assert.equal(shielded.streak, 4);
-  assert.equal(shielded.shieldsUsed, 1);
-  const normal = recordEscape(shielded);
-  assert.equal(normal.escalations, 1);
-  assert.equal(normal.streak, 0);
-});
-
-test('Noark-svar gir bonus eller trekk, aldri negativ score', () => {
-  let state = startGame(createGameState());
-  state = recordQuizAnswer(state, false, { penalty: 500 });
-  assert.equal(state.score, 0);
-  state = recordQuizAnswer(state, true, { reward: 430 });
-  assert.equal(state.score, 430);
-  assert.equal(state.quizCorrect, 1);
-  assert.equal(state.quizAnswered, 2);
-});
-
-test('førti treff gir seier selv med spørsmål og bom', () => {
+test('åtti løste saker vinner kampanjen', () => {
   let state = startGame(createGameState(), 2_000);
-  state = recordQuizAnswer(state, false);
-  state = resolveShot(state, { hit: false }).state;
   for (let index = 0; index < TARGET_CASES; index += 1) {
-    state = resolveShot(state, {
-      hit: true,
-      kind: index >= TARGET_CASES - FINAL_BOSS_HITS ? 'critical' : 'normal',
-      bossHit: index >= TARGET_CASES - FINAL_BOSS_HITS,
-      randomValue: 0.99,
-      now: 42_000,
-    }).state;
+    state = recordShot(state, { hit: true, resolved: true, kind: index === TARGET_CASES - 1 ? 'major' : 'normal', now: 30_000 }).state;
+    if ((index + 1) % CASES_PER_LEVEL === 0 && index + 1 < TARGET_CASES) {
+      state = beginLevel(state, levelForCases(index + 1), 30_000);
+    }
   }
   assert.equal(state.status, 'won');
   assert.equal(state.casesSolved, TARGET_CASES);
-  assert.equal(state.bossHits, FINAL_BOSS_HITS);
-  assert.equal(state.finishedAt, 42_000);
-  assert.equal(progressPercent(state.casesSolved), 100);
+  assert.equal(state.points, TARGET_CASES);
+  assert.equal(state.level, LEVEL_COUNT);
+  assert.equal(state.majorResolved, true);
 });
 
-test('tidsavbrudd avslutter en uferdig vakt', () => {
-  const state = startGame(createGameState(), 1_000);
-  assert.equal(remainingSeconds(state, 11_000), 290);
-  assert.equal(remainingSeconds(state, 401_000), 0);
-  const timedOut = finishByTimeout(state, 301_000);
-  assert.equal(timedOut.status, 'timeout');
-  assert.equal(timedOut.finishedAt, 301_000);
+test('quizgrensen er nøyaktig tretti prosent', () => {
+  assert.equal(QUIZ_TRIGGER_PROBABILITY, 0.3);
+  assert.equal(shouldTriggerQuiz(true, 0), true);
+  assert.equal(shouldTriggerQuiz(true, 0.299999), true);
+  assert.equal(shouldTriggerQuiz(true, 0.3), false);
+  assert.equal(shouldTriggerQuiz(false, 0.1), false);
+  assert.equal(shouldTriggerQuiz(true, 0.1, true), false);
 });
 
-test('poengberegningen belønner måltype, presisjon og rekke', () => {
-  const plain = hitScore({ kind: 'normal', streak: 1, precision: 0 });
-  const skilled = hitScore({ kind: 'priority', streak: 8, precision: 1, scoreMultiplier: 1.2, perfectMultiplier: 2 });
-  assert.equal(plain, 100);
-  assert.ok(skilled > plain * 3);
-  assert.ok(comboMultiplier(99) <= 2.25);
+test('kombomultiplikator vokser i tydelige trinn', () => {
+  assert.deepEqual([0, 3, 5, 9, 14, 20].map(multiplierForStreak), [1, 1.25, 1.5, 2, 2.5, 3]);
 });
 
-test('oppdrag rapporterer progresjon og fullføring', () => {
-  let state = { ...startGame(createGameState()), casesSolved: 12, bestStreak: 8, shots: 20, hits: 18, quizCorrect: 3 };
-  assert.equal(missionStatus(state, 'queue').complete, true);
-  assert.equal(missionStatus(state, 'streak').current, 8);
-  assert.equal(missionStatus(state, 'precision').complete, true);
-  assert.equal(missionStatus(state, 'noark').complete, true);
+test('bom bryter serie, mens kombobuffer beskytter én gang per nivå', () => {
+  let state = startGame(createGameState());
+  state = applyUpgrade(state, 'combo-buffer');
+  state = beginLevel(state, 1);
+  state = recordShot(state, { hit: true, resolved: true }).state;
+  const firstMiss = recordShot(state, { hit: false }).state;
+  assert.equal(firstMiss.streak, 1);
+  assert.equal(firstMiss.comboShieldCharges, 0);
+  const secondMiss = recordShot(firstMiss, { hit: false }).state;
+  assert.equal(secondMiss.streak, 0);
 });
 
-test('rangering og erfaring skalerer med resultatet', () => {
-  const strong = {
-    ...createGameState(),
-    status: 'won',
-    casesSolved: 40,
-    score: 10_600,
-    hits: 40,
-    shots: 44,
-    escalations: 1,
-    quizCorrect: 3,
-    bestStreak: 12,
-    flowActivations: 3,
-    bossHits: 5,
+test('duplikat gir straff, filter halverer straffen', () => {
+  let base = startGame(createGameState());
+  base = { ...base, score: 1_000, points: 4 };
+  const normalPenalty = recordDecoyHit(base);
+  const filteredPenalty = recordDecoyHit(applyUpgrade(base, 'duplicate-filter'));
+  assert.equal(normalPenalty.penalty, 180);
+  assert.equal(filteredPenalty.penalty, 90);
+  assert.equal(normalPenalty.state.decoysHit, 1);
+  assert.equal(normalPenalty.state.streak, 0);
+});
+
+test('eskaleringvern absorberer køtrykk én gang', () => {
+  let state = startGame(createGameState());
+  state = applyUpgrade(state, 'queue-shield');
+  state = beginLevel(state, 1);
+  const guarded = recordEscape(state, { kind: 'critical' });
+  assert.equal(guarded.guarded, true);
+  assert.equal(guarded.state.queuePressure, 0);
+  const unguarded = recordEscape(guarded.state, { kind: 'critical' });
+  assert.equal(unguarded.guarded, false);
+  assert.equal(unguarded.state.queuePressure, 27);
+});
+
+test('køoverlast registreres og trykket settes tilbake til håndterbart nivå', () => {
+  const started = { ...startGame(createGameState()), queuePressure: 90 };
+  const result = recordEscape(started, { kind: 'critical' });
+  assert.equal(result.overloaded, true);
+  assert.equal(result.state.overloads, 1);
+  assert.equal(result.state.queuePressure, 62);
+});
+
+test('riktig og feil quizsvar følger pluss/minus én-regelen', () => {
+  let state = { ...startGame(createGameState()), points: 3, score: 1_000 };
+  const correct = recordQuizAnswer(state, true);
+  assert.equal(correct.pointDelta, 1);
+  assert.equal(correct.state.points, 4);
+  const wrong = recordQuizAnswer(correct.state, false);
+  assert.equal(wrong.pointDelta, -1);
+  assert.equal(wrong.state.points, 3);
+  const floor = recordQuizAnswer({ ...state, points: 0, score: 0 }, false);
+  assert.equal(floor.state.points, 0);
+  assert.equal(floor.state.score, 0);
+});
+
+test('oppgraderinger kombineres uten duplikater', () => {
+  let state = startGame(createGameState());
+  state = applyUpgrade(state, 'aim-lens');
+  state = applyUpgrade(state, 'aim-lens');
+  state = applyUpgrade(state, 'flow-core');
+  assert.deepEqual(state.upgrades, ['aim-lens', 'flow-core']);
+  const modifiers = upgradeModifiers(state);
+  assert.equal(modifiers.hitboxScale, 1.18);
+  assert.equal(modifiers.flowGainScale, 1.28);
+});
+
+test('nivåmål og stjerner vurderes av nivåstatistikken', () => {
+  const state = {
+    ...startGame(createGameState(), 0),
+    level: 3,
+    levelCases: 8,
+    levelPriorityHits: 3,
+    levelShots: 9,
+    levelHits: 8,
+    levelEscalations: 0,
+    levelStartedAt: 1_000,
   };
-  const rank = performanceRank(strong, ['queue', 'streak', 'noark']);
-  assert.equal(rank.grade, 'SS');
-  assert.ok(experienceAward(strong, ['queue', 'streak', 'noark']) > 500);
-  const bonus = awardScore(strong, 500, 'mission');
-  assert.equal(bonus.score, strong.score + 500);
-  assert.equal(bonus.missionScore, 500);
-  assert.equal(Math.round(accuracyPercent(strong)), 91);
+  assert.equal(levelObjectiveComplete(state, 3), true);
+  assert.equal(levelStars(state, 3, 30_000), 3);
+});
+
+test('treffsikkerhet teller alle faktiske treff, også skjermingsslag', () => {
+  let state = startGame(createGameState());
+  state = recordShot(state, { hit: true, resolved: false, kind: 'shield' }).state;
+  state = recordShot(state, { hit: true, resolved: true, kind: 'shield', shieldBroken: true }).state;
+  state = recordShot(state, { hit: false }).state;
+  assert.equal(Math.round(accuracyPercent(state)), 67);
+});
+
+test('prestasjon gir karakterskala og karrierepoeng', () => {
+  const strong = {
+    ...startGame(createGameState(), 0),
+    status: 'won',
+    casesSolved: TARGET_CASES,
+    points: 90,
+    score: 42_000,
+    shots: 90,
+    hits: 86,
+    bestStreak: 22,
+    priorityHits: 8,
+    criticalHits: 5,
+    shieldBreaks: 5,
+    quizCorrect: 12,
+    flowActivations: 6,
+    majorResolved: true,
+    finishedAt: 280_000,
+  };
+  assert.ok(['S', 'A'].includes(performanceGrade(strong, 280_000).grade));
+  assert.ok(careerXpForRun(strong, 280_000) > 1_000);
+});
+
+test('karriererang følger samlet erfaring', () => {
+  assert.equal(careerRank(0).name, 'Nyansatt');
+  assert.equal(careerRank(3_200).name, 'Applikasjonsforvalter');
+  assert.equal(careerRank(11_500).name, 'Driftslegende');
+});
+
+test('første nivåmål blir fullført ved åtte saker', () => {
+  const state = { ...startGame(createGameState()), levelCases: 8, casesSolved: 8 };
+  assert.equal(levelObjectiveComplete(state, 1), true);
+  assert.ok(achievementCount({ ...state, casesSolved: 80, majorResolved: true }) >= 2);
 });
