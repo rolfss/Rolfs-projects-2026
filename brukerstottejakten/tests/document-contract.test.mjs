@@ -9,7 +9,10 @@ const read = (name) => readFile(new URL(name, projectUrl), 'utf8');
 test('spillflaten er norsk, selvstendig og peker på lokale ressurser', async () => {
   const html = await read('index.html');
   assert.match(html, /<html lang="nb">/);
-  assert.match(html, /<title>Brukerstøttejakten 3\.0/);
+  assert.match(html, /<title>Brukerstøttejakten 4\.0/);
+  assert.match(html, /maksimal vaktlengde/);
+  assert.match(html, /40<\/b><span>saker mot null restanse/);
+  assert.match(html, /8<\/b><span>nivåer med nye mekanikker/);
   assert.match(html, /<canvas[^>]+id="gameCanvas"/);
   assert.match(html, /src="\.\/game\.js"/);
   assert.match(html, /href="\.\/styles\.css"/);
