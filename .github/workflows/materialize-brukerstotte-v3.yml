@@ -1,0 +1,52 @@
+name: Bygg Brukerstøttejakten 3.0
+
+on:
+  push:
+    branches:
+      - upgrade/brukerstottejakten-3
+    paths:
+      - ".github/workflows/materialize-brukerstotte-v3.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  materialize-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hent v3-grenen
+        uses: actions/checkout@v4
+        with:
+          ref: upgrade/brukerstottejakten-3
+          fetch-depth: 0
+
+      - name: Verifiser og pakk ut spillkilden
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat brukerstottejakten/.v3-payload/part-* | base64 --decode > /tmp/brukerstotte-v3.tar.xz
+          actual_sha="$(sha256sum /tmp/brukerstotte-v3.tar.xz | cut -d' ' -f1)"
+          expected_sha="1b21a682ba4f759a826bbc8ceb62f0ff67077ec72225c9f798ba1ebe13a35948"
+          test "$actual_sha" = "$expected_sha"
+          tar -xJf /tmp/brukerstotte-v3.tar.xz -C brukerstottejakten
+          test -f brukerstottejakten/scene-engine.js
+          test -f brukerstottejakten/audio-engine.js
+          grep -q "Brukerstøttejakten 3.0" brukerstottejakten/index.html
+
+      - name: Kjør tester og syntakskontroll
+        run: |
+          npm --prefix brukerstottejakten test
+          npm --prefix brukerstottejakten run check
+
+      - name: Lagre den verifiserte v3-kilden
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf brukerstottejakten/.v3-payload
+          rm -f .github/workflows/materialize-brukerstotte-v3.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A brukerstottejakten .github/workflows/materialize-brukerstotte-v3.yml
+          git diff --cached --quiet || git commit -m "feat: bygg Brukerstøttejakten 3.0"
+          git push origin HEAD:upgrade/brukerstottejakten-3
