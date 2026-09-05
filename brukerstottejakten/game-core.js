@@ -1,22 +1,13 @@
 export const TARGET_CASES = 10;
 export const QUIZ_CHANCE = 0.3;
+export const FLOW_THRESHOLD = 100;
 
-// game.js originally consumed fixed quiz milestones. This array-like compatibility
-// view now exposes the independent quiz roll made by the most recent shot.
-// Its length converts to a large number for Array#slice, but to "?" in the HUD.
-const randomQuizCount = Object.freeze({
-  valueOf: () => Number.MAX_SAFE_INTEGER,
-  toString: () => '?',
-});
-let pendingQuizAtCase = Number.POSITIVE_INFINITY;
-
-export const QUIZ_MILESTONES = new Proxy(Object.create(null), {
-  get(_target, property) {
-    if (property === 'length') return randomQuizCount;
-    if (typeof property === 'string' && /^\d+$/.test(property)) return pendingQuizAtCase;
-    return undefined;
-  },
-});
+export const STAGES = Object.freeze([
+  Object.freeze({ id: 1, name: 'Morgenkø', subtitle: 'Få kontroll på innboksen', from: 0 }),
+  Object.freeze({ id: 2, name: 'Produksjonspress', subtitle: 'Tempoet øker', from: 3 }),
+  Object.freeze({ id: 3, name: 'Kritisk drift', subtitle: 'Prioriter riktig', from: 6 }),
+  Object.freeze({ id: 4, name: 'Sluttspurten', subtitle: 'Lukk hovedhendelsen', from: 9 }),
+]);
 
 export function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
@@ -26,10 +17,11 @@ export function shouldOfferQuiz(randomValue = Math.random()) {
   return Number.isFinite(randomValue) && randomValue >= 0 && randomValue < QUIZ_CHANCE;
 }
 
-export function levelForCases(casesSolved) {
-  if (casesSolved >= 9) return 4;
-  if (casesSolved >= 6) return 3;
-  if (casesSolved >= 3) return 2;
+export function stageForCases(casesSolved) {
+  const solved = clamp(Number(casesSolved) || 0, 0, TARGET_CASES);
+  if (solved >= 9) return 4;
+  if (solved >= 6) return 3;
+  if (solved >= 3) return 2;
   return 1;
 }
 
@@ -42,16 +34,18 @@ export function createGameState() {
     escalations: 0,
     streak: 0,
     bestStreak: 0,
+    quizOffered: 0,
     quizAnswered: 0,
     quizCorrect: 0,
-    level: 1,
+    stage: 1,
+    flow: 0,
+    flowActivations: 0,
     startedAt: 0,
     finishedAt: 0,
   };
 }
 
 export function startGame(_state, now = Date.now()) {
-  pendingQuizAtCase = Number.POSITIVE_INFINITY;
   return {
     ...createGameState(),
     status: 'running',
@@ -59,30 +53,75 @@ export function startGame(_state, now = Date.now()) {
   };
 }
 
-export function recordShot(state, hit, now = Date.now(), randomValue = Math.random()) {
-  if (state.status !== 'running') return state;
+function emptyShotEvents() {
+  return {
+    hit: false,
+    won: false,
+    quizTriggered: false,
+    stageChanged: false,
+    flowActivated: false,
+    pointsDelta: 0,
+  };
+}
+
+export function resolveShot(
+  state,
+  {
+    hit = false,
+    now = Date.now(),
+    randomValue = Math.random(),
+  } = {},
+) {
+  if (state.status !== 'running') return { state, events: emptyShotEvents() };
 
   const shots = state.shots + 1;
   if (!hit) {
-    pendingQuizAtCase = Number.POSITIVE_INFINITY;
-    return { ...state, shots, streak: 0 };
+    return {
+      state: {
+        ...state,
+        shots,
+        streak: 0,
+        flow: Math.max(0, state.flow - 34),
+      },
+      events: emptyShotEvents(),
+    };
   }
 
   const casesSolved = clamp(state.casesSolved + 1, 0, TARGET_CASES);
   const streak = state.streak + 1;
+  const nextStage = stageForCases(casesSolved);
   const won = casesSolved === TARGET_CASES;
-  pendingQuizAtCase = shouldOfferQuiz(randomValue) ? casesSolved : Number.POSITIVE_INFINITY;
+  const quizTriggered = !won && shouldOfferQuiz(randomValue);
+  const flowGain = 34 + Math.min(streak - 1, 4) * 4;
+  const accumulatedFlow = state.flow + flowGain;
+  const flowActivated = accumulatedFlow >= FLOW_THRESHOLD;
+  const flow = flowActivated ? accumulatedFlow - FLOW_THRESHOLD : accumulatedFlow;
 
-  return {
+  const nextState = {
     ...state,
+    status: won ? 'won' : 'running',
     casesSolved,
     points: state.points + 1,
     shots,
     streak,
     bestStreak: Math.max(state.bestStreak, streak),
-    level: levelForCases(casesSolved),
-    status: won ? 'won' : 'running',
+    quizOffered: state.quizOffered + (quizTriggered ? 1 : 0),
+    stage: nextStage,
+    flow,
+    flowActivations: state.flowActivations + (flowActivated ? 1 : 0),
     finishedAt: won ? now : 0,
+  };
+
+  return {
+    state: nextState,
+    events: {
+      hit: true,
+      won,
+      quizTriggered,
+      stageChanged: nextStage !== state.stage,
+      flowActivated,
+      pointsDelta: 1,
+    },
   };
 }
 
@@ -92,6 +131,7 @@ export function recordEscape(state) {
     ...state,
     escalations: state.escalations + 1,
     streak: 0,
+    flow: Math.max(0, state.flow - 20),
   };
 }
 
@@ -121,10 +161,32 @@ export function elapsedSeconds(state, now = Date.now()) {
 }
 
 export function unlockedMissions(state) {
+  const accuracy = accuracyPercent(state);
   return {
-    warmup: state.casesSolved >= 3,
-    flow: state.bestStreak >= 3,
+    queue: state.casesSolved >= 3,
+    streak: state.bestStreak >= 4,
     noark: state.quizCorrect >= 2,
-    control: state.casesSolved >= 6 && state.escalations <= 2,
+    precision: state.shots >= 5 && accuracy >= 80,
+    control: state.casesSolved >= 7 && state.escalations <= 2,
   };
+}
+
+export function missionCount(state) {
+  return Object.values(unlockedMissions(state)).filter(Boolean).length;
+}
+
+export function performanceRank(state) {
+  const accuracy = accuracyPercent(state);
+  const missions = missionCount(state);
+
+  if (state.points >= 12 && accuracy >= 80 && state.escalations <= 2 && missions >= 4) {
+    return { grade: 'S', title: 'Driftslegende', detail: 'Eksepsjonell flyt, presisjon og faglig kontroll.' };
+  }
+  if (state.points >= 10 && accuracy >= 70 && state.escalations <= 4) {
+    return { grade: 'A', title: 'Senior problemløser', detail: 'Svært sterk vakt med kontroll på køen.' };
+  }
+  if (accuracy >= 55) {
+    return { grade: 'B', title: 'Stabil saksbehandler', detail: 'God leveranse. Noen saker tok den lange veien.' };
+  }
+  return { grade: 'C', title: 'Vakten fullført', detail: 'Resultatet er godkjent. Treffbildet kan forbedres.' };
 }

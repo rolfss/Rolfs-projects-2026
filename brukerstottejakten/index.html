@@ -3,74 +3,122 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="description" content="Brukerstøttejakten er et norsk, Duck Hunt-inspirert nettleserspill. Løs ti flyvende brukerstøttesaker med Service Manager, svar på tilfeldige Noark 5-spørsmål og bli årets ansatt.">
-  <meta name="theme-color" content="#071c25">
-  <title>Brukerstøttejakten 2.1 — Service Manager</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2715%27 fill=%27%235be0c1%27/%3E%3Ctext x=%2732%27 y=%2740%27 text-anchor=%27middle%27 font-family=%27monospace%27 font-size=%2725%27 font-weight=%27900%27 fill=%27%23071c25%27%3EBS%3C/text%3E%3C/svg%3E">
+  <meta name="description" content="Brukerstøttejakten 3.0 er et norsk, tredimensjonalt Duck Hunt-inspirert nettleserspill. Løs ti flyvende brukerstøttesaker med Service Manager, håndter tilfeldige Noark 5-kontrollpunkter og bli årets ansatt.">
+  <meta name="theme-color" content="#06151d">
+  <title>Brukerstøttejakten 3.0 — Service Manager</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Cdefs%3E%3ClinearGradient id=%27g%27 x2=%271%27 y2=%271%27%3E%3Cstop stop-color=%27%2398ffe2%27/%3E%3Cstop offset=%271%27 stop-color=%27%2315a991%27/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%2764%27 height=%2764%27 rx=%2715%27 fill=%27%23071720%27/%3E%3Cpath d=%27M10 16h44v32H10z%27 fill=%27url(%23g)%27 transform=%27skewY(-4)%27/%3E%3Ctext x=%2732%27 y=%2740%27 text-anchor=%27middle%27 font-family=%27monospace%27 font-size=%2722%27 font-weight=%27900%27 fill=%27%23071720%27%3ESM%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
+  <div class="ambient-shell" aria-hidden="true"><i></i><i></i><i></i></div>
+
   <div class="game-shell">
     <header class="game-header">
       <a class="brand" href="../" aria-label="Tilbake til Rolf Selås sine prosjekter">
-        <span class="brand-mark" aria-hidden="true">BS</span>
-        <span class="brand-copy"><strong>Brukerstøttejakten</strong><small>Service Manager: feltoperasjon</small></span>
+        <span class="brand-mark" aria-hidden="true"><b>SM</b><i></i></span>
+        <span class="brand-copy">
+          <strong>Brukerstøttejakten</strong>
+          <small>Service Manager // operasjonssentral</small>
+        </span>
       </a>
 
+      <div class="header-status" aria-live="polite">
+        <span class="status-chip" id="statusChip"><i aria-hidden="true"></i><span>Vaktstatus</span><b id="dutyStatus">frakoblet</b></span>
+        <span class="clock-chip"><span>Operasjon</span><b id="operationClock">00:00</b></span>
+      </div>
+
       <div class="header-actions">
-        <span class="status-chip" id="statusChip"><i aria-hidden="true"></i><span>Vakt: <b id="dutyStatus">frakoblet</b></span></span>
-        <button class="utility-button" id="soundButton" type="button" aria-pressed="true">Lyd: på</button>
-        <button class="utility-button" id="pauseButton" type="button" aria-pressed="false" disabled>Pause</button>
+        <button class="utility-button" id="soundButton" type="button" aria-pressed="true"><i aria-hidden="true">◖</i><span>Lyd på</span></button>
+        <button class="utility-button" id="fullscreenButton" type="button"><i aria-hidden="true">⛶</i><span>Fullskjerm</span></button>
+        <button class="utility-button" id="pauseButton" type="button" aria-pressed="false" disabled><i aria-hidden="true">Ⅱ</i><span>Pause</span></button>
       </div>
     </header>
 
     <main class="game-board" id="gameBoard">
-      <canvas id="gameCanvas" tabindex="0" aria-label="Spillområde. Treff de flyvende brukerstøttesakene. Bruk mus eller berøring, eller flytt siktet med piltastene og skyt med mellomrom."></canvas>
+      <canvas id="gameCanvas" tabindex="0" aria-label="Spillområde. Treff de flyvende tredimensjonale brukerstøttesakene. Bruk mus eller berøring, eller flytt siktet med piltastene og skyt med mellomrom."></canvas>
+      <div class="canvas-wash" id="canvasWash" aria-hidden="true"></div>
       <div class="scanlines" aria-hidden="true"></div>
+      <div class="grain" aria-hidden="true"></div>
       <div class="vignette" aria-hidden="true"></div>
+      <div class="hit-flash" id="hitFlash" aria-hidden="true"></div>
 
       <section class="top-hud" aria-label="Spillstatus" aria-live="polite">
-        <div class="hud-item level-item"><span>Nivå</span><strong id="levelText">1</strong><small id="levelName">Førstelinje</small></div>
-        <div class="hud-item"><span>Saker løst</span><strong id="scoreText">0/10</strong></div>
-        <div class="hud-item"><span>Poeng</span><strong id="pointsText">0</strong></div>
-        <div class="hud-item combo-item"><span>Komboserie</span><strong id="comboText">x0</strong></div>
-        <div class="hud-item"><span>Eskalert</span><strong id="missesText">0</strong></div>
+        <div class="hud-item stage-item">
+          <span>Fase <b id="stageNumber">01</b></span>
+          <strong id="stageName">Morgenkø</strong>
+          <small id="stageSubtitle">Få kontroll på innboksen</small>
+        </div>
+        <div class="hud-item metric-item"><span>Løste saker</span><strong id="scoreText">0<span>/10</span></strong></div>
+        <div class="hud-item metric-item"><span>Prestisje</span><strong id="pointsText">0<span> p</span></strong></div>
+        <div class="hud-item metric-item combo-item"><span>Treffrekke</span><strong id="comboText">x0</strong></div>
+        <div class="hud-item metric-item"><span>Eskalert</span><strong id="missesText">0</strong></div>
       </section>
 
       <aside class="mission-panel" aria-label="Delmål">
-        <div class="panel-title"><span>Oppdragslogg</span><strong id="missionCount">0/4</strong></div>
+        <div class="panel-title">
+          <span><i aria-hidden="true"></i> Operasjonsmål</span>
+          <strong id="missionCount">0/5</strong>
+        </div>
         <ol class="mission-list">
-          <li data-mission="warmup"><i aria-hidden="true">1</i><span><b>Få kontroll</b><small>Løs 3 saker</small></span><em>+ merke</em></li>
-          <li data-mission="flow"><i aria-hidden="true">2</i><span><b>Arbeidsflyt</b><small>Treff 3 på rad</small></span><em>+ merke</em></li>
-          <li data-mission="noark"><i aria-hidden="true">3</i><span><b>Noark-klar</b><small>2 riktige svar</small></span><em>+ merke</em></li>
-          <li data-mission="control"><i aria-hidden="true">4</i><span><b>Køkontroll</b><small>6 saker, maks 2 eskaleringer</small></span><em>+ merke</em></li>
+          <li data-mission="queue"><i aria-hidden="true">01</i><span><b>Køen brytes</b><small>Løs 3 saker</small></span><em>Uløst</em></li>
+          <li data-mission="streak"><i aria-hidden="true">02</i><span><b>Ren arbeidsflyt</b><small>Treff 4 på rad</small></span><em>Uløst</em></li>
+          <li data-mission="noark"><i aria-hidden="true">03</i><span><b>Faglig kontroll</b><small>2 riktige Noark-svar</small></span><em>Uløst</em></li>
+          <li data-mission="precision"><i aria-hidden="true">04</i><span><b>Presisjon</b><small>Minst 80 % etter 5 skudd</small></span><em>Uløst</em></li>
+          <li data-mission="control"><i aria-hidden="true">05</i><span><b>SLA-vokter</b><small>7 saker, maks 2 eskaleringer</small></span><em>Uløst</em></li>
         </ol>
       </aside>
 
-      <div class="powerup" id="powerup" aria-live="polite">
-        <span class="powerup-icon" aria-hidden="true">N5</span>
-        <span><b>Faglig flyt</b><small id="powerupTimer">6,0 s</small></span>
+      <aside class="signal-panel" aria-label="Køsignal">
+        <div class="signal-ring" aria-hidden="true"><i></i><i></i><i></i><b>SM</b></div>
+        <div><span>Køsignal</span><strong id="queueSignalText">Stabilt</strong><small id="queueDetail">2 samtidige mål</small></div>
+        <div class="signal-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+      </aside>
+
+      <div class="stage-banner" id="stageBanner" aria-live="assertive">
+        <span id="stageBannerIndex">FASE 02</span>
+        <strong id="stageBannerTitle">Produksjonspress</strong>
+        <small id="stageBannerSubtitle">Tempoet øker</small>
       </div>
 
-      <div class="message" id="message" role="status" aria-live="polite"></div>
-      <div class="floating-score" id="floatingScore" aria-hidden="true"></div>
-      <div class="crosshair" id="crosshair" aria-hidden="true"><span></span><i></i></div>
+      <div class="powerup" id="powerup" aria-live="polite">
+        <span class="powerup-icon" aria-hidden="true"><i></i><b>FLYT</b></span>
+        <span><small id="powerupSource">Saksflyt aktiv</small><b id="powerupTimer">4,0 s</b></span>
+      </div>
 
-      <div class="weapon-hud" id="weaponHud" aria-label="Våpen: Service Manager">
+      <div class="message" id="message" role="status" aria-live="polite"><i aria-hidden="true"></i><span></span></div>
+      <div class="floating-score" id="floatingScore" aria-hidden="true"></div>
+      <div class="crosshair" id="crosshair" aria-hidden="true">
+        <span class="crosshair-ring"></span><span class="crosshair-dot"></span><i></i><i></i><i></i><i></i>
+      </div>
+
+      <aside class="flow-panel" aria-label="Saksflyt">
+        <div class="flow-heading"><span>Saksflyt</span><strong id="flowPercent">0 %</strong></div>
+        <div class="flow-track" role="progressbar" aria-label="Saksflyt" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="flowTrack">
+          <span class="flow-fill" id="flowFill"></span><span class="flow-pulse"></span>
+        </div>
+        <p id="flowHint">Treff saker på rad for å aktivere flyt</p>
+      </aside>
+
+      <div class="weapon-hud" id="weaponHud" aria-label="Aktivt verktøy: Service Manager">
         <div class="weapon-shadow" aria-hidden="true"></div>
         <div class="service-manager" aria-hidden="true">
-          <span class="gun-sight"></span>
-          <span class="gun-barrel"><i></i></span>
-          <span class="gun-body"><b>SM</b><i></i></span>
-          <span class="gun-core"></span>
-          <span class="gun-grip"></span>
-          <span class="gun-trigger"></span>
+          <span class="muzzle"><i></i><b></b></span>
+          <span class="top-rail"><i></i></span>
+          <span class="barrel"><i></i><b></b></span>
+          <span class="receiver"><i></i><b>SM</b><em>ONLINE</em></span>
+          <span class="energy-core"><i></i></span>
+          <span class="side-module"><i></i><b></b></span>
+          <span class="trigger-guard"></span>
+          <span class="grip"><i></i><b></b></span>
         </div>
-        <span class="weapon-name"><small>Aktivt verktøy</small>Service Manager</span>
+        <span class="weapon-name"><small>Aktivt verktøy</small><b>Service Manager</b><i id="weaponMode">SAK // LUKK</i></span>
       </div>
 
       <aside class="score-panel" aria-label="Fremdrift mot årets ansatt">
-        <div class="score-heading"><span>Årets ansatt</span><strong id="scorePercent">0 %</strong></div>
+        <div class="score-heading">
+          <span><i aria-hidden="true">★</i> Årets ansatt</span>
+          <strong id="scorePercent">0 %</strong>
+        </div>
         <div class="score-track" role="progressbar" aria-label="Løste brukerstøttesaker" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0" id="scoreTrack">
           <span class="score-fill" id="scoreFill"></span>
           <span class="score-shine" aria-hidden="true"></span>
@@ -79,63 +127,102 @@
         <div class="score-footer"><span><b id="casesRemaining">10</b> <span id="remainingWord">saker</span> gjenstår</span><span id="highScoreText">Rekord: —</span></div>
       </aside>
 
-      <section class="overlay is-visible" id="startOverlay" aria-labelledby="startTitle">
+      <section class="overlay is-visible start-overlay" id="startOverlay" aria-labelledby="startTitle">
         <div class="overlay-card start-card">
-          <p class="kicker">Sykehuspartner arkade presenterer</p>
-          <h1 id="startTitle">Brukerstøtte&shy;jakten <span>2.1</span></h1>
-          <p class="lead">Brukerstøttesakene har forlatt køen. Hent dem inn med <strong>Service Manager</strong>, bestå tilfeldige Noark 5-sjekker og bygg en perfekt arbeidsflyt.</p>
-          <div class="briefing-grid">
-            <div><b>10</b><span>saker for seier</span></div>
-            <div><b>30 %</b><span>quizsjanse ved treff</span></div>
-            <div><b>4</b><span>delmål å låse opp</span></div>
+          <div class="start-copy">
+            <p class="kicker"><i aria-hidden="true"></i> Sykehuspartner arkade // versjon 3.0</p>
+            <h1 id="startTitle">Operasjon<br><span>Null restanse</span></h1>
+            <p class="lead">Brukerstøttesakene har forlatt køen og beveger seg gjennom driftslandskapet. Spor dem i dybden, lukk dem med <strong>Service Manager</strong> og bygg en feilfri vakt.</p>
+
+            <div class="briefing-grid">
+              <div><b>10</b><span>saker for seier</span></div>
+              <div><b>30 %</b><span>quizsjanse ved treff</span></div>
+              <div><b>4</b><span>operative faser</span></div>
+              <div><b>5</b><span>utmerkelser</span></div>
+            </div>
+
+            <div class="start-actions">
+              <button class="primary-button" id="startButton" type="button"><span>Start vakten</span><i aria-hidden="true">→</i></button>
+              <a class="back-link" href="../">Tilbake til prosjektene</a>
+            </div>
           </div>
-          <ul class="controls-list">
-            <li><kbd>Mus</kbd><span>Sikt og klikk</span></li>
-            <li><kbd>Berøring</kbd><span>Trykk på saken</span></li>
-            <li><kbd>← ↑ ↓ →</kbd><span>Flytt siktet</span></li>
-            <li><kbd>Mellomrom</kbd><span>Skyt</span></li>
-          </ul>
-          <p class="fine-print">Omtrent 30 prosent av vellykkede treff utløser en tilfeldig, enkel Noark 5-quiz. Riktig svar: +1 poeng og seks sekunder faglig flyt. Feil svar: −1 poeng.</p>
-          <button class="primary-button" id="startButton" type="button">Logg på Service Manager</button>
-          <a class="back-link" href="../">← Tilbake til prosjektene</a>
+
+          <div class="briefing-console" aria-hidden="true">
+            <div class="console-top"><span>SM // LIVE SIMULERING</span><i></i></div>
+            <div class="holo-scene">
+              <div class="holo-grid"></div>
+              <div class="holo-orbit"><i></i><i></i><i></i></div>
+              <div class="holo-ticket"><span>BRUKERSTØTTESAK</span><b>#SM-4201</b><i></i></div>
+              <div class="holo-reticle"><i></i><i></i></div>
+            </div>
+            <div class="console-readout">
+              <div><span>DYBDE</span><b>08.4 m</b></div>
+              <div><span>STATUS</span><b>ÅPEN</b></div>
+              <div><span>VERKTØY</span><b>SERVICE MANAGER</b></div>
+            </div>
+            <ul class="controls-list">
+              <li><kbd>Mus</kbd><span>Sikt og skyt</span></li>
+              <li><kbd>Berøring</kbd><span>Trykk på målet</span></li>
+              <li><kbd>WASD</kbd><span>Flytt siktet</span></li>
+              <li><kbd>Mellomrom</kbd><span>Lukk saken</span></li>
+            </ul>
+          </div>
+
+          <p class="start-footnote">Noark 5-kontrollpunkter oppstår tilfeldig etter omtrent 30 % av vellykkede treff. Riktig svar gir +1 prestisjepoeng og seks sekunder faglig flyt. Feil svar trekker ett poeng.</p>
         </div>
       </section>
 
       <section class="overlay quiz-overlay" id="quizOverlay" aria-labelledby="quizTitle" hidden>
         <div class="overlay-card quiz-card">
-          <div class="quiz-topline"><span class="quiz-badge">NOARK 5-BONUS</span><span id="quizProgress">1/?</span></div>
-          <p class="kicker">Tilfeldig faglig kontrollpunkt</p>
+          <div class="quiz-scan" aria-hidden="true"></div>
+          <div class="quiz-topline">
+            <span class="quiz-badge"><i></i> NOARK 5 // KONTROLLPUNKT</span>
+            <span id="quizProgress">SPØRSMÅL 01</span>
+          </div>
+          <p class="kicker">Faglig avvik oppdaget</p>
           <h2 id="quizTitle">Hva er Noark 5?</h2>
           <div class="quiz-options" id="quizOptions"></div>
           <p class="quiz-feedback" id="quizFeedback" role="status" aria-live="polite"></p>
-          <p class="fine-print">To valg. Ett svar. Ingen konsulentrapport nødvendig.</p>
+          <div class="quiz-footer"><span>Riktig: +1 og faglig flyt</span><span>Feil: −1</span><a href="https://www.nasjonalarkivet.no/offentlig-forvaltning/regelverk-og-standarder/noark/" target="_blank" rel="noreferrer">Kilde: Nasjonalarkivet</a></div>
         </div>
       </section>
 
       <section class="overlay pause-overlay" id="pauseOverlay" aria-labelledby="pauseTitle" hidden>
         <div class="overlay-card pause-card">
-          <p class="kicker">Service Manager er låst</p>
+          <div class="pause-symbol" aria-hidden="true"><i></i><i></i></div>
+          <p class="kicker">Service Manager er sikret</p>
           <h2 id="pauseTitle">Vakten er satt på pause</h2>
-          <p>Sakene står helt stille. Det skjer sjelden i produksjon.</p>
-          <button class="primary-button" id="resumeButton" type="button">Fortsett vakten</button>
+          <p>Sakene er frosset i køen. Det er nesten mer urealistisk enn at de flyr.</p>
+          <button class="primary-button" id="resumeButton" type="button"><span>Fortsett vakten</span><i aria-hidden="true">→</i></button>
         </div>
       </section>
 
-      <section class="overlay" id="winOverlay" aria-labelledby="winTitle" hidden>
+      <section class="overlay win-overlay" id="winOverlay" aria-labelledby="winTitle" hidden>
         <div class="overlay-card win-card">
-          <div class="trophy" aria-hidden="true"><span>★</span><i></i></div>
-          <p class="kicker">10 av 10 saker løst</p>
-          <h2 id="winTitle">Du er årets ansatt!</h2>
-          <p id="winSummary">Service Manager har aldri sett maken.</p>
-          <div class="result-grid">
-            <div><span>Prestasjonspoeng</span><strong id="resultPoints">0</strong></div>
-            <div><span>Treffsikkerhet</span><strong id="resultAccuracy">0 %</strong></div>
-            <div><span>Beste komboserie</span><strong id="resultCombo">x0</strong></div>
-            <div><span>Noark 5</span><strong id="resultQuiz">0/0</strong></div>
+          <div class="rank-emblem" id="rankEmblem" aria-hidden="true"><i></i><b id="rankGrade">A</b><span>RANG</span></div>
+          <div class="win-copy">
+            <p class="kicker">Operasjonen er fullført</p>
+            <h2 id="winTitle">Du er<br><span>årets ansatt</span></h2>
+            <p id="winSummary">Ti saker lukket. Service Manager har aldri sett maken.</p>
+            <p class="rank-title"><b id="rankTitle">Senior problemløser</b><span id="rankDetail">Svært sterk vakt med kontroll på køen.</span></p>
           </div>
-          <div class="badge-row" id="badgeRow" aria-label="Opplåste merker"></div>
-          <button class="primary-button" id="restartButton" type="button">Ta en ny vakt</button>
-          <a class="back-link" href="../">Se flere prosjekter →</a>
+
+          <div class="result-grid">
+            <div><span>Prestisje</span><strong id="resultPoints">0 p</strong><i>Quiz påvirker resultatet</i></div>
+            <div><span>Treffsikkerhet</span><strong id="resultAccuracy">0 %</strong><i id="resultShots">0 skudd</i></div>
+            <div><span>Beste treffrekke</span><strong id="resultCombo">x0</strong><i id="resultFlow">0 flytaktiveringer</i></div>
+            <div><span>Noark 5</span><strong id="resultQuiz">0/0</strong><i>Riktige kontrollpunkter</i></div>
+            <div><span>Tid</span><strong id="resultTime">00:00</strong><i id="resultEscalations">0 eskaleringer</i></div>
+            <div><span>Utmerkelser</span><strong id="resultMissions">0/5</strong><i>Operasjonsmål fullført</i></div>
+          </div>
+
+          <div class="badge-row" id="badgeRow" aria-label="Opplåste utmerkelser"></div>
+
+          <div class="win-actions">
+            <button class="primary-button" id="restartButton" type="button"><span>Ta en ny vakt</span><i aria-hidden="true">↻</i></button>
+            <button class="secondary-button" id="shareButton" type="button"><span>Del resultat</span><i aria-hidden="true">↗</i></button>
+          </div>
+          <a class="back-link" href="../">Se flere prosjekter</a>
         </div>
       </section>
     </main>
