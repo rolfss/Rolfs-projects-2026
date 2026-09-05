@@ -15,18 +15,60 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Hent kampanjegrenen
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: upgrade/brukerstottejakten-4-campaign
           fetch-depth: 0
+
+      - name: Verifiser transportdelene byte for byte
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from hashlib import sha256
+          from pathlib import Path
+
+          source = Path('brukerstottejakten/.v4-campaign-payload')
+          target = Path('/tmp/v4-payload-clean')
+          target.mkdir(parents=True, exist_ok=True)
+
+          expected = {
+              'part-00': '6838eefab15bec72cfcfa0860903d30a529cc983bb9287a266cf01868a3030e7',
+              'part-01': 'de3b37b3f0190e02f04bc29ce32fca2fd6ecaffebeb66d9cbd501ed27ae085f5',
+              'part-02': 'e6e37366330a8d8b8219c66750a325c8f7ec5127dd6c26aacd5793f52c575366',
+              'part-03': 'd3ec54e4412d310344221f248302361e4e7f651c55f732daed95a2c3a1ff378f',
+              'part-04': '65d13130205f37ad45ca88d2d51bead7632c38ec003566d88e3454ce6858f253',
+          }
+
+          def digest(data: bytes) -> str:
+              return sha256(data).hexdigest()
+
+          for name, wanted in expected.items():
+              data = (source / name).read_bytes()
+              clean = data
+              repaired_at = None
+
+              if digest(clean) != wanted:
+                  for index in range(len(data)):
+                      candidate = data[:index] + data[index + 1:]
+                      if digest(candidate) == wanted:
+                          clean = candidate
+                          repaired_at = index
+                          break
+
+              if digest(clean) != wanted:
+                  raise SystemExit(f'{name}: transportdelen samsvarer ikke med forventet SHA-256')
+
+              (target / name).write_bytes(clean)
+              note = f', reparerte ett transportbyte ved posisjon {repaired_at}' if repaired_at is not None else ''
+              print(f'{name}: verifisert{note}')
+          PY
 
       - name: Pakk ut og kontroller kampanjen
         shell: bash
         run: |
           set -euo pipefail
-          cat brukerstottejakten/.v4-campaign-payload/part-* \
-            | tr -d '[:space:]' \
-            | base64 --decode > /tmp/brukerstotte-v4.tar.gz
+          cat /tmp/v4-payload-clean/part-* | base64 --decode > /tmp/brukerstotte-v4.tar.gz
           actual="$(sha256sum /tmp/brukerstotte-v4.tar.gz | cut -d' ' -f1)"
           expected="4c861ce9986b00dbb884fe3a49157f1de62f63bc6d059d35c9445e08288851d4"
           test "$actual" = "$expected"
