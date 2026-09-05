@@ -1,27 +1,15 @@
 export const TARGET_CASES = 10;
-export const QUIZ_CHANCE = 0.3;
-export const FLOW_THRESHOLD = 100;
-
-export const STAGES = Object.freeze([
-  Object.freeze({ id: 1, name: 'Morgenkø', subtitle: 'Få kontroll på innboksen', from: 0 }),
-  Object.freeze({ id: 2, name: 'Produksjonspress', subtitle: 'Tempoet øker', from: 3 }),
-  Object.freeze({ id: 3, name: 'Kritisk drift', subtitle: 'Prioriter riktig', from: 6 }),
-  Object.freeze({ id: 4, name: 'Sluttspurten', subtitle: 'Lukk hovedhendelsen', from: 9 }),
-]);
+export const QUIZ_TRIGGER_PROBABILITY = 0.3;
+export const LEVEL_THRESHOLDS = Object.freeze([0, 3, 6, 9]);
 
 export function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
 
-export function shouldOfferQuiz(randomValue = Math.random()) {
-  return Number.isFinite(randomValue) && randomValue >= 0 && randomValue < QUIZ_CHANCE;
-}
-
-export function stageForCases(casesSolved) {
-  const solved = clamp(Number(casesSolved) || 0, 0, TARGET_CASES);
-  if (solved >= 9) return 4;
-  if (solved >= 6) return 3;
-  if (solved >= 3) return 2;
+export function levelForCases(casesSolved) {
+  if (casesSolved >= LEVEL_THRESHOLDS[3]) return 4;
+  if (casesSolved >= LEVEL_THRESHOLDS[2]) return 3;
+  if (casesSolved >= LEVEL_THRESHOLDS[1]) return 2;
   return 1;
 }
 
@@ -34,12 +22,11 @@ export function createGameState() {
     escalations: 0,
     streak: 0,
     bestStreak: 0,
-    quizOffered: 0,
     quizAnswered: 0,
     quizCorrect: 0,
-    stage: 1,
-    flow: 0,
-    flowActivations: 0,
+    priorityHits: 0,
+    legacyHits: 0,
+    level: 1,
     startedAt: 0,
     finishedAt: 0,
   };
@@ -53,75 +40,34 @@ export function startGame(_state, now = Date.now()) {
   };
 }
 
-function emptyShotEvents() {
-  return {
-    hit: false,
-    won: false,
-    quizTriggered: false,
-    stageChanged: false,
-    flowActivated: false,
-    pointsDelta: 0,
-  };
-}
-
-export function resolveShot(
-  state,
-  {
-    hit = false,
-    now = Date.now(),
-    randomValue = Math.random(),
-  } = {},
-) {
-  if (state.status !== 'running') return { state, events: emptyShotEvents() };
+export function recordShot(state, hit, now = Date.now(), kind = 'normal') {
+  if (state.status !== 'running') return state;
 
   const shots = state.shots + 1;
   if (!hit) {
     return {
-      state: {
-        ...state,
-        shots,
-        streak: 0,
-        flow: Math.max(0, state.flow - 34),
-      },
-      events: emptyShotEvents(),
+      ...state,
+      shots,
+      streak: 0,
     };
   }
 
   const casesSolved = clamp(state.casesSolved + 1, 0, TARGET_CASES);
   const streak = state.streak + 1;
-  const nextStage = stageForCases(casesSolved);
-  const won = casesSolved === TARGET_CASES;
-  const quizTriggered = !won && shouldOfferQuiz(randomValue);
-  const flowGain = 34 + Math.min(streak - 1, 4) * 4;
-  const accumulatedFlow = state.flow + flowGain;
-  const flowActivated = accumulatedFlow >= FLOW_THRESHOLD;
-  const flow = flowActivated ? accumulatedFlow - FLOW_THRESHOLD : accumulatedFlow;
+  const won = casesSolved >= TARGET_CASES;
 
-  const nextState = {
+  return {
     ...state,
-    status: won ? 'won' : 'running',
     casesSolved,
     points: state.points + 1,
     shots,
     streak,
     bestStreak: Math.max(state.bestStreak, streak),
-    quizOffered: state.quizOffered + (quizTriggered ? 1 : 0),
-    stage: nextStage,
-    flow,
-    flowActivations: state.flowActivations + (flowActivated ? 1 : 0),
+    priorityHits: state.priorityHits + (kind === 'priority' ? 1 : 0),
+    legacyHits: state.legacyHits + (kind === 'legacy' ? 1 : 0),
+    level: levelForCases(casesSolved),
+    status: won ? 'won' : 'running',
     finishedAt: won ? now : 0,
-  };
-
-  return {
-    state: nextState,
-    events: {
-      hit: true,
-      won,
-      quizTriggered,
-      stageChanged: nextStage !== state.stage,
-      flowActivated,
-      pointsDelta: 1,
-    },
   };
 }
 
@@ -131,18 +77,21 @@ export function recordEscape(state) {
     ...state,
     escalations: state.escalations + 1,
     streak: 0,
-    flow: Math.max(0, state.flow - 20),
   };
 }
 
 export function recordQuizAnswer(state, correct) {
-  if (state.status !== 'running') return state;
+  if (state.status !== 'running' && state.status !== 'won') return state;
   return {
     ...state,
     points: Math.max(0, state.points + (correct ? 1 : -1)),
     quizAnswered: state.quizAnswered + 1,
     quizCorrect: state.quizCorrect + (correct ? 1 : 0),
   };
+}
+
+export function shouldTriggerQuiz(hit, roll = Math.random(), blocked = false) {
+  return Boolean(hit) && !blocked && roll >= 0 && roll < QUIZ_TRIGGER_PROBABILITY;
 }
 
 export function progressPercent(casesSolved) {
@@ -161,13 +110,12 @@ export function elapsedSeconds(state, now = Date.now()) {
 }
 
 export function unlockedMissions(state) {
-  const accuracy = accuracyPercent(state);
   return {
-    queue: state.casesSolved >= 3,
-    streak: state.bestStreak >= 4,
+    triage: state.casesSolved >= 3,
+    flow: state.bestStreak >= 4,
+    priority: state.priorityHits >= 1,
     noark: state.quizCorrect >= 2,
-    precision: state.shots >= 5 && accuracy >= 80,
-    control: state.casesSolved >= 7 && state.escalations <= 2,
+    control: state.casesSolved >= 8 && state.escalations <= 2,
   };
 }
 
@@ -175,18 +123,22 @@ export function missionCount(state) {
   return Object.values(unlockedMissions(state)).filter(Boolean).length;
 }
 
-export function performanceRank(state) {
+export function performanceScore(state, now = Date.now()) {
   const accuracy = accuracyPercent(state);
-  const missions = missionCount(state);
+  const seconds = elapsedSeconds(state, now);
+  const speedBonus = clamp((75 - seconds) / 12, 0, 4);
+  const accuracyBonus = clamp((accuracy - 55) / 10, 0, 4.5);
+  const missionBonus = missionCount(state) * 0.7;
+  const quizBonus = state.quizCorrect * 0.45;
+  const penalty = state.escalations * 0.4;
+  return Math.max(0, state.points + speedBonus + accuracyBonus + missionBonus + quizBonus - penalty);
+}
 
-  if (state.points >= 12 && accuracy >= 80 && state.escalations <= 2 && missions >= 4) {
-    return { grade: 'S', title: 'Driftslegende', detail: 'Eksepsjonell flyt, presisjon og faglig kontroll.' };
-  }
-  if (state.points >= 10 && accuracy >= 70 && state.escalations <= 4) {
-    return { grade: 'A', title: 'Senior problemløser', detail: 'Svært sterk vakt med kontroll på køen.' };
-  }
-  if (accuracy >= 55) {
-    return { grade: 'B', title: 'Stabil saksbehandler', detail: 'God leveranse. Noen saker tok den lange veien.' };
-  }
-  return { grade: 'C', title: 'Vakten fullført', detail: 'Resultatet er godkjent. Treffbildet kan forbedres.' };
+export function performanceGrade(state, now = Date.now()) {
+  const score = performanceScore(state, now);
+  if (score >= 20) return { grade: 'S', title: 'Driftslegende' };
+  if (score >= 16.5) return { grade: 'A', title: 'Køknuser' };
+  if (score >= 13) return { grade: 'B', title: 'Solid problemløser' };
+  if (score >= 10) return { grade: 'C', title: 'Trygg førstelinje' };
+  return { grade: 'D', title: 'Vakten er fullført' };
 }

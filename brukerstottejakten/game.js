@@ -1,304 +1,376 @@
 import {
-  FLOW_THRESHOLD,
-  STAGES,
   TARGET_CASES,
   accuracyPercent,
   clamp,
   createGameState,
   elapsedSeconds,
   missionCount,
-  performanceRank,
+  performanceGrade,
+  performanceScore,
   progressPercent,
   recordEscape,
   recordQuizAnswer,
-  resolveShot,
+  recordShot,
+  shouldTriggerQuiz,
   startGame,
   unlockedMissions,
 } from './game-core.js';
-import {
-  createCuboidMesh,
-  distanceToPolygon,
-  easeOutCubic,
-  lerp,
-  pointInPolygon,
-  polygonArea,
-  projectPoint,
-  smoothstep,
-} from './scene-engine.js';
-import { AudioEngine } from './audio-engine.js';
+import { SceneRenderer } from './renderer.js';
 
 const board = document.querySelector('#gameBoard');
 const canvas = document.querySelector('#gameCanvas');
-const context = canvas?.getContext('2d', { alpha: false, desynchronized: true });
-
-if (!board || !canvas || !context) throw new Error('Spillområdet kunne ikke initialiseres.');
+if (!board || !canvas) throw new Error('Spillflaten kunne ikke initialiseres.');
 
 const ui = {
-  startOverlay: document.querySelector('#startOverlay'),
-  quizOverlay: document.querySelector('#quizOverlay'),
-  pauseOverlay: document.querySelector('#pauseOverlay'),
-  winOverlay: document.querySelector('#winOverlay'),
-  startButton: document.querySelector('#startButton'),
-  restartButton: document.querySelector('#restartButton'),
-  resumeButton: document.querySelector('#resumeButton'),
-  shareButton: document.querySelector('#shareButton'),
+  appShell: document.querySelector('#appShell'),
+  connectionPill: document.querySelector('#connectionPill'),
+  dutyStatus: document.querySelector('#dutyStatus'),
+  graphicsText: document.querySelector('#graphicsText'),
   soundButton: document.querySelector('#soundButton'),
   fullscreenButton: document.querySelector('#fullscreenButton'),
   pauseButton: document.querySelector('#pauseButton'),
-  dutyStatus: document.querySelector('#dutyStatus'),
-  statusChip: document.querySelector('#statusChip'),
-  operationClock: document.querySelector('#operationClock'),
-  stageNumber: document.querySelector('#stageNumber'),
-  stageName: document.querySelector('#stageName'),
-  stageSubtitle: document.querySelector('#stageSubtitle'),
-  scoreText: document.querySelector('#scoreText'),
+  levelText: document.querySelector('#levelText'),
+  levelName: document.querySelector('#levelName'),
+  casesText: document.querySelector('#casesText'),
   pointsText: document.querySelector('#pointsText'),
   comboText: document.querySelector('#comboText'),
-  comboItem: document.querySelector('.combo-item'),
-  missesText: document.querySelector('#missesText'),
+  comboCell: document.querySelector('#comboCell'),
+  escalationsText: document.querySelector('#escalationsText'),
   missionCount: document.querySelector('#missionCount'),
   missionItems: [...document.querySelectorAll('[data-mission]')],
-  queueSignalText: document.querySelector('#queueSignalText'),
-  queueDetail: document.querySelector('#queueDetail'),
-  stageBanner: document.querySelector('#stageBanner'),
-  stageBannerIndex: document.querySelector('#stageBannerIndex'),
-  stageBannerTitle: document.querySelector('#stageBannerTitle'),
-  stageBannerSubtitle: document.querySelector('#stageBannerSubtitle'),
-  powerup: document.querySelector('#powerup'),
-  powerupSource: document.querySelector('#powerupSource'),
+  radarCount: document.querySelector('#radarCount'),
+  radarBlips: document.querySelector('#radarBlips'),
+  powerupCard: document.querySelector('#powerupCard'),
   powerupTimer: document.querySelector('#powerupTimer'),
-  message: document.querySelector('#message'),
-  messageText: document.querySelector('#message span'),
-  floatingScore: document.querySelector('#floatingScore'),
-  crosshair: document.querySelector('#crosshair'),
-  flowPercent: document.querySelector('#flowPercent'),
-  flowFill: document.querySelector('#flowFill'),
-  flowTrack: document.querySelector('#flowTrack'),
-  flowHint: document.querySelector('#flowHint'),
-  weaponHud: document.querySelector('#weaponHud'),
-  weaponMode: document.querySelector('#weaponMode'),
-  scorePercent: document.querySelector('#scorePercent'),
-  scoreFill: document.querySelector('#scoreFill'),
-  scoreTrack: document.querySelector('#scoreTrack'),
-  casesRemaining: document.querySelector('#casesRemaining'),
-  remainingWord: document.querySelector('#remainingWord'),
-  highScoreText: document.querySelector('#highScoreText'),
-  hitFlash: document.querySelector('#hitFlash'),
+  weaponStatus: document.querySelector('#weaponStatus'),
+  progressPercent: document.querySelector('#progressPercent'),
+  progressTrack: document.querySelector('#progressTrack'),
+  progressFill: document.querySelector('#progressFill'),
+  remainingText: document.querySelector('#remainingText'),
+  recordText: document.querySelector('#recordText'),
+  reticle: document.querySelector('#reticle'),
+  reticleLabel: document.querySelector('#reticleLabel'),
+  statusMessage: document.querySelector('#statusMessage'),
+  scorePop: document.querySelector('#scorePop'),
+  levelBanner: document.querySelector('#levelBanner'),
+  levelBannerName: document.querySelector('#levelBannerName'),
+  levelBannerText: document.querySelector('#levelBannerText'),
+  fxLayer: document.querySelector('#fxLayer'),
+  startOverlay: document.querySelector('#startOverlay'),
+  startButton: document.querySelector('#startButton'),
+  quizOverlay: document.querySelector('#quizOverlay'),
+  quizNumber: document.querySelector('#quizNumber'),
   quizTitle: document.querySelector('#quizTitle'),
-  quizProgress: document.querySelector('#quizProgress'),
   quizOptions: document.querySelector('#quizOptions'),
   quizFeedback: document.querySelector('#quizFeedback'),
+  pauseOverlay: document.querySelector('#pauseOverlay'),
+  resumeButton: document.querySelector('#resumeButton'),
+  winOverlay: document.querySelector('#winOverlay'),
+  restartButton: document.querySelector('#restartButton'),
+  gradeMedallion: document.querySelector('#gradeMedallion'),
+  gradeText: document.querySelector('#gradeText'),
   winSummary: document.querySelector('#winSummary'),
-  rankEmblem: document.querySelector('#rankEmblem'),
-  rankGrade: document.querySelector('#rankGrade'),
-  rankTitle: document.querySelector('#rankTitle'),
-  rankDetail: document.querySelector('#rankDetail'),
   resultPoints: document.querySelector('#resultPoints'),
+  resultTitle: document.querySelector('#resultTitle'),
   resultAccuracy: document.querySelector('#resultAccuracy'),
   resultShots: document.querySelector('#resultShots'),
   resultCombo: document.querySelector('#resultCombo'),
-  resultFlow: document.querySelector('#resultFlow'),
+  resultEscalations: document.querySelector('#resultEscalations'),
   resultQuiz: document.querySelector('#resultQuiz'),
   resultTime: document.querySelector('#resultTime'),
-  resultEscalations: document.querySelector('#resultEscalations'),
-  resultMissions: document.querySelector('#resultMissions'),
+  badgeCount: document.querySelector('#badgeCount'),
   badgeRow: document.querySelector('#badgeRow'),
+  fallbackNotice: document.querySelector('#fallbackNotice'),
 };
 
-const audio = new AudioEngine();
-const testMode = new URLSearchParams(window.location.search).has('test');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const touchDevice = window.matchMedia('(pointer: coarse)').matches;
+const testMode = new URLSearchParams(window.location.search).has('test');
+const renderer = new SceneRenderer(canvas, { reducedMotion });
+ui.graphicsText.textContent = renderer.info.label;
+ui.fallbackNotice.hidden = renderer.info.mode !== 'canvas';
 
-const missionLabels = {
-  queue: 'Køen brytes',
-  streak: 'Ren arbeidsflyt',
-  noark: 'Faglig kontroll',
-  precision: 'Presisjon',
-  control: 'SLA-vokter',
-};
-
-const positiveMessages = [
-  'Sak lukket uten omvei.',
-  'Riktig kø. Riktig tiltak.',
-  'Dokumentert, verifisert og lukket.',
-  'Førstelinjen sender stille applaus.',
-  'SLA reddet med god margin.',
-  'Service Manager registrerer kvalitet.',
-  'Null restanse er innen rekkevidde.',
+const LEVELS = [
+  { name: 'Førstelinje', subtitle: 'Rolig innføring. Finn rytmen.', maxTargets: 2, speed: 2.55, interval: [1.02, 1.42] },
+  { name: 'SLA-koordinator', subtitle: 'Flere saker. Høyere tempo.', maxTargets: 3, speed: 3.05, interval: [.82, 1.2] },
+  { name: 'Problemløser', subtitle: 'Kritiske saker entrer luftrommet.', maxTargets: 4, speed: 3.55, interval: [.65, 1.02] },
+  { name: 'Hovedhendelse', subtitle: 'Én siste kritisk sak. Lukk den.', maxTargets: 1, speed: 3.35, interval: [.52, .72] },
 ];
 
-const noarkQuestions = [
+const MISSION_LABELS = {
+  triage: 'Stabiliser køen',
+  flow: 'Ren arbeidsflyt',
+  priority: 'SLA-redning',
+  noark: 'Noark-klar',
+  control: 'Full køkontroll',
+};
+
+const POSITIVE_MESSAGES = [
+  'Sak løst og lukket.',
+  'Riktig kø. Riktig tiltak.',
+  'SLA reddet.',
+  'Dokumentert. Verifisert. Lukket.',
+  'Førstelinjen jubler.',
+  'Ingen restanse her.',
+  'Løst før neste statusmøte.',
+  'Saksflyt i verdensklasse.',
+];
+
+const NOARK_QUESTIONS = [
   {
     question: 'Hva er Noark 5?',
     options: ['En standard for elektronisk arkivdanning', 'Et program for videomøter'],
     correct: 0,
-    fact: 'Noark 5 beskriver krav til arkivstruktur, metadata og funksjonalitet for elektronisk arkivdanning.',
+    explanation: 'Noark 5 beskriver krav til arkivstruktur, metadata og funksjonalitet for elektronisk arkivdanning.',
   },
   {
-    question: 'Skal metadata gjøre dokumentasjon enklere å finne og forstå?',
+    question: 'Skal metadata bidra til at dokumentasjon kan finnes og forstås?',
     options: ['Ja', 'Nei'],
     correct: 0,
-    fact: 'Metadata bevarer sammenheng og gjør dokumentasjon søkbar og forståelig over tid.',
+    explanation: 'Metadata bevarer sammenheng og gjør dokumentasjon søkbar og forståelig over tid.',
   },
   {
     question: 'Kan et fagsystem integreres med en Noark 5-kjerne?',
     options: ['Ja', 'Nei'],
     correct: 0,
-    fact: 'En Noark 5-kjerne kan motta og forvalte arkivinformasjon fra ett eller flere fagsystemer.',
+    explanation: 'En Noark-kjerne kan motta og forvalte arkivinformasjon fra ett eller flere fagsystemer.',
   },
   {
     question: 'Er en journalpost og et dokument alltid det samme?',
     options: ['Nei', 'Ja'],
     correct: 0,
-    fact: 'En journalpost er en registrering og kan være knyttet til både hoveddokument og vedlegg.',
-  },
-  {
-    question: 'Kan skjerming styres ved hjelp av registrerte opplysninger?',
-    options: ['Ja', 'Nei'],
-    correct: 0,
-    fact: 'Tilgangskoder, autorisasjon og skjermingsmetadata kan bidra til å styre hva brukere får se.',
+    explanation: 'En journalpost er en registrering og kan være knyttet til et hoveddokument og vedlegg.',
   },
   {
     question: 'Betyr bevaring og kassasjon det samme?',
     options: ['Nei', 'Ja'],
     correct: 0,
-    fact: 'Bevaring betyr at materialet skal tas vare på. Kassasjon betyr at det kan destrueres etter gjeldende regler.',
+    explanation: 'Bevaring betyr at materialet skal tas vare på. Kassasjon betyr at det kan destrueres etter fastsatte regler.',
   },
   {
-    question: 'Beskriver Noark 5 både arkivstruktur og metadata?',
+    question: 'Kan tilgang og skjerming styres ved hjelp av registrerte opplysninger?',
     options: ['Ja', 'Nei'],
     correct: 0,
-    fact: 'Standarden omfatter blant annet struktur, metadata og funksjonelle krav.',
+    explanation: 'Tilgangskoder, autorisasjon og skjermingsopplysninger kan styre hva ulike brukere får se.',
   },
   {
-    question: 'Er bare selve filen nok til å bevare dokumentasjonens sammenheng?',
+    question: 'Kan en journalpost være knyttet til både hoveddokument og vedlegg?',
+    options: ['Ja', 'Nei'],
+    correct: 0,
+    explanation: 'En journalpost kan ha et hoveddokument og ett eller flere vedlegg.',
+  },
+  {
+    question: 'Er Noark 5 bare ett bestemt filformat?',
     options: ['Nei', 'Ja'],
     correct: 0,
-    fact: 'Dokumentasjon trenger metadata og kontekst for å kunne forstås og forvaltes over tid.',
+    explanation: 'Noark 5 er en kravstandard for arkivdanning, ikke bare et enkelt filformat.',
   },
   {
-    question: 'Kan flere dokumenter høre til samme registrering?',
+    question: 'Bør dokumentets kontekst bevares sammen med dokumentasjonen?',
     options: ['Ja', 'Nei'],
     correct: 0,
-    fact: 'En registrering kan blant annet ha et hoveddokument og ett eller flere vedlegg.',
+    explanation: 'Kontekst og metadata er sentrale for å forstå hvem som skapte dokumentasjonen, hvorfor og i hvilken sammenheng.',
   },
   {
-    question: 'Er sporbarhet viktig i elektronisk arkivdanning?',
+    question: 'Kan et arkivuttrekk brukes for langtidsbevaring utenfor originalsystemet?',
     options: ['Ja', 'Nei'],
     correct: 0,
-    fact: 'Sporbarhet bidrar til tillit, etterprøvbarhet og kontroll med dokumentasjonen.',
+    explanation: 'Et strukturert arkivuttrekk gjør det mulig å bevare arkivinformasjon uavhengig av originalsystemet.',
   },
 ];
 
-const targetProfiles = {
-  normal: {
-    label: 'ÅPEN',
-    short: 'ORDINÆR',
-    size: { x: 1.78, y: 0.78, z: 0.56 },
-    speed: 2.15,
-    colors: { light: '#ffab69', front: '#e56f3f', dark: '#7d3028', edge: '#ffe4b5', stripe: '#ffd66b', ink: '#171f22' },
-  },
-  priority: {
-    label: 'HASTER',
-    short: 'PRIORITET',
-    size: { x: 1.68, y: 0.74, z: 0.54 },
-    speed: 2.72,
-    colors: { light: '#ff8b7e', front: '#c94e52', dark: '#611e31', edge: '#ffd9cf', stripe: '#fff0ad', ink: '#25181c' },
-  },
-  legacy: {
-    label: 'ELDRE SAK',
-    short: 'ETTERSLEP',
-    size: { x: 1.92, y: 0.82, z: 0.62 },
-    speed: 1.82,
-    colors: { light: '#6fe0c7', front: '#328f86', dark: '#154d50', edge: '#d2fff2', stripe: '#ffe27e', ink: '#102326' },
-  },
-  critical: {
-    label: 'HOVEDHENDELSE',
-    short: 'KRITISK',
-    size: { x: 2.55, y: 1.05, z: 0.82 },
-    speed: 1.25,
-    colors: { light: '#f6c868', front: '#6e3540', dark: '#241b2a', edge: '#fff0b2', stripe: '#ffcf54', ink: '#17131b' },
-  },
-};
+class SoundEngine {
+  constructor() {
+    this.enabled = true;
+    this.context = null;
+    this.master = null;
+    this.compressor = null;
+    this.ambientTimer = 0;
+    this.ambientStep = 0;
+    this.running = false;
+  }
 
-const stageThemes = [
-  {
-    accent: '#69f2ce', skyTop: '#123f57', skyMid: '#3e8490', horizon: '#e4ba79', haze: '#f6d6a0',
-    mountainFar: '#527e7e', mountainNear: '#315e61', groundTop: '#315f50', groundBottom: '#071f25', skyline: '#214c53',
-  },
-  {
-    accent: '#72e5d0', skyTop: '#176174', skyMid: '#65aaa5', horizon: '#d8bf86', haze: '#edd49b',
-    mountainFar: '#4d827b', mountainNear: '#2f625d', groundTop: '#2d5c4f', groundBottom: '#061f24', skyline: '#1f5054',
-  },
-  {
-    accent: '#8fc5ff', skyTop: '#172d43', skyMid: '#435d6b', horizon: '#918e82', haze: '#bdb39b',
-    mountainFar: '#3d5661', mountainNear: '#263e49', groundTop: '#233f3f', groundBottom: '#06171f', skyline: '#172f3c',
-  },
-  {
-    accent: '#ffd66b', skyTop: '#07142d', skyMid: '#1f3853', horizon: '#526879', haze: '#879494',
-    mountainFar: '#293e55', mountainNear: '#162c3e', groundTop: '#182f35', groundBottom: '#030e18', skyline: '#0e2432',
-  },
-];
+  ensure() {
+    if (this.context) {
+      if (this.context.state === 'suspended') this.context.resume().catch(() => {});
+      return this.context;
+    }
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return null;
+    this.context = new AudioContextClass();
+    this.compressor = this.context.createDynamicsCompressor();
+    this.compressor.threshold.value = -22;
+    this.compressor.knee.value = 16;
+    this.compressor.ratio.value = 5;
+    this.compressor.attack.value = .004;
+    this.compressor.release.value = .18;
+    this.master = this.context.createGain();
+    this.master.gain.value = .8;
+    this.compressor.connect(this.master);
+    this.master.connect(this.context.destination);
+    return this.context;
+  }
 
-const gradeWeights = { S: 4, A: 3, B: 2, C: 1 };
-const confettiColors = ['#ffd66b', '#69f2ce', '#f47a43', '#f8f2d8', '#77b9ff', '#ef83b5'];
+  tone(frequency, duration, { type = 'sine', gain = .025, delay = 0, endFrequency = null, pan = 0 } = {}) {
+    if (!this.enabled) return;
+    const context = this.ensure();
+    if (!context) return;
+    const start = context.currentTime + delay;
+    const oscillator = context.createOscillator();
+    const volume = context.createGain();
+    const panner = typeof context.createStereoPanner === 'function' ? context.createStereoPanner() : null;
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(Math.max(1, frequency), start);
+    if (endFrequency) oscillator.frequency.exponentialRampToValueAtTime(Math.max(1, endFrequency), start + duration);
+    volume.gain.setValueAtTime(.0001, start);
+    volume.gain.exponentialRampToValueAtTime(gain, start + Math.min(.012, duration * .2));
+    volume.gain.exponentialRampToValueAtTime(.0001, start + duration);
+    oscillator.connect(volume);
+    if (panner) {
+      panner.pan.value = clamp(pan, -1, 1);
+      volume.connect(panner);
+      panner.connect(this.compressor);
+    } else {
+      volume.connect(this.compressor);
+    }
+    oscillator.start(start);
+    oscillator.stop(start + duration + .03);
+  }
 
+  noise(duration = .08, gain = .02) {
+    if (!this.enabled) return;
+    const context = this.ensure();
+    if (!context) return;
+    const sampleCount = Math.floor(context.sampleRate * duration);
+    const buffer = context.createBuffer(1, sampleCount, context.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let index = 0; index < sampleCount; index += 1) data[index] = (Math.random() * 2 - 1) * (1 - index / sampleCount);
+    const source = context.createBufferSource();
+    const filter = context.createBiquadFilter();
+    const volume = context.createGain();
+    filter.type = 'bandpass';
+    filter.frequency.value = 920;
+    filter.Q.value = .8;
+    volume.gain.setValueAtTime(gain, context.currentTime);
+    volume.gain.exponentialRampToValueAtTime(.0001, context.currentTime + duration);
+    source.buffer = buffer;
+    source.connect(filter);
+    filter.connect(volume);
+    volume.connect(this.compressor);
+    source.start();
+  }
+
+  startAmbient() {
+    this.running = true;
+    if (!this.enabled || this.ambientTimer) return;
+    this.ensure();
+    const notes = [98, 123.47, 146.83, 123.47, 110, 138.59, 164.81, 138.59];
+    const tick = () => {
+      if (!this.running || !this.enabled) return;
+      const note = notes[this.ambientStep % notes.length];
+      this.tone(note, .48, { type: 'triangle', gain: .006 });
+      if (this.ambientStep % 2 === 0) this.tone(note * 2, .16, { type: 'sine', gain: .0035, delay: .08 });
+      this.ambientStep += 1;
+    };
+    tick();
+    this.ambientTimer = window.setInterval(tick, 520);
+  }
+
+  stopAmbient() {
+    this.running = false;
+    if (this.ambientTimer) window.clearInterval(this.ambientTimer);
+    this.ambientTimer = 0;
+  }
+
+  setEnabled(enabled) {
+    this.enabled = Boolean(enabled);
+    if (!this.enabled) {
+      this.stopAmbient();
+      if (this.master) this.master.gain.setTargetAtTime(.0001, this.context.currentTime, .03);
+    } else {
+      this.ensure();
+      if (this.master) this.master.gain.setTargetAtTime(.8, this.context.currentTime, .03);
+      if (state.status === 'running' && !paused) this.startAmbient();
+      this.tone(440, .09, { type: 'triangle', gain: .02 });
+    }
+  }
+
+  start() {
+    [196, 293.66, 392].forEach((frequency, index) => this.tone(frequency, .13, { type: 'triangle', gain: .022, delay: index * .08 }));
+    this.startAmbient();
+  }
+  shot() {
+    this.noise(.075, .026);
+    this.tone(135, .085, { type: 'sawtooth', gain: .045, endFrequency: 52 });
+    this.tone(62, .11, { type: 'square', gain: .022, endFrequency: 31 });
+  }
+  hit(streak, pan = 0) {
+    this.tone(390 + Math.min(streak, 7) * 35, .1, { type: 'square', gain: .024, delay: .025, endFrequency: 720, pan });
+    this.tone(760, .08, { type: 'triangle', gain: .014, delay: .06, pan });
+  }
+  miss() { this.tone(115, .11, { type: 'triangle', gain: .017, endFrequency: 77 }); }
+  escape() {
+    this.tone(190, .13, { type: 'square', gain: .021, endFrequency: 112 });
+    this.tone(112, .17, { type: 'square', gain: .016, delay: .1, endFrequency: 62 });
+  }
+  combo(streak) {
+    const base = 300 + streak * 18;
+    [base, base * 1.25, base * 1.5].forEach((frequency, index) => this.tone(frequency, .1, { type: 'triangle', gain: .02, delay: index * .055 }));
+  }
+  level() {
+    [220, 330, 440, 660, 880].forEach((frequency, index) => this.tone(frequency, .12, { type: index % 2 ? 'triangle' : 'square', gain: .02, delay: index * .06 }));
+  }
+  mission() {
+    this.tone(523.25, .11, { type: 'triangle', gain: .018 });
+    this.tone(783.99, .14, { type: 'triangle', gain: .021, delay: .08 });
+  }
+  quizOpen() {
+    this.tone(261.63, .12, { type: 'sine', gain: .02 });
+    this.tone(392, .14, { type: 'sine', gain: .018, delay: .08 });
+  }
+  quizCorrect() {
+    [392, 523.25, 659.25, 783.99].forEach((frequency, index) => this.tone(frequency, .16, { type: 'triangle', gain: .023, delay: index * .075 }));
+  }
+  quizWrong() {
+    this.tone(235, .19, { type: 'sawtooth', gain: .022, endFrequency: 110 });
+    this.tone(105, .22, { type: 'square', gain: .016, delay: .13, endFrequency: 62 });
+  }
+  major() {
+    this.tone(82.41, .52, { type: 'sawtooth', gain: .025, endFrequency: 55 });
+    this.tone(123.47, .32, { type: 'square', gain: .018, delay: .18, endFrequency: 92 });
+    this.tone(164.81, .28, { type: 'triangle', gain: .017, delay: .46, endFrequency: 246.94 });
+  }
+  win() {
+    const melody = [392, 523.25, 659.25, 783.99, 659.25, 783.99, 987.77];
+    melody.forEach((frequency, index) => this.tone(frequency, index === melody.length - 1 ? .46 : .17, {
+      type: index % 2 ? 'triangle' : 'square',
+      gain: .024,
+      delay: index * .105,
+    }));
+  }
+}
+
+const sound = new SoundEngine();
 let state = createGameState();
 let targets = [];
-let particles = [];
-let shockwaves = [];
-let tracerLines = [];
-let confetti = [];
-let clouds = [];
-let stars = [];
-let rain = [];
-let dust = [];
-let skylineSeeds = [];
-let mountainSeeds = [];
 let targetId = 1;
 let spawnClock = 0;
 let lastFrame = performance.now();
-let animationTime = 0;
-let stageVisual = 1;
-let lastClockSecond = -1;
-let messageTimer = 0;
-let quizTimer = 0;
-let winTimer = 0;
-let stageTimer = 0;
-let flowUntil = 0;
-let flowSource = 'Saksflyt aktiv';
-let hitStopUntil = 0;
-let finalTargetAt = 0;
-let finalTargetSpawned = false;
+let radarClock = 0;
+let statusTimer = 0;
+let overlayTimer = 0;
+let levelTimer = 0;
 let paused = false;
 let quizActive = false;
 let quizPending = false;
 let currentQuestion = null;
 let questionDeck = [];
-let previousQuestion = null;
-let highScore = readHighScore();
-let missionSnapshot = { queue: false, streak: false, noark: false, precision: false, control: false };
-let recoil = 0;
-let cameraShake = 0;
-let lightning = 0;
-let soundEnabled = true;
-
-const world = {
-  width: 1,
-  height: 1,
-  dpr: 1,
-  horizon: 1,
-  focal: 1,
-};
-
-const camera = {
-  x: 0,
-  y: 2.18,
-  z: 0,
-  focal: 1,
-  near: 0.25,
-};
+let questionIndex = 0;
+let slowUntil = 0;
+let pendingWin = false;
+let finaleAnnounced = false;
+let roundToken = 0;
+let missionSnapshot = { triage: false, flow: false, priority: false, noark: false, control: false };
+let highRecord = readRecord();
 
 const aim = {
   x: 0,
@@ -306,7 +378,6 @@ const aim = {
   visible: false,
   pointerType: 'keyboard',
   hideAt: 0,
-  lockTargetId: null,
 };
 
 function randomBetween(min, max) {
@@ -322,200 +393,116 @@ function shuffle(items) {
   return result;
 }
 
-function hexToRgb(hex) {
-  const value = hex.replace('#', '');
-  const normalized = value.length === 3 ? value.split('').map((character) => character + character).join('') : value;
-  const number = Number.parseInt(normalized, 16);
-  return { r: (number >> 16) & 255, g: (number >> 8) & 255, b: number & 255 };
-}
-
-function rgbToCss(color, alpha = 1) {
-  return `rgba(${Math.round(color.r)}, ${Math.round(color.g)}, ${Math.round(color.b)}, ${alpha})`;
-}
-
-function mixColor(fromHex, toHex, amount) {
-  const from = hexToRgb(fromHex);
-  const to = hexToRgb(toHex);
-  return rgbToCss({ r: lerp(from.r, to.r, amount), g: lerp(from.g, to.g, amount), b: lerp(from.b, to.b, amount) });
-}
-
-function shadeColor(hex, amount) {
-  const color = hexToRgb(hex);
-  const target = amount >= 1 ? 255 : 0;
-  const strength = amount >= 1 ? Math.min(1, amount - 1) : Math.min(1, 1 - amount);
-  return rgbToCss({
-    r: lerp(color.r, target, strength),
-    g: lerp(color.g, target, strength),
-    b: lerp(color.b, target, strength),
-  });
-}
-
-function formatClock(seconds) {
-  const whole = Math.max(0, Math.floor(seconds));
-  const minutes = String(Math.floor(whole / 60)).padStart(2, '0');
-  const remainder = String(whole % 60).padStart(2, '0');
-  return `${minutes}:${remainder}`;
-}
-
-function readHighScore() {
+function readRecord() {
   try {
-    const saved = JSON.parse(window.localStorage.getItem('brukerstottejakten-v3-score') || 'null');
-    return saved && Number.isFinite(saved.points) ? saved : null;
+    const record = JSON.parse(window.localStorage.getItem('brukerstottejakten-v3-record') || 'null');
+    return record && Number.isFinite(record.performance) ? record : null;
   } catch {
     return null;
   }
 }
 
-function isBetterScore(candidate, current) {
-  if (!current) return true;
-  const candidateGrade = gradeWeights[candidate.grade] || 0;
-  const currentGrade = gradeWeights[current.grade] || 0;
-  if (candidateGrade !== currentGrade) return candidateGrade > currentGrade;
-  if (candidate.points !== current.points) return candidate.points > current.points;
-  if (candidate.accuracy !== current.accuracy) return candidate.accuracy > current.accuracy;
-  return candidate.seconds < current.seconds;
-}
-
-function writeHighScore(result) {
+function writeRecord(record) {
   try {
-    window.localStorage.setItem('brukerstottejakten-v3-score', JSON.stringify(result));
+    window.localStorage.setItem('brukerstottejakten-v3-record', JSON.stringify(record));
   } catch {
-    // Local storage is optional; the game remains fully playable without it.
+    // Lokal lagring er valgfri. Spillet fortsetter uten den.
   }
 }
 
-function createSceneSeeds() {
-  const seeded = (index, multiplier = 12.9898) => {
-    const value = Math.sin(index * multiplier + 78.233) * 43758.5453;
-    return value - Math.floor(value);
-  };
-
-  clouds = Array.from({ length: 9 }, (_, index) => ({
-    x: seeded(index + 1),
-    y: 0.08 + seeded(index + 21) * 0.28,
-    scale: 0.45 + seeded(index + 41) * 0.85,
-    speed: 0.004 + seeded(index + 61) * 0.008,
-    layer: index % 3,
-    opacity: 0.28 + seeded(index + 81) * 0.45,
-  }));
-
-  stars = Array.from({ length: 115 }, (_, index) => ({
-    x: seeded(index + 101),
-    y: seeded(index + 221) * 0.58,
-    size: 0.5 + seeded(index + 341) * 1.4,
-    phase: seeded(index + 461) * Math.PI * 2,
-  }));
-
-  rain = Array.from({ length: 95 }, (_, index) => ({
-    x: seeded(index + 581),
-    y: seeded(index + 701),
-    length: 8 + seeded(index + 821) * 17,
-    speed: 0.35 + seeded(index + 941) * 0.55,
-  }));
-
-  dust = Array.from({ length: 55 }, (_, index) => ({
-    x: seeded(index + 1061),
-    y: seeded(index + 1181),
-    size: 0.7 + seeded(index + 1301) * 1.7,
-    phase: seeded(index + 1421) * Math.PI * 2,
-    speed: 0.2 + seeded(index + 1541) * 0.7,
-  }));
-
-  skylineSeeds = Array.from({ length: 80 }, (_, index) => ({
-    height: 0.45 + seeded(index + 1661) * 0.55,
-    width: 0.65 + seeded(index + 1781) * 0.6,
-    lights: 2 + Math.floor(seeded(index + 1901) * 5),
-  }));
-
-  mountainSeeds = Array.from({ length: 96 }, (_, index) => ({
-    a: seeded(index + 2021),
-    b: seeded(index + 2141),
-  }));
+function showOverlay(overlay) {
+  if (!overlay) return;
+  window.clearTimeout(overlayTimer);
+  overlay.hidden = false;
+  requestAnimationFrame(() => overlay.classList.add('is-visible'));
 }
 
-function resizeCanvas() {
-  const rect = canvas.getBoundingClientRect();
-  const mobileScale = touchDevice ? 1.45 : 1.8;
-  const dpr = Math.min(window.devicePixelRatio || 1, mobileScale);
-  world.width = Math.max(1, rect.width);
-  world.height = Math.max(1, rect.height);
-  world.dpr = dpr;
-  world.horizon = world.height * (world.width < 600 ? 0.56 : 0.54);
-  world.focal = Math.max(520, world.height * (world.width < 600 ? 1.08 : 1.18));
-  camera.focal = world.focal;
+function hideOverlay(overlay) {
+  if (!overlay || overlay.hidden) return;
+  overlay.classList.remove('is-visible');
+  window.clearTimeout(overlayTimer);
+  overlayTimer = window.setTimeout(() => {
+    if (!overlay.classList.contains('is-visible')) overlay.hidden = true;
+  }, 220);
+}
 
-  canvas.width = Math.round(world.width * dpr);
-  canvas.height = Math.round(world.height * dpr);
-  context.setTransform(dpr, 0, 0, dpr, 0, 0);
-  context.imageSmoothingEnabled = true;
-  context.imageSmoothingQuality = 'high';
+function showMessage(text, bad = false, duration = 820) {
+  window.clearTimeout(statusTimer);
+  ui.statusMessage.textContent = text;
+  ui.statusMessage.classList.toggle('is-bad', bad);
+  ui.statusMessage.classList.add('is-visible');
+  statusTimer = window.setTimeout(() => ui.statusMessage.classList.remove('is-visible'), duration);
+}
 
-  if (!aim.x && !aim.y) {
-    aim.x = world.width / 2;
-    aim.y = world.height * 0.42;
-  } else {
-    aim.x = clamp(aim.x, 0, world.width);
-    aim.y = clamp(aim.y, 0, world.height);
+function showScorePop(text, x = aim.x, y = aim.y) {
+  ui.scorePop.textContent = text;
+  ui.scorePop.style.left = `${clamp(x, 55, renderer.width - 55)}px`;
+  ui.scorePop.style.top = `${clamp(y, 88, renderer.height - 90)}px`;
+  ui.scorePop.classList.remove('is-popping');
+  void ui.scorePop.offsetWidth;
+  ui.scorePop.classList.add('is-popping');
+}
+
+function showImpact(x, y, bad = false) {
+  const ring = document.createElement('span');
+  ring.className = 'impact-ring';
+  if (bad) ring.style.setProperty('--gold', '#ff6f68');
+  ring.style.left = `${x}px`;
+  ring.style.top = `${y}px`;
+  ui.fxLayer.append(ring);
+  window.setTimeout(() => ring.remove(), 680);
+}
+
+function spawnConfetti() {
+  ui.fxLayer.querySelectorAll('.confetti-piece').forEach((piece) => piece.remove());
+  const colors = ['#ffd85a', '#5be0c1', '#f17b48', '#f8f1d7', '#7baaf7', '#f08bb5'];
+  const count = reducedMotion ? 28 : 88;
+  for (let index = 0; index < count; index += 1) {
+    const piece = document.createElement('span');
+    piece.className = 'confetti-piece';
+    piece.style.setProperty('--x', `${Math.random() * 100}%`);
+    piece.style.setProperty('--delay', `${Math.random() * .8}s`);
+    piece.style.setProperty('--duration', `${2.8 + Math.random() * 2.4}s`);
+    piece.style.setProperty('--drift', `${-70 + Math.random() * 140}px`);
+    piece.style.setProperty('--spin', `${180 + Math.random() * 780}deg`);
+    piece.style.setProperty('--color', colors[index % colors.length]);
+    piece.style.setProperty('--size', `${5 + Math.random() * 8}px`);
+    ui.fxLayer.append(piece);
+    window.setTimeout(() => piece.remove(), 6_200);
   }
-
-  for (const target of targets) target.mesh = null;
-  positionCrosshair();
-  updateWeaponPose();
-}
-
-function currentStage() {
-  return STAGES[state.stage - 1] || STAGES[0];
-}
-
-function queueSignalForStage(stage) {
-  if (stage === 1) return { label: 'Stabilt', detail: '2 samtidige mål' };
-  if (stage === 2) return { label: 'Belastet', detail: '3 samtidige mål' };
-  if (stage === 3) return { label: 'Kritisk', detail: 'Prioritetssaker aktive' };
-  return { label: 'Hovedhendelse', detail: 'Én sak gjenstår' };
 }
 
 function updateHud({ announceMissions = false } = {}) {
-  const stage = currentStage();
-  const progress = Math.round(progressPercent(state.casesSolved));
-  const remaining = TARGET_CASES - state.casesSolved;
-  const accuracy = Math.round(accuracyPercent(state));
-  const online = state.status === 'running' && !paused && !quizActive;
-  const signal = queueSignalForStage(state.stage);
+  const level = LEVELS[state.level - 1];
+  const percent = Math.round(progressPercent(state.casesSolved));
+  const remaining = Math.max(0, TARGET_CASES - state.casesSolved);
+  const online = state.status === 'running' && !paused && !quizActive && !quizPending && !pendingWin;
 
-  ui.stageNumber.textContent = String(stage.id).padStart(2, '0');
-  ui.stageName.textContent = stage.name;
-  ui.stageSubtitle.textContent = stage.subtitle;
-  ui.scoreText.innerHTML = `${state.casesSolved}<span>/${TARGET_CASES}</span>`;
+  ui.levelText.textContent = String(state.level).padStart(2, '0');
+  ui.levelName.textContent = level.name;
+  ui.casesText.innerHTML = `${state.casesSolved}<span>/${TARGET_CASES}</span>`;
   ui.pointsText.innerHTML = `${state.points}<span> p</span>`;
   ui.comboText.textContent = `x${state.streak}`;
-  ui.missesText.textContent = String(state.escalations);
-  ui.scorePercent.textContent = `${progress} %`;
-  ui.scoreFill.style.width = `${progress}%`;
-  ui.scoreTrack.setAttribute('aria-valuenow', String(state.casesSolved));
-  ui.casesRemaining.textContent = String(remaining);
-  ui.remainingWord.textContent = remaining === 1 ? 'sak' : 'saker';
-  ui.flowPercent.textContent = `${Math.round(state.flow)} %`;
-  ui.flowFill.style.width = `${state.flow}%`;
-  ui.flowTrack.setAttribute('aria-valuenow', String(Math.round(state.flow)));
-  ui.flowHint.textContent = state.streak >= 2
-    ? `${Math.max(0, FLOW_THRESHOLD - Math.round(state.flow))} % til automatisk saksflyt`
-    : 'Treff saker på rad for å aktivere flyt';
-  ui.queueSignalText.textContent = signal.label;
-  ui.queueDetail.textContent = signal.detail;
-  ui.highScoreText.textContent = highScore ? `Rekord: ${highScore.grade} · ${highScore.points} p` : 'Rekord: —';
+  ui.escalationsText.textContent = String(state.escalations);
+  ui.progressPercent.textContent = `${percent} %`;
+  ui.progressFill.style.width = `${percent}%`;
+  ui.progressTrack.setAttribute('aria-valuenow', String(state.casesSolved));
+  ui.remainingText.textContent = String(remaining);
+  ui.recordText.textContent = highRecord ? `Rekord: ${highRecord.performance.toFixed(1).replace('.', ',')}` : 'Rekord: —';
 
-  let duty = 'frakoblet';
-  if (state.status === 'won') duty = 'fullført';
-  else if (paused) duty = 'pause';
-  else if (quizActive) duty = 'fagtest';
-  else if (state.status === 'running') duty = 'pålogget';
+  let duty = 'Frakoblet';
+  if (state.status === 'won') duty = 'Fullført';
+  else if (quizActive || quizPending) duty = 'Fagtest';
+  else if (paused) duty = 'Pause';
+  else if (state.status === 'running') duty = 'Pålogget';
   ui.dutyStatus.textContent = duty;
-  ui.statusChip.classList.toggle('is-online', online);
-  ui.statusChip.classList.toggle('is-paused', paused || quizActive);
-  ui.pauseButton.disabled = state.status !== 'running' || quizActive;
+  ui.connectionPill.classList.toggle('is-online', online);
+  ui.connectionPill.classList.toggle('is-paused', paused || quizActive || quizPending);
+  ui.connectionPill.classList.toggle('is-complete', state.status === 'won');
+  ui.pauseButton.disabled = state.status !== 'running' || quizActive || quizPending || pendingWin;
   ui.pauseButton.setAttribute('aria-pressed', String(paused));
-  ui.pauseButton.querySelector('span').textContent = paused ? 'Fortsett' : 'Pause';
-  ui.pauseButton.querySelector('i').textContent = paused ? '▶' : 'Ⅱ';
+  ui.pauseButton.querySelector('b').textContent = paused ? 'Fortsett' : 'Pause';
+  ui.weaponStatus.textContent = online ? 'Klar' : quizActive || quizPending ? 'Låst' : paused ? 'Pause' : state.status === 'won' ? 'Fullført' : 'Klar';
 
   const missions = unlockedMissions(state);
   const newlyUnlocked = [];
@@ -524,764 +511,371 @@ function updateHud({ announceMissions = false } = {}) {
     const complete = Boolean(missions[name]);
     item.classList.toggle('is-complete', complete);
     const status = item.querySelector('em');
-    if (status) status.textContent = complete ? 'Fullført' : 'Uløst';
+    if (status) status.textContent = complete ? 'Fullført' : 'Venter';
     if (announceMissions && complete && !missionSnapshot[name]) newlyUnlocked.push(name);
   }
-  ui.missionCount.textContent = `${Object.values(missions).filter(Boolean).length}/5`;
+  ui.missionCount.textContent = `${missionCount(state)}/5`;
   missionSnapshot = missions;
 
   if (newlyUnlocked.length) {
+    const name = newlyUnlocked[0];
     window.setTimeout(() => {
-      showMessage(`Utmerkelse låst opp: ${missionLabels[newlyUnlocked[0]]}`);
-      audio.mission();
-      vibrate(18);
-    }, 160);
+      showMessage(`Utmerkelse låst opp: ${MISSION_LABELS[name]}`);
+      sound.mission();
+    }, 180);
   }
-
-  ui.weaponMode.textContent = state.stage >= 4 ? 'SM // HOVEDHENDELSE' : state.stage >= 3 ? 'SM // PRIORITET' : 'SM // SAK LUKK';
-  board.classList.toggle('is-critical', state.stage === 4);
 }
 
-function updateClock(now = Date.now()) {
-  const seconds = Math.floor(elapsedSeconds(state, now));
-  if (seconds === lastClockSecond) return;
-  lastClockSecond = seconds;
-  ui.operationClock.textContent = formatClock(seconds);
+function showLevelBanner(levelNumber) {
+  const level = LEVELS[levelNumber - 1];
+  ui.levelBannerName.textContent = level.name;
+  ui.levelBannerText.textContent = level.subtitle;
+  ui.levelBanner.classList.remove('is-visible');
+  void ui.levelBanner.offsetWidth;
+  ui.levelBanner.classList.add('is-visible');
+  window.clearTimeout(levelTimer);
+  levelTimer = window.setTimeout(() => ui.levelBanner.classList.remove('is-visible'), 1_900);
+  renderer.pulseLevel();
+  sound.level();
 }
 
-function showMessage(text, bad = false, duration = 900) {
-  window.clearTimeout(messageTimer);
-  ui.messageText.textContent = text;
-  ui.message.classList.toggle('is-bad', bad);
-  ui.message.classList.add('is-visible');
-  messageTimer = window.setTimeout(() => ui.message.classList.remove('is-visible'), duration);
+function updatePowerup(now) {
+  const active = now < slowUntil;
+  const remaining = Math.max(0, (slowUntil - now) / 1000);
+  ui.powerupCard.classList.toggle('is-active', active);
+  board.classList.toggle('is-slow', active);
+  ui.powerupTimer.textContent = `${remaining.toFixed(1).replace('.', ',')} s`;
+  renderer.setSlowMode(active);
 }
 
-function showFloatingScore(text, x = aim.x, y = aim.y) {
-  ui.floatingScore.textContent = text;
-  ui.floatingScore.style.left = `${clamp(x, 50, world.width - 50)}px`;
-  ui.floatingScore.style.top = `${clamp(y, 110, world.height - 100)}px`;
-  ui.floatingScore.classList.remove('pop');
-  void ui.floatingScore.offsetWidth;
-  ui.floatingScore.classList.add('pop');
+function updateRadar() {
+  const activeTargets = targets.filter((target) => !target.hit);
+  ui.radarCount.textContent = String(activeTargets.length);
+  const fragment = document.createDocumentFragment();
+  for (const target of activeTargets.slice(0, 9)) {
+    const blip = document.createElement('span');
+    blip.className = `radar-blip ${target.kind}`;
+    const distance = clamp((Math.abs(target.z) - 7) / 20, 0, 1);
+    const horizontalRange = Math.abs(target.z) * .75 * renderer.aspect + 5;
+    const x = clamp(50 + (target.x / horizontalRange) * 43, 7, 93);
+    const y = clamp(84 - distance * 72, 9, 88);
+    blip.style.left = `${x}%`;
+    blip.style.top = `${y}%`;
+    fragment.append(blip);
+  }
+  ui.radarBlips.replaceChildren(fragment);
 }
 
-function hideOverlay(overlay) {
-  if (!overlay || overlay.hidden) return;
-  overlay.classList.remove('is-visible');
-  window.setTimeout(() => {
-    if (!overlay.classList.contains('is-visible')) overlay.hidden = true;
-  }, 210);
-}
-
-function showOverlay(overlay) {
-  if (!overlay) return;
-  overlay.hidden = false;
-  requestAnimationFrame(() => overlay.classList.add('is-visible'));
-}
-
-function showStageBanner(stageId) {
-  const stage = STAGES[stageId - 1];
-  if (!stage) return;
-  window.clearTimeout(stageTimer);
-  ui.stageBannerIndex.textContent = `FASE ${String(stage.id).padStart(2, '0')}`;
-  ui.stageBannerTitle.textContent = stage.name;
-  ui.stageBannerSubtitle.textContent = stage.subtitle;
-  ui.stageBanner.classList.remove('is-visible');
-  void ui.stageBanner.offsetWidth;
-  ui.stageBanner.classList.add('is-visible');
-  stageTimer = window.setTimeout(() => ui.stageBanner.classList.remove('is-visible'), 2000);
-}
-
-function activateFlow(duration, source) {
-  const now = performance.now();
-  flowUntil = Math.max(flowUntil, now) + duration;
-  flowSource = source;
-  ui.powerupSource.textContent = source;
-  ui.powerup.classList.add('is-active');
-  board.classList.add('is-flowing');
-  audio.flow();
-  vibrate([16, 30, 22]);
-}
-
-function updateFlowPower(now) {
-  const active = now < flowUntil;
-  ui.powerup.classList.toggle('is-active', active);
-  board.classList.toggle('is-flowing', active);
-  if (active) {
-    ui.powerupTimer.textContent = `${((flowUntil - now) / 1000).toFixed(1).replace('.', ',')} s`;
-    ui.powerupSource.textContent = flowSource;
+function resize() {
+  renderer.resize();
+  if (!aim.x && !aim.y) {
+    aim.x = renderer.width / 2;
+    aim.y = renderer.height * .45;
   } else {
-    ui.powerupTimer.textContent = '4,0 s';
+    aim.x = clamp(aim.x, 0, renderer.width);
+    aim.y = clamp(aim.y, 0, renderer.height);
   }
+  setAim(aim.x, aim.y, aim.pointerType, false);
 }
 
-function vibrate(pattern) {
-  const activation = navigator.userActivation;
-  if (activation && !activation.hasBeenActive) return;
-  if (typeof navigator.vibrate !== 'function') return;
-  try {
-    navigator.vibrate(pattern);
-  } catch {
-    // Haptics are optional; the game should stay silent on restricted devices.
-  }
-}
-
-function triggerHitFlash(x, y) {
-  ui.hitFlash.style.setProperty('--flash-x', `${(x / world.width) * 100}%`);
-  ui.hitFlash.style.setProperty('--flash-y', `${(y / world.height) * 100}%`);
-  ui.hitFlash.classList.remove('is-active');
-  void ui.hitFlash.offsetWidth;
-  ui.hitFlash.classList.add('is-active');
-}
-
-function triggerRecoil(strength = 1) {
-  recoil = Math.min(1.7, recoil + strength);
-  cameraShake = Math.min(1.5, cameraShake + strength * 0.75);
-  ui.weaponHud.classList.remove('is-firing');
-  ui.crosshair.classList.remove('is-firing');
-  board.classList.remove('is-shaking');
-  void ui.weaponHud.offsetWidth;
-  ui.weaponHud.classList.add('is-firing');
-  ui.crosshair.classList.add('is-firing');
-  if (!reducedMotion) board.classList.add('is-shaking');
-  window.setTimeout(() => {
-    ui.weaponHud.classList.remove('is-firing');
-    ui.crosshair.classList.remove('is-firing');
-    board.classList.remove('is-shaking');
-  }, 210);
-}
-
-function updateWeaponPose() {
-  const normalizedX = clamp(aim.x / Math.max(1, world.width) * 2 - 1, -1, 1);
-  const normalizedY = clamp(aim.y / Math.max(1, world.height) * 2 - 1, -1, 1);
-  board.style.setProperty('--weapon-x', normalizedX.toFixed(3));
-  board.style.setProperty('--weapon-y', normalizedY.toFixed(3));
-}
-
-function setAim(x, y, pointerType = 'mouse') {
-  aim.x = clamp(x, 0, world.width);
-  aim.y = clamp(y, 0, world.height);
-  aim.visible = true;
+function setAim(x, y, pointerType = 'mouse', reveal = true) {
+  aim.x = clamp(x, 0, renderer.width);
+  aim.y = clamp(y, 0, renderer.height);
   aim.pointerType = pointerType;
+  if (reveal) aim.visible = true;
   aim.hideAt = pointerType === 'touch' ? performance.now() + 520 : 0;
-  updateWeaponPose();
-  updateAimLock();
-  positionCrosshair();
+  const normalizedX = (aim.x / Math.max(1, renderer.width)) * 2 - 1;
+  const normalizedY = (aim.y / Math.max(1, renderer.height)) * 2 - 1;
+  renderer.setAim(normalizedX, normalizedY);
+  positionReticle();
 }
 
-function positionCrosshair() {
-  ui.crosshair.style.left = `${aim.x}px`;
-  ui.crosshair.style.top = `${aim.y}px`;
-  const active = state.status === 'running' && !paused && !quizActive;
-  ui.crosshair.classList.toggle('is-visible', aim.visible && active);
+function positionReticle() {
+  ui.reticle.style.left = `${aim.x}px`;
+  ui.reticle.style.top = `${aim.y}px`;
+  const visible = aim.visible && state.status === 'running' && !paused && !quizActive && !quizPending && !pendingWin;
+  ui.reticle.classList.toggle('is-visible', visible);
+}
+
+function updateReticleLock() {
+  if (!aim.visible || state.status !== 'running' || paused || quizActive || quizPending || pendingWin) {
+    ui.reticle.classList.remove('is-locked');
+    ui.reticleLabel.textContent = 'SM';
+    return;
+  }
+  const target = renderer.getTargetAt(aim.x, aim.y, targets);
+  ui.reticle.classList.toggle('is-locked', Boolean(target));
+  ui.reticleLabel.textContent = target ? (target.kind === 'major' ? 'HOVEDHENDELSE' : 'MÅL LÅST') : 'SM';
 }
 
 function pointerPosition(event) {
   const rect = canvas.getBoundingClientRect();
   return {
-    x: ((event.clientX - rect.left) / Math.max(1, rect.width)) * world.width,
-    y: ((event.clientY - rect.top) / Math.max(1, rect.height)) * world.height,
+    x: ((event.clientX - rect.left) / rect.width) * renderer.width,
+    y: ((event.clientY - rect.top) / rect.height) * renderer.height,
   };
 }
 
-function createTicketTexture(target, closed = false) {
-  const texture = document.createElement('canvas');
-  texture.width = 720;
-  texture.height = 310;
-  const ctx = texture.getContext('2d');
-  const profile = targetProfiles[target.kind];
-  const colors = profile.colors;
-  const radius = 28;
-
-  const path = () => {
-    ctx.beginPath();
-    ctx.moveTo(radius, 0);
-    ctx.lineTo(texture.width - radius, 0);
-    ctx.quadraticCurveTo(texture.width, 0, texture.width, radius);
-    ctx.lineTo(texture.width, texture.height - radius);
-    ctx.quadraticCurveTo(texture.width, texture.height, texture.width - radius, texture.height);
-    ctx.lineTo(radius, texture.height);
-    ctx.quadraticCurveTo(0, texture.height, 0, texture.height - radius);
-    ctx.lineTo(0, radius);
-    ctx.quadraticCurveTo(0, 0, radius, 0);
-    ctx.closePath();
-  };
-
-  path();
-  const base = ctx.createLinearGradient(0, 0, 0, texture.height);
-  base.addColorStop(0, colors.light);
-  base.addColorStop(0.16, colors.front);
-  base.addColorStop(0.76, colors.front);
-  base.addColorStop(1, colors.dark);
-  ctx.fillStyle = base;
-  ctx.fill();
-
-  ctx.save();
-  path();
-  ctx.clip();
-  const reflection = ctx.createLinearGradient(0, 0, texture.width, texture.height);
-  reflection.addColorStop(0, 'rgba(255,255,255,.34)');
-  reflection.addColorStop(0.2, 'rgba(255,255,255,0)');
-  reflection.addColorStop(0.66, 'rgba(255,255,255,.06)');
-  reflection.addColorStop(1, 'rgba(255,255,255,0)');
-  ctx.fillStyle = reflection;
-  ctx.fillRect(0, 0, texture.width, texture.height);
-
-  ctx.fillStyle = colors.stripe;
-  ctx.fillRect(0, 55, texture.width, 43);
-  ctx.fillStyle = 'rgba(7,20,25,.19)';
-  ctx.fillRect(0, 93, texture.width, 5);
-
-  ctx.fillStyle = 'rgba(5,18,24,.88)';
-  ctx.fillRect(42, 126, texture.width - 84, 118);
-  ctx.fillStyle = 'rgba(255,255,255,.08)';
-  ctx.fillRect(42, 126, texture.width - 84, 4);
-  ctx.fillStyle = 'rgba(105,242,206,.08)';
-  for (let y = 136; y < 240; y += 11) ctx.fillRect(42, y, texture.width - 84, 1);
-
-  ctx.fillStyle = colors.ink;
-  ctx.font = '900 22px ui-monospace, SFMono-Regular, Consolas, monospace';
-  ctx.textBaseline = 'middle';
-  ctx.textAlign = 'left';
-  ctx.fillText(`SM-${target.ticket}`, 44, 77);
-  ctx.textAlign = 'right';
-  ctx.fillText(profile.short, texture.width - 44, 77);
-
-  ctx.fillStyle = colors.edge;
-  ctx.textAlign = 'center';
-  ctx.font = target.kind === 'critical'
-    ? '950 47px ui-monospace, SFMono-Regular, Consolas, monospace'
-    : '950 43px ui-monospace, SFMono-Regular, Consolas, monospace';
-  ctx.fillText(target.kind === 'critical' ? 'HOVEDHENDELSE' : 'BRUKERSTØTTESAK', texture.width / 2, 171, texture.width - 120);
-
-  ctx.fillStyle = 'rgba(219,255,244,.68)';
-  ctx.font = '750 17px ui-monospace, SFMono-Regular, Consolas, monospace';
-  ctx.textAlign = 'left';
-  ctx.fillText('EIER  //  SERVICEDESK', 63, 216);
-  ctx.textAlign = 'right';
-  ctx.fillText(`STATUS  //  ${closed ? 'LUKKET' : profile.label}`, texture.width - 63, 216);
-
-  ctx.fillStyle = 'rgba(5,18,24,.52)';
-  ctx.fillRect(42, 263, texture.width - 84, 2);
-  ctx.fillStyle = 'rgba(255,255,255,.42)';
-  for (let index = 0; index < 15; index += 1) {
-    const barWidth = index % 3 === 0 ? 24 : index % 2 === 0 ? 12 : 6;
-    ctx.fillRect(53 + index * 37, 277, barWidth, 9);
-  }
-
-  if (closed) {
-    ctx.save();
-    ctx.translate(texture.width * 0.52, texture.height * 0.54);
-    ctx.rotate(-0.12);
-    ctx.strokeStyle = '#f6ffe2';
-    ctx.lineWidth = 9;
-    ctx.strokeRect(-174, -66, 348, 132);
-    ctx.fillStyle = 'rgba(5,20,24,.76)';
-    ctx.fillRect(-166, -58, 332, 116);
-    ctx.fillStyle = '#f6ffe2';
-    ctx.font = '950 59px ui-monospace, SFMono-Regular, Consolas, monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('LUKKET', 0, 1);
-    ctx.restore();
-  }
-
-  for (const [x, y] of [[22, 22], [texture.width - 22, 22], [22, texture.height - 22], [texture.width - 22, texture.height - 22]]) {
-    ctx.beginPath();
-    ctx.arc(x, y, 6, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255,248,218,.72)';
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(x - 1.5, y - 1.5, 2, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255,255,255,.72)';
-    ctx.fill();
-  }
-  ctx.restore();
-
-  ctx.strokeStyle = colors.edge;
-  ctx.lineWidth = 7;
-  path();
-  ctx.stroke();
-  return texture;
+function targetHorizontalLimit(target) {
+  const distance = Math.abs(target.z - 7.8);
+  return Math.tan((renderer.width < 720 ? 61 : 54) * Math.PI / 360) * distance * renderer.aspect + target.width * 1.2;
 }
 
-function targetSpawnLimits(z) {
-  const horizontal = (world.width * 0.5 * z) / world.focal;
-  return horizontal + 2.8;
-}
-
-function chooseTargetKind() {
-  if (state.stage === 1) return Math.random() < 0.12 ? 'legacy' : 'normal';
-  if (state.stage === 2) {
-    const roll = Math.random();
-    if (roll < 0.18) return 'priority';
-    if (roll < 0.34) return 'legacy';
-    return 'normal';
-  }
+function chooseTargetKind(level) {
   const roll = Math.random();
-  if (roll < 0.34) return 'priority';
-  if (roll < 0.51) return 'legacy';
+  const priorityChance = level >= 4 ? .34 : level >= 3 ? .25 : level >= 2 ? .13 : .05;
+  const legacyChance = level >= 2 ? .15 : .08;
+  if (roll < priorityChance) return 'priority';
+  if (roll < priorityChance + legacyChance) return 'legacy';
   return 'normal';
 }
 
-function spawnTarget(overrides = {}) {
-  const kind = overrides.kind || chooseTargetKind();
-  const profile = targetProfiles[kind];
-  const direction = overrides.direction ?? (Math.random() < 0.5 ? 1 : -1);
-  const baseZ = overrides.baseZ ?? (kind === 'priority' ? randomBetween(7.8, 12.8) : randomBetween(8.7, 16.8));
-  const limit = targetSpawnLimits(baseZ);
+function createTarget(overrides = {}) {
+  const level = LEVELS[state.level - 1];
+  const direction = overrides.direction ?? (Math.random() < .5 ? 1 : -1);
+  const kind = overrides.kind ?? (state.casesSolved >= TARGET_CASES - 1 ? 'major' : chooseTargetKind(state.level));
+  const z = overrides.z ?? (kind === 'major' ? -13.8 : -randomBetween(8.5, 23.5));
+  const size = overrides.size ?? (kind === 'major' ? 1.58 : randomBetween(.86, 1.18));
+  const width = (kind === 'major' ? 3.18 : 2.75) * size;
+  const height = (kind === 'major' ? 1.48 : 1.3) * size;
+  const depth = (kind === 'major' ? .62 : .52) * size;
+  const limit = Math.tan((renderer.width < 720 ? 61 : 54) * Math.PI / 360) * Math.abs(z - 7.8) * renderer.aspect;
+  const baseY = overrides.baseY ?? (kind === 'major' ? 2.35 : randomBetween(.35, 4.7));
+  const kindSpeed = kind === 'major' ? .88 : kind === 'priority' ? 1.24 : kind === 'legacy' ? .87 : 1;
+  const depthSpeed = .86 + Math.abs(z) / 48;
   const target = {
     id: targetId,
-    ticket: 4300 + targetId,
-    kind,
     direction,
-    position: {
-      x: overrides.x ?? (direction === 1 ? -limit : limit),
-      y: overrides.y ?? randomBetween(3.15, 5.55),
-      z: baseZ,
-    },
-    baseY: overrides.y ?? randomBetween(3.15, 5.55),
-    baseZ,
-    speed: overrides.speed ?? profile.speed * (1 + (state.stage - 1) * 0.095) * randomBetween(0.92, 1.11),
+    kind,
+    x: overrides.x ?? (kind === 'major' ? direction * -limit * .86 : direction === 1 ? -limit - width * 1.3 : limit + width * 1.3),
+    y: baseY,
+    z,
+    baseY,
+    baseZ: z,
+    width,
+    height,
+    depth,
+    speed: overrides.speed ?? level.speed * kindSpeed * depthSpeed * randomBetween(.9, 1.1),
+    amplitude: kind === 'major' ? .22 : kind === 'legacy' ? randomBetween(.55, .95) : randomBetween(.25, .7),
+    waveSpeed: kind === 'major' ? 1.08 : kind === 'priority' ? randomBetween(2.3, 3.5) : randomBetween(1.35, 2.65),
+    phase: Math.random() * Math.PI * 2,
     age: 0,
-    phase: randomBetween(0, Math.PI * 2),
-    waveSpeed: randomBetween(1.3, 2.45),
-    amplitudeY: randomBetween(0.25, 0.7),
-    amplitudeZ: randomBetween(0.35, kind === 'priority' ? 1.65 : 1.05),
-    rotation: { yaw: 0, pitch: 0, roll: 0 },
+    pitch: 0,
+    yaw: direction * -.08,
+    roll: randomBetween(-.08, .08),
     hit: false,
     hitAge: 0,
-    fallVelocity: 0,
-    alpha: 1,
-    mesh: null,
-    screenCenter: { x: world.width / 2, y: world.height / 2 },
-    trail: [],
-    trailClock: 0,
-    textureOpen: null,
-    textureClosed: null,
-    criticalEntered: false,
-    ...overrides,
+    opacity: 1,
+    vx: 0,
+    vy: 0,
+    vz: 0,
   };
-  target.textureOpen = createTicketTexture(target, false);
-  target.textureClosed = createTicketTexture(target, true);
-  targets.push(target);
   targetId += 1;
   return target;
 }
 
-function spawnCriticalTarget() {
-  if (finalTargetSpawned || state.status !== 'running') return null;
-  finalTargetSpawned = true;
-  const direction = Math.random() < 0.5 ? 1 : -1;
-  const z = 7.9;
-  const limit = targetSpawnLimits(z) + 2.5;
-  const target = spawnTarget({
-    kind: 'critical',
-    direction,
-    baseZ: z,
-    x: direction === 1 ? -limit : limit,
-    y: 4.35,
-    baseY: 4.35,
-    speed: 0,
-    amplitudeY: 0.35,
-    amplitudeZ: 0.65,
-  });
-  target.entryX = target.position.x;
-  target.trail = [];
-  showMessage('Hovedhendelse identifisert.', true, 1200);
-  audio.finalTarget();
-  vibrate([35, 55, 35]);
+function spawnTarget(overrides = {}) {
+  const target = createTarget(overrides);
+  targets.push(target);
+  if (target.kind === 'major' && !finaleAnnounced) {
+    finaleAnnounced = true;
+    board.classList.add('is-finale');
+    showMessage('HOVEDHENDELSE: Den siste saken er i luftrommet.', false, 1_350);
+    sound.major();
+    renderer.pulseLevel();
+  }
   return target;
 }
 
-function updateTargetMesh(target) {
-  const profile = targetProfiles[target.kind];
-  target.mesh = createCuboidMesh({
-    center: target.position,
-    size: profile.size,
-    rotation: target.rotation,
-    camera,
-    viewport: { width: world.width, height: world.height, horizon: world.horizon },
-  });
-  target.screenCenter = projectPoint(target.position, camera, { width: world.width, height: world.height, horizon: world.horizon });
-}
-
-function updateTargets(delta, now) {
-  const escapedIds = [];
-
+function updateTargets(delta, rawDelta) {
+  const escaped = [];
   for (const target of targets) {
     if (target.hit) {
-      target.hitAge += delta;
-      target.fallVelocity += 5.8 * delta;
-      target.position.y -= target.fallVelocity * delta;
-      target.position.z += 1.15 * delta;
-      target.position.x += target.direction * 0.35 * delta;
-      target.rotation.roll += target.direction * delta * 5.7;
-      target.rotation.pitch += delta * 1.4;
-      target.alpha = clamp(1 - target.hitAge / 0.95, 0, 1);
-      updateTargetMesh(target);
+      target.hitAge += rawDelta;
+      target.x += target.vx * rawDelta;
+      target.y += target.vy * rawDelta;
+      target.z += target.vz * rawDelta;
+      target.vy -= 6.8 * rawDelta;
+      target.pitch += 2.7 * rawDelta * target.direction;
+      target.yaw += 3.8 * rawDelta;
+      target.roll += 5.1 * rawDelta * target.direction;
+      target.opacity = clamp(1 - Math.max(0, target.hitAge - .42) / .68, 0, 1);
       continue;
     }
 
+    if (delta <= 0) continue;
     target.age += delta;
-    target.trailClock -= delta;
+    target.x += target.speed * target.direction * delta;
+    target.y = target.baseY + Math.sin(target.age * target.waveSpeed + target.phase) * target.amplitude;
+    target.z = target.baseZ + Math.sin(target.age * .72 + target.phase) * (target.kind === 'major' ? .14 : target.kind === 'legacy' ? .75 : .32);
+    target.roll = Math.sin(target.age * target.waveSpeed * .66 + target.phase) * (target.kind === 'major' ? .035 : target.kind === 'legacy' ? .19 : .09);
+    target.yaw = target.direction * -.1 + Math.sin(target.age * .88 + target.phase) * .17;
+    target.pitch = Math.sin(target.age * 1.13 + target.phase) * .06;
 
-    if (target.kind === 'critical') {
-      const entryDuration = 1.55;
-      if (target.age < entryDuration) {
-        const amount = easeOutCubic(target.age / entryDuration);
-        target.position.x = lerp(target.entryX, 0, amount);
-        target.position.z = lerp(10.8, target.baseZ, amount);
-        target.position.y = target.baseY + Math.sin(target.age * 4.2) * 0.12;
-      } else {
-        target.criticalEntered = true;
-        const activeAge = target.age - entryDuration;
-        target.position.x = Math.sin(activeAge * 0.72) * 3.65;
-        target.position.y = target.baseY + Math.sin(activeAge * 1.45) * 0.46 + Math.sin(activeAge * 0.41) * 0.18;
-        target.position.z = target.baseZ + Math.sin(activeAge * 0.83) * target.amplitudeZ;
-      }
-      target.rotation.yaw = Math.sin(target.age * 0.67) * 0.24;
-      target.rotation.pitch = Math.sin(target.age * 0.93) * 0.08;
-      target.rotation.roll = Math.sin(target.age * 1.15) * 0.12;
-    } else {
-      target.position.x += target.direction * target.speed * delta;
-      const verticalWave = Math.sin(target.age * target.waveSpeed + target.phase);
-      const secondaryWave = Math.sin(target.age * target.waveSpeed * 0.42 + target.phase * 1.7);
-      target.position.y = target.baseY + verticalWave * target.amplitudeY + secondaryWave * 0.15;
-
-      if (target.kind === 'priority') {
-        const swoop = Math.sin(Math.min(Math.PI, target.age * 0.72));
-        target.position.z = target.baseZ - swoop * target.amplitudeZ + Math.sin(target.age * 1.7 + target.phase) * 0.25;
-      } else if (target.kind === 'legacy') {
-        target.position.z = target.baseZ + Math.sin(target.age * 0.9 + target.phase) * target.amplitudeZ;
-        target.position.y += Math.sin(target.age * 3.1 + target.phase) * 0.16;
-      } else {
-        target.position.z = target.baseZ + Math.sin(target.age * 0.76 + target.phase) * target.amplitudeZ;
-      }
-
-      target.rotation.yaw = -target.direction * 0.15 + Math.sin(target.age * 0.72 + target.phase) * 0.13;
-      target.rotation.pitch = Math.sin(target.age * 1.1 + target.phase) * 0.055;
-      target.rotation.roll = -target.direction * Math.cos(target.age * target.waveSpeed + target.phase) * 0.12;
-    }
-
-    updateTargetMesh(target);
-
-    if (target.trailClock <= 0 && target.screenCenter.visible) {
-      target.trail.unshift({
-        x: target.screenCenter.x,
-        y: target.screenCenter.y,
-        size: target.screenCenter.scale,
-        life: 1,
-      });
-      target.trail = target.trail.slice(0, target.kind === 'priority' ? 15 : 10);
-      target.trailClock = 0.045;
-    }
-    for (const point of target.trail) point.life -= delta * 1.75;
-    target.trail = target.trail.filter((point) => point.life > 0);
-
-    if (target.kind !== 'critical') {
-      const screenLimit = targetSpawnLimits(target.position.z) + 2.8;
-      if ((target.direction === 1 && target.position.x > screenLimit) || (target.direction === -1 && target.position.x < -screenLimit)) {
-        escapedIds.push(target.id);
-      }
-    }
+    const limit = targetHorizontalLimit(target);
+    if ((target.direction === 1 && target.x > limit) || (target.direction === -1 && target.x < -limit)) escaped.push(target);
   }
 
-  if (state.status === 'running' && escapedIds.length) {
-    for (const id of escapedIds) {
-      const target = targets.find((candidate) => candidate.id === id);
+  if (escaped.length && state.status === 'running') {
+    for (const target of escaped) {
       state = recordEscape(state);
-      audio.escape(target ? clamp(target.screenCenter.x / world.width * 2 - 1, -1, 1) : 0);
+      renderer.emitEscape(target);
+    }
+    const majorEscaped = escaped.some((target) => target.kind === 'major');
+    showMessage(majorEscaped ? 'Hovedhendelsen ble eskalert. Ny instans opprettes.' : escaped.length > 1 ? 'Flere saker ble eskalert.' : 'En sak ble eskalert.', true, majorEscaped ? 1_150 : 860);
+    sound.escape();
+    if (majorEscaped) {
+      finaleAnnounced = false;
+      spawnClock = .48;
     }
     updateHud();
-    showMessage(escapedIds.length > 1 ? 'Flere saker ble eskalert.' : 'Saken ble eskalert.', true, 980);
   }
 
-  targets = targets.filter((target) => !escapedIds.includes(target.id) && target.hitAge < 0.98);
-
-  if (state.stage === 4 && !finalTargetSpawned && !quizActive && !quizPending && now >= finalTargetAt) {
-    spawnCriticalTarget();
-  }
+  targets = targets.filter((target) => !escaped.includes(target) && !(target.hit && target.hitAge > 1.16));
 }
 
-function findTargetAt(x, y, { includeNear = false } = {}) {
-  const ordered = [...targets]
-    .filter((target) => !target.hit && target.mesh?.hull?.length >= 3)
-    .sort((a, b) => a.position.z - b.position.z);
-  const point = { x, y };
-  const padding = aim.pointerType === 'touch' ? 24 : 12;
-  let nearest = null;
-  let nearestDistance = Number.POSITIVE_INFINITY;
+function triggerRecoil() {
+  ui.reticle.classList.remove('is-firing');
+  board.classList.remove('is-shaking');
+  void ui.reticle.offsetWidth;
+  ui.reticle.classList.add('is-firing');
+  if (!reducedMotion) board.classList.add('is-shaking');
+  window.setTimeout(() => {
+    ui.reticle.classList.remove('is-firing');
+    board.classList.remove('is-shaking');
+  }, 210);
+}
 
-  for (const target of ordered) {
-    const hull = target.mesh.hull;
-    if (pointInPolygon(point, hull)) return { target, near: false, distance: 0 };
-    const distance = distanceToPolygon(point, hull);
-    if (distance < nearestDistance) {
-      nearest = target;
-      nearestDistance = distance;
+function resolveShot(target, x, y, quizRoll = Math.random()) {
+  if (state.status !== 'running' || paused || quizActive || quizPending || pendingWin) return false;
+  const previousLevel = state.level;
+  state = recordShot(state, Boolean(target), Date.now(), target?.kind || 'normal');
+  renderer.fire(target);
+  triggerRecoil();
+  sound.shot();
+
+  if (!target) {
+    showMessage('Bom. Saken fortsetter mot eskalering.', true, 620);
+    showImpact(x, y, true);
+    sound.miss();
+    updateHud();
+    return false;
+  }
+
+  target.hit = true;
+  target.hitAge = 0;
+  target.vx = target.direction * .7;
+  target.vy = 1.2 + Math.random() * .7;
+  target.vz = 1.4 + Math.random() * 1.1;
+  renderer.emitHit(target);
+  const pan = clamp((x / Math.max(1, renderer.width)) * 2 - 1, -1, 1);
+  sound.hit(state.streak, pan);
+  if (navigator.userActivation?.hasBeenActive) navigator.vibrate?.(target.kind === 'major' ? [35, 20, 45] : target.kind === 'priority' ? [18, 16, 25] : 18);
+  showImpact(x, y);
+  showScorePop(target.kind === 'major' ? '+1 • HOVEDHENDELSE LUKKET' : target.kind === 'priority' ? '+1 • SLA REDDET' : '+1 SAK', x, y);
+  showMessage(state.casesSolved === TARGET_CASES ? 'Alle saker er løst.' : POSITIVE_MESSAGES[Math.floor(Math.random() * POSITIVE_MESSAGES.length)]);
+
+  if (state.streak >= 3) {
+    ui.comboCell.classList.remove('is-hot');
+    void ui.comboCell.offsetWidth;
+    ui.comboCell.classList.add('is-hot');
+    if (state.streak % 3 === 0) {
+      showScorePop(`SLA-SERIE x${state.streak}`, x, y - 28);
+      sound.combo(state.streak);
     }
-    if (distance <= padding) return { target, near: false, distance };
-  }
-
-  if (includeNear && nearest && nearestDistance <= (aim.pointerType === 'touch' ? 48 : 31)) {
-    return { target: nearest, near: true, distance: nearestDistance };
-  }
-  return { target: null, near: false, distance: nearestDistance };
-}
-
-function updateAimLock() {
-  if (state.status !== 'running' || paused || quizActive || quizPending) {
-    aim.lockTargetId = null;
-    ui.crosshair.classList.remove('is-lock', 'is-near');
-    return;
-  }
-  const result = findTargetAt(aim.x, aim.y, { includeNear: true });
-  aim.lockTargetId = result.target?.id || null;
-  ui.crosshair.classList.toggle('is-lock', Boolean(result.target && !result.near));
-  ui.crosshair.classList.toggle('is-near', Boolean(result.target && result.near));
-}
-
-function createHitEffects(target, x, y) {
-  const profile = targetProfiles[target.kind];
-  const count = reducedMotion ? 10 : target.kind === 'critical' ? 42 : 24;
-  for (let index = 0; index < count; index += 1) {
-    const angle = randomBetween(-Math.PI * 0.98, Math.PI * 0.18);
-    const speed = randomBetween(90, target.kind === 'critical' ? 390 : 290);
-    particles.push({
-      x,
-      y,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed,
-      gravity: randomBetween(390, 650),
-      width: randomBetween(4, target.kind === 'critical' ? 18 : 13),
-      height: randomBetween(3, target.kind === 'critical' ? 15 : 10),
-      life: randomBetween(0.48, 0.96),
-      maxLife: 0.96,
-      rotation: randomBetween(0, Math.PI * 2),
-      spin: randomBetween(-11, 11),
-      color: Math.random() < 0.68 ? profile.colors.front : Math.random() < 0.6 ? profile.colors.edge : profile.colors.stripe,
-      glow: Math.random() < 0.3,
-    });
-  }
-
-  shockwaves.push({
-    x,
-    y,
-    radius: target.kind === 'critical' ? 12 : 7,
-    speed: target.kind === 'critical' ? 290 : 210,
-    life: target.kind === 'critical' ? 0.55 : 0.4,
-    maxLife: target.kind === 'critical' ? 0.55 : 0.4,
-    color: profile.colors.edge,
-    width: target.kind === 'critical' ? 5 : 3,
-  });
-
-  tracerLines.push({
-    x1: world.width * 0.5 + (aim.x / world.width - 0.5) * 22,
-    y1: world.height - 62,
-    x2: x,
-    y2: y,
-    life: 0.13,
-    maxLife: 0.13,
-    color: profile.colors.edge,
-  });
-  triggerHitFlash(x, y);
-}
-
-function createMissTracer(x, y) {
-  tracerLines.push({
-    x1: world.width * 0.5,
-    y1: world.height - 62,
-    x2: x,
-    y2: y,
-    life: 0.075,
-    maxLife: 0.075,
-    color: '#ffd66b',
-  });
-}
-
-function updateEffects(delta) {
-  for (const particle of particles) {
-    particle.life -= delta;
-    particle.x += particle.vx * delta;
-    particle.y += particle.vy * delta;
-    particle.vy += particle.gravity * delta;
-    particle.rotation += particle.spin * delta;
-  }
-  particles = particles.filter((particle) => particle.life > 0);
-
-  for (const wave of shockwaves) {
-    wave.life -= delta;
-    wave.radius += wave.speed * delta;
-  }
-  shockwaves = shockwaves.filter((wave) => wave.life > 0);
-
-  for (const tracer of tracerLines) tracer.life -= delta;
-  tracerLines = tracerLines.filter((tracer) => tracer.life > 0);
-}
-
-function spawnConfetti() {
-  const count = reducedMotion ? 45 : 155;
-  confetti = Array.from({ length: count }, () => ({
-    x: randomBetween(0, world.width),
-    y: randomBetween(-world.height * 1.25, -10),
-    vx: randomBetween(-38, 38),
-    vy: randomBetween(75, 190),
-    width: randomBetween(4, 12),
-    height: randomBetween(7, 19),
-    rotation: randomBetween(0, Math.PI * 2),
-    spin: randomBetween(-6, 6),
-    color: confettiColors[Math.floor(Math.random() * confettiColors.length)],
-  }));
-}
-
-function updateConfetti(delta) {
-  for (const piece of confetti) {
-    piece.x += piece.vx * delta;
-    piece.y += piece.vy * delta;
-    piece.vy += 115 * delta;
-    piece.rotation += piece.spin * delta;
-    if (piece.y > world.height + 25) {
-      piece.y = randomBetween(-130, -20);
-      piece.x = randomBetween(0, world.width);
-      piece.vy = randomBetween(72, 145);
-    }
-  }
-}
-
-function shoot(x, y, randomValue = Math.random()) {
-  if (state.status !== 'running' || paused || quizActive || quizPending) return false;
-  const result = findTargetAt(x, y, { includeNear: true });
-  const actualTarget = result.near ? null : result.target;
-  return resolvePlayerShot(actualTarget, x, y, randomValue, result.near ? result.target : null);
-}
-
-function resolvePlayerShot(target, x, y, randomValue = Math.random(), nearTarget = null) {
-  const previousStage = state.stage;
-  const resolution = resolveShot(state, { hit: Boolean(target), randomValue });
-  state = resolution.state;
-  const { events } = resolution;
-
-  triggerRecoil(target?.kind === 'critical' ? 1.35 : 1);
-  createMissTracer(x, y);
-  audio.shot(clamp(x / world.width * 2 - 1, -1, 1));
-
-  if (target) {
-    target.hit = true;
-    target.hitAge = 0;
-    target.fallVelocity = target.kind === 'critical' ? 0.6 : 0.25;
-    createHitEffects(target, x, y);
-    audio.hit(state.streak, clamp(x / world.width * 2 - 1, -1, 1), target.kind);
-    hitStopUntil = performance.now() + (target.kind === 'critical' ? 125 : 72);
-    showFloatingScore('+1 SAK', x, y);
-    showMessage(events.won ? 'Hovedhendelsen er lukket.' : positiveMessages[Math.floor(Math.random() * positiveMessages.length)]);
-    vibrate(target.kind === 'critical' ? [35, 30, 55] : 20);
-
-    if (state.streak > 0 && state.streak % 3 === 0) {
-      ui.comboItem.classList.remove('is-hot');
-      void ui.comboItem.offsetWidth;
-      ui.comboItem.classList.add('is-hot');
-      showFloatingScore(`TREFFREKKE x${state.streak}`, x, y - 27);
-      audio.combo(state.streak);
-    }
-  } else if (nearTarget) {
-    audio.nearMiss(clamp(x / world.width * 2 - 1, -1, 1));
-    showMessage('Nesten — saken endret bane.', true, 700);
-  } else {
-    audio.miss(clamp(x / world.width * 2 - 1, -1, 1));
-    showMessage('Bom — saken flyr videre.', true, 620);
   }
 
   updateHud({ announceMissions: true });
 
-  if (events.flowActivated) activateFlow(4200, 'Automatisk saksflyt');
-
-  if (events.stageChanged && state.stage !== previousStage) {
-    stageVisual = Math.max(stageVisual, previousStage);
-    showStageBanner(state.stage);
-    audio.setStage(state.stage);
-    audio.stageUp(state.stage);
-    lightning = state.stage === 3 ? 1 : lightning;
-    board.style.setProperty('--stage-accent', stageThemes[state.stage - 1].accent);
-
-    if (state.stage === 4) {
+  if (state.level > previousLevel) {
+    if (state.level === 4) {
+      finaleAnnounced = false;
+      spawnClock = .62;
       for (const candidate of targets) {
-        if (!candidate.hit && candidate.id !== target?.id) {
-          candidate.direction = candidate.position.x < 0 ? -1 : 1;
-          candidate.speed *= 1.8;
-        }
+        if (candidate === target || candidate.hit) continue;
+        candidate.hit = true;
+        candidate.hitAge = .18;
+        candidate.vy = .65;
+        candidate.vx = candidate.direction * .28;
+        candidate.vz = .9;
       }
-      finalTargetAt = performance.now() + (testMode ? 80 : 1550);
     }
+    window.setTimeout(() => showLevelBanner(state.level), 240);
   }
 
-  if (events.won) {
-    quizPending = true;
-    targets.forEach((candidate) => { candidate.hit = true; });
-    winTimer = window.setTimeout(finishRound, testMode ? 60 : 900);
+  if (state.status === 'won') {
+    pendingWin = true;
+    targets.forEach((candidate) => {
+      if (!candidate.hit) {
+        candidate.hit = true;
+        candidate.hitAge = .2;
+        candidate.vy = .7;
+        candidate.vx = candidate.direction * .35;
+        candidate.vz = .8;
+      }
+    });
+    const token = roundToken;
+    window.setTimeout(() => {
+      if (token === roundToken) finishRound();
+    }, testMode ? 80 : 950);
     return true;
   }
 
-  if (events.quizTriggered) scheduleQuiz();
-  updateAimLock();
-  return Boolean(target);
+  if (shouldTriggerQuiz(true, quizRoll, quizActive || quizPending || pendingWin)) {
+    quizPending = true;
+    updateHud();
+    const token = roundToken;
+    window.setTimeout(() => {
+      if (token === roundToken) openQuiz();
+    }, testMode ? 35 : 560);
+  }
+  return true;
 }
 
-function prepareQuestion(question) {
-  const options = question.options.map((text, index) => ({ text, correct: index === question.correct }));
-  const shuffled = shuffle(options);
-  return {
-    ...question,
-    options: shuffled.map((option) => option.text),
-    correct: shuffled.findIndex((option) => option.correct),
-  };
+function shoot(x, y) {
+  const target = renderer.getTargetAt(x, y, targets);
+  return resolveShot(target, x, y);
 }
 
 function nextQuestion() {
-  if (!questionDeck.length) {
-    questionDeck = shuffle(noarkQuestions);
-    if (previousQuestion && questionDeck[0] === previousQuestion && questionDeck.length > 1) {
-      [questionDeck[0], questionDeck[1]] = [questionDeck[1], questionDeck[0]];
-    }
+  if (!questionDeck.length || questionIndex >= questionDeck.length) {
+    questionDeck = shuffle(NOARK_QUESTIONS);
+    questionIndex = 0;
   }
-  const question = questionDeck.shift();
-  previousQuestion = question;
-  return prepareQuestion(question);
-}
-
-function scheduleQuiz() {
-  if (quizPending || quizActive || state.status !== 'running') return;
-  quizPending = true;
-  window.clearTimeout(quizTimer);
-  quizTimer = window.setTimeout(openQuiz, testMode ? 25 : 560);
+  const question = questionDeck[questionIndex];
+  questionIndex += 1;
+  return question;
 }
 
 function openQuiz() {
-  if (state.status !== 'running') return;
+  if (state.status !== 'running' || pendingWin) {
+    quizPending = false;
+    return;
+  }
   quizActive = true;
   quizPending = false;
   currentQuestion = nextQuestion();
+  ui.quizNumber.textContent = `Fagtest ${state.quizAnswered + 1}`;
   ui.quizTitle.textContent = currentQuestion.question;
-  ui.quizProgress.textContent = `KONTROLLPUNKT ${String(state.quizOffered).padStart(2, '0')}`;
   ui.quizFeedback.textContent = '';
   ui.quizFeedback.className = 'quiz-feedback';
   ui.quizOptions.replaceChildren();
 
   currentQuestion.options.forEach((option, optionIndex) => {
     const button = document.createElement('button');
-    button.className = 'quiz-option';
     button.type = 'button';
+    button.className = 'quiz-option';
     button.textContent = option;
-    button.dataset.key = String(optionIndex + 1);
-    button.dataset.optionIndex = String(optionIndex);
     button.addEventListener('click', () => answerQuiz(optionIndex));
     ui.quizOptions.append(button);
   });
 
   updateHud();
+  positionReticle();
+  sound.stopAmbient();
+  sound.quizOpen();
   showOverlay(ui.quizOverlay);
-  window.setTimeout(() => ui.quizOptions.querySelector('button')?.focus({ preventScroll: true }), 35);
-  audio.quizOpen();
+  window.setTimeout(() => ui.quizOptions.querySelector('button')?.focus({ preventScroll: true }), 40);
 }
 
 function answerQuiz(optionIndex) {
@@ -1297,942 +891,228 @@ function answerQuiz(optionIndex) {
   state = recordQuizAnswer(state, correct);
   ui.quizFeedback.classList.add(correct ? 'is-correct' : 'is-wrong');
   ui.quizFeedback.textContent = correct
-    ? `Korrekt. ${currentQuestion.fact} +1 prestisjepoeng og faglig flyt.`
-    : `Ikke helt. ${currentQuestion.fact} −1 prestisjepoeng.`;
+    ? `${currentQuestion.explanation} +1 poeng og seks sekunder faglig flyt.`
+    : `Ikke helt. ${currentQuestion.explanation} −1 poeng.`;
 
   if (correct) {
-    activateFlow(6000, 'NOARK 5 // faglig flyt');
-    showFloatingScore('+1 NOARK', world.width / 2, world.height * 0.42);
-    audio.quizCorrect();
-    vibrate([20, 35, 20]);
+    slowUntil = performance.now() + 6_000;
+    showScorePop('+1 NOARK', renderer.width / 2, renderer.height * .42);
+    sound.quizCorrect();
   } else {
     board.classList.remove('is-danger');
     void board.offsetWidth;
     board.classList.add('is-danger');
-    showFloatingScore('−1 PRESTISJE', world.width / 2, world.height * 0.42);
-    audio.quizWrong();
-    vibrate(45);
+    showScorePop('−1 POENG', renderer.width / 2, renderer.height * .42);
+    sound.quizWrong();
   }
-
   updateHud({ announceMissions: true });
+
+  const token = roundToken;
   window.setTimeout(() => {
+    if (token !== roundToken) return;
     quizActive = false;
     currentQuestion = null;
     hideOverlay(ui.quizOverlay);
     updateHud();
+    positionReticle();
+    if (sound.enabled && state.status === 'running' && !paused) sound.startAmbient();
     canvas.focus({ preventScroll: true });
-    if (state.stage === 4 && !finalTargetSpawned) finalTargetAt = Math.min(finalTargetAt || Infinity, performance.now() + 450);
-  }, testMode ? 60 : 1350);
+  }, testMode ? 70 : 1_480);
   return correct;
 }
 
+function togglePause(force) {
+  if (state.status !== 'running' || quizActive || quizPending || pendingWin) return;
+  paused = typeof force === 'boolean' ? force : !paused;
+  if (paused) {
+    showOverlay(ui.pauseOverlay);
+    ui.resumeButton.focus({ preventScroll: true });
+    sound.stopAmbient();
+  } else {
+    hideOverlay(ui.pauseOverlay);
+    if (sound.enabled) sound.startAmbient();
+    canvas.focus({ preventScroll: true });
+  }
+  updateHud();
+  positionReticle();
+}
+
 function startRound() {
-  window.clearTimeout(messageTimer);
-  window.clearTimeout(quizTimer);
-  window.clearTimeout(winTimer);
-  window.clearTimeout(stageTimer);
+  roundToken += 1;
   state = startGame(state);
   targets = [];
-  particles = [];
-  shockwaves = [];
-  tracerLines = [];
-  confetti = [];
   targetId = 1;
-  spawnClock = 0.2;
-  lastFrame = performance.now();
-  animationTime = 0;
-  stageVisual = 1;
-  lastClockSecond = -1;
+  spawnClock = .24;
   paused = false;
   quizActive = false;
   quizPending = false;
   currentQuestion = null;
-  questionDeck = shuffle(noarkQuestions);
-  previousQuestion = null;
-  flowUntil = 0;
-  hitStopUntil = 0;
-  finalTargetAt = 0;
-  finalTargetSpawned = false;
-  recoil = 0;
-  cameraShake = 0;
-  lightning = 0;
-  missionSnapshot = { queue: false, streak: false, noark: false, precision: false, control: false };
-  aim.x = world.width / 2;
-  aim.y = Math.max(115, world.height * 0.41);
+  questionDeck = shuffle(NOARK_QUESTIONS);
+  questionIndex = 0;
+  slowUntil = 0;
+  pendingWin = false;
+  finaleAnnounced = false;
+  missionSnapshot = { triage: false, flow: false, priority: false, noark: false, control: false };
+  ui.fxLayer.querySelectorAll('.confetti-piece').forEach((piece) => piece.remove());
+  renderer.setProgress(0);
+  renderer.setSlowMode(false);
+
+  aim.x = renderer.width / 2;
+  aim.y = Math.max(100, renderer.height * .43);
   aim.visible = true;
   aim.pointerType = 'keyboard';
   aim.hideAt = 0;
-  aim.lockTargetId = null;
+  setAim(aim.x, aim.y, 'keyboard');
 
   hideOverlay(ui.startOverlay);
   hideOverlay(ui.quizOverlay);
   hideOverlay(ui.pauseOverlay);
   hideOverlay(ui.winOverlay);
-  ui.stageBanner.classList.remove('is-visible');
-  ui.powerup.classList.remove('is-active');
-  board.classList.remove('is-flowing', 'is-danger', 'is-critical');
-  board.style.setProperty('--stage-accent', stageThemes[0].accent);
-  ui.operationClock.textContent = '00:00';
-  updateWeaponPose();
-  positionCrosshair();
+  board.classList.remove('is-danger', 'is-slow', 'is-finale');
   updateHud();
-  showMessage('Vakten er aktiv. Køen er lokalisert.', false, 1100);
-  audio.ensure();
-  audio.stopAmbient();
-  audio.startAmbient(1);
-  audio.start();
+  updateRadar();
+  showMessage('Service Manager er pålogget. Operasjonen starter.');
+  sound.ensure();
+  sound.start();
   canvas.focus({ preventScroll: true });
 }
 
-function finishRound() {
-  if (state.status !== 'won') return;
-  quizPending = false;
-  const seconds = elapsedSeconds(state);
-  const accuracy = Math.round(accuracyPercent(state));
-  const rank = performanceRank(state);
-  const missions = missionCount(state);
-  const result = {
-    points: state.points,
-    accuracy,
-    seconds,
-    grade: rank.grade,
-    missions,
-    date: Date.now(),
-  };
-
-  if (isBetterScore(result, highScore)) {
-    highScore = result;
-    writeHighScore(result);
-  }
-
-  ui.winSummary.textContent = `Ti brukerstøttesaker ble lukket med ${state.shots} skudd på ${formatClock(seconds)}. Service Manager registrerer en vakt uten sidestykke.`;
-  ui.rankGrade.textContent = rank.grade;
-  ui.rankTitle.textContent = rank.title;
-  ui.rankDetail.textContent = rank.detail;
-  ui.rankEmblem.dataset.grade = rank.grade;
-  ui.resultPoints.textContent = `${state.points} p`;
-  ui.resultAccuracy.textContent = `${accuracy} %`;
-  ui.resultShots.textContent = `${state.shots} skudd`;
-  ui.resultCombo.textContent = `x${state.bestStreak}`;
-  ui.resultFlow.textContent = `${state.flowActivations} flytaktivering${state.flowActivations === 1 ? '' : 'er'}`;
-  ui.resultQuiz.textContent = `${state.quizCorrect}/${state.quizAnswered}`;
-  ui.resultTime.textContent = formatClock(seconds);
-  ui.resultEscalations.textContent = `${state.escalations} eskalering${state.escalations === 1 ? '' : 'er'}`;
-  ui.resultMissions.textContent = `${missions}/5`;
-  renderResultBadges();
-  updateHud();
-  spawnConfetti();
-  audio.stopAmbient();
-  audio.win();
-  showOverlay(ui.winOverlay);
-  vibrate([40, 45, 60, 45, 90]);
-  ui.restartButton.focus({ preventScroll: true });
-}
-
-function renderResultBadges() {
+function renderBadges() {
   const missions = unlockedMissions(state);
   ui.badgeRow.replaceChildren();
   for (const [name, complete] of Object.entries(missions)) {
     if (!complete) continue;
     const badge = document.createElement('span');
     badge.className = 'result-badge';
-    badge.textContent = missionLabels[name];
+    badge.textContent = MISSION_LABELS[name];
     ui.badgeRow.append(badge);
   }
   if (!ui.badgeRow.children.length) {
     const badge = document.createElement('span');
     badge.className = 'result-badge';
-    badge.textContent = 'Operasjonen fullført';
+    badge.textContent = 'Vakten fullført';
     ui.badgeRow.append(badge);
   }
+  ui.badgeCount.textContent = `${missionCount(state)}/5`;
 }
 
-function togglePause(force) {
-  if (state.status !== 'running' || quizActive) return;
-  paused = typeof force === 'boolean' ? force : !paused;
-  if (paused) {
-    showOverlay(ui.pauseOverlay);
-    ui.resumeButton.focus({ preventScroll: true });
-  } else {
-    hideOverlay(ui.pauseOverlay);
-    canvas.focus({ preventScroll: true });
+function finishRound() {
+  if (state.status !== 'won') return;
+  pendingWin = false;
+  board.classList.remove('is-finale');
+  const now = Date.now();
+  const seconds = elapsedSeconds(state, now);
+  const accuracy = Math.round(accuracyPercent(state));
+  const performance = performanceScore(state, now);
+  const grade = performanceGrade(state, now);
+  const result = {
+    performance,
+    points: state.points,
+    accuracy,
+    seconds,
+    grade: grade.grade,
+    date: now,
+  };
+  if (!highRecord || result.performance > highRecord.performance || (result.performance === highRecord.performance && result.seconds < highRecord.seconds)) {
+    highRecord = result;
+    writeRecord(result);
   }
+
+  ui.gradeText.textContent = grade.grade;
+  ui.gradeMedallion.dataset.grade = grade.grade;
+  ui.winSummary.textContent = `Ti saker er lukket på ${seconds.toFixed(1).replace('.', ',')} sekunder. Service Manager registrerer en vakt på nivå «${grade.title}».`;
+  ui.resultPoints.textContent = `${state.points} p`;
+  ui.resultTitle.textContent = grade.title;
+  ui.resultAccuracy.textContent = `${accuracy} %`;
+  ui.resultShots.textContent = `${state.shots} skudd`;
+  ui.resultCombo.textContent = `x${state.bestStreak}`;
+  ui.resultEscalations.textContent = `${state.escalations} eskalert`;
+  ui.resultQuiz.textContent = `${state.quizCorrect}/${state.quizAnswered}`;
+  ui.resultTime.textContent = `${seconds.toFixed(1).replace('.', ',')} sek`;
+  renderBadges();
   updateHud();
-  positionCrosshair();
-}
-
-function themeAt(value) {
-  const clamped = clamp(value, 1, stageThemes.length);
-  const lowerIndex = Math.floor(clamped) - 1;
-  const upperIndex = Math.min(stageThemes.length - 1, lowerIndex + 1);
-  const amount = clamped - Math.floor(clamped);
-  const lower = stageThemes[lowerIndex];
-  const upper = stageThemes[upperIndex];
-  const theme = {};
-  for (const key of Object.keys(lower)) theme[key] = mixColor(lower[key], upper[key], amount);
-  return theme;
-}
-
-function roundedRectPath(ctx, x, y, width, height, radius) {
-  const r = Math.min(radius, width / 2, height / 2);
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + width - r, y);
-  ctx.quadraticCurveTo(x + width, y, x + width, y + r);
-  ctx.lineTo(x + width, y + height - r);
-  ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
-  ctx.lineTo(x + r, y + height);
-  ctx.quadraticCurveTo(x, y + height, x, y + height - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
-}
-
-function drawPolygon(points, fillStyle, strokeStyle = null, lineWidth = 1) {
-  if (!points?.length) return;
-  context.beginPath();
-  context.moveTo(points[0].x, points[0].y);
-  for (let index = 1; index < points.length; index += 1) context.lineTo(points[index].x, points[index].y);
-  context.closePath();
-  if (fillStyle) {
-    context.fillStyle = fillStyle;
-    context.fill();
-  }
-  if (strokeStyle) {
-    context.strokeStyle = strokeStyle;
-    context.lineWidth = lineWidth;
-    context.stroke();
-  }
-}
-
-function drawCloud(x, y, scale, opacity) {
-  context.save();
-  context.globalAlpha = opacity;
-  const gradient = context.createLinearGradient(0, y, 0, y + 46 * scale);
-  gradient.addColorStop(0, 'rgba(247,255,247,.88)');
-  gradient.addColorStop(1, 'rgba(203,224,216,.42)');
-  context.fillStyle = gradient;
-  context.shadowColor = 'rgba(255,255,255,.14)';
-  context.shadowBlur = 18 * scale;
-  context.beginPath();
-  context.ellipse(x + 45 * scale, y + 24 * scale, 48 * scale, 20 * scale, 0, 0, Math.PI * 2);
-  context.ellipse(x + 28 * scale, y + 18 * scale, 25 * scale, 21 * scale, 0, 0, Math.PI * 2);
-  context.ellipse(x + 61 * scale, y + 13 * scale, 31 * scale, 25 * scale, 0, 0, Math.PI * 2);
-  context.ellipse(x + 83 * scale, y + 25 * scale, 25 * scale, 17 * scale, 0, 0, Math.PI * 2);
-  context.fill();
-  context.restore();
-}
-
-function drawMountainLayer({ baseY, amplitude, color, parallax, seedOffset, step }) {
-  const cameraOffset = camera.x * parallax;
-  context.fillStyle = color;
-  context.beginPath();
-  context.moveTo(-step, world.height);
-  context.lineTo(-step, baseY);
-  for (let index = -2; index <= Math.ceil(world.width / step) + 2; index += 1) {
-    const seed = mountainSeeds[(index + seedOffset + mountainSeeds.length * 4) % mountainSeeds.length];
-    const x = index * step - cameraOffset;
-    const peak = baseY - amplitude * (0.55 + seed.a * 0.62);
-    const shoulder = baseY - amplitude * (0.12 + seed.b * 0.22);
-    context.lineTo(x, baseY);
-    context.quadraticCurveTo(x + step * 0.34, peak, x + step * 0.58, shoulder);
-    context.quadraticCurveTo(x + step * 0.83, peak + amplitude * 0.22, x + step, baseY);
-  }
-  context.lineTo(world.width + step, world.height);
-  context.closePath();
-  context.fill();
-}
-
-function drawSkyline(theme, time, parallaxX) {
-  const baseY = world.horizon + world.height * 0.018;
-  const unit = clamp(world.width * 0.035, 34, 58);
-  const offset = ((time * 1.7) + parallaxX * 18) % unit;
-
-  context.save();
-  context.fillStyle = theme.skyline;
-  for (let index = -2; index < Math.ceil(world.width / unit) + 3; index += 1) {
-    const seed = skylineSeeds[(index + 120) % skylineSeeds.length];
-    const width = unit * seed.width;
-    const height = world.height * (0.045 + seed.height * 0.07);
-    const x = index * unit - offset;
-    const y = baseY - height;
-    context.fillRect(x, y, width, height);
-    context.fillStyle = 'rgba(176,255,226,.13)';
-    const rows = Math.max(1, Math.floor(height / 13));
-    for (let row = 0; row < rows; row += 1) {
-      for (let light = 0; light < seed.lights; light += 1) {
-        if ((row + light + index) % 3 === 0) continue;
-        context.fillRect(x + 7 + light * 10, y + 8 + row * 12, 4, 3);
-      }
-    }
-    context.fillStyle = theme.skyline;
-  }
-  context.restore();
-}
-
-function drawPerspectiveGround(theme, parallaxX) {
-  const horizon = world.horizon;
-  const height = world.height;
-  const width = world.width;
-  const ground = context.createLinearGradient(0, horizon, 0, height);
-  ground.addColorStop(0, theme.groundTop);
-  ground.addColorStop(0.48, mixColor(stageThemes[0].groundTop, stageThemes[state.stage - 1].groundBottom, 0.45));
-  ground.addColorStop(1, theme.groundBottom);
-  context.fillStyle = ground;
-  context.fillRect(0, horizon, width, height - horizon);
-
-  context.save();
-  const vanishingX = width * 0.5 - parallaxX * 38;
-  context.strokeStyle = state.stage === 4 ? 'rgba(255,214,107,.19)' : 'rgba(121,237,208,.18)';
-  context.lineWidth = 1;
-  for (let index = -13; index <= 13; index += 1) {
-    context.globalAlpha = 0.11 + Math.abs(index) * 0.006;
-    context.beginPath();
-    context.moveTo(vanishingX + index * 4.4, horizon);
-    context.lineTo(vanishingX + index * width * 0.105, height + 8);
-    context.stroke();
-  }
-
-  for (let step = 0; step <= 13; step += 1) {
-    const progress = step / 13;
-    const y = horizon + (height - horizon) * progress ** 2.2;
-    context.globalAlpha = 0.06 + progress * 0.22;
-    context.beginPath();
-    context.moveTo(0, y);
-    context.lineTo(width, y);
-    context.stroke();
-  }
-  context.restore();
-
-  // A central operations corridor strengthens the vanishing point.
-  context.save();
-  const corridor = context.createLinearGradient(vanishingX, horizon, vanishingX, height);
-  corridor.addColorStop(0, 'rgba(255,255,255,0)');
-  corridor.addColorStop(1, state.stage === 4 ? 'rgba(255,214,107,.07)' : 'rgba(105,242,206,.06)');
-  context.fillStyle = corridor;
-  context.beginPath();
-  context.moveTo(vanishingX - 4, horizon);
-  context.lineTo(vanishingX + 4, horizon);
-  context.lineTo(vanishingX + width * 0.13, height);
-  context.lineTo(vanishingX - width * 0.13, height);
-  context.closePath();
-  context.fill();
-  context.restore();
-
-  context.fillStyle = state.stage === 4 ? 'rgba(255,214,107,.32)' : 'rgba(105,242,206,.25)';
-  for (let index = 0; index < 12; index += 1) {
-    const progress = (index + 1) / 12;
-    const y = horizon + (height - horizon) * progress ** 2.15;
-    const spread = width * 0.08 * progress;
-    const size = 1 + progress * 2.4;
-    context.fillRect(vanishingX - spread, y, size, size);
-    context.fillRect(vanishingX + spread, y, size, size);
-  }
-}
-
-function drawBackground(now) {
-  const time = animationTime;
-  const theme = themeAt(stageVisual);
-  const parallaxX = aim.x / Math.max(1, world.width) - 0.5;
-  const parallaxY = aim.y / Math.max(1, world.height) - 0.5;
-  const width = world.width;
-  const height = world.height;
-  const horizon = world.horizon;
-
-  const sky = context.createLinearGradient(0, 0, 0, horizon + 40);
-  sky.addColorStop(0, theme.skyTop);
-  sky.addColorStop(0.52, theme.skyMid);
-  sky.addColorStop(0.88, theme.horizon);
-  sky.addColorStop(1, theme.haze);
-  context.fillStyle = sky;
-  context.fillRect(0, 0, width, height);
-
-  const nightAlpha = smoothstep(3.05, 4, stageVisual);
-  if (nightAlpha > 0.01) {
-    context.save();
-    context.globalAlpha = nightAlpha;
-    for (const star of stars) {
-      const twinkle = 0.35 + Math.sin(time * 2.2 + star.phase) * 0.28;
-      context.fillStyle = `rgba(235,250,255,${clamp(twinkle, 0.1, 0.8)})`;
-      context.beginPath();
-      context.arc(star.x * width - parallaxX * 12, star.y * height - parallaxY * 7, star.size, 0, Math.PI * 2);
-      context.fill();
-    }
-    context.restore();
-  }
-
-  const sunAlpha = 1 - smoothstep(2.7, 3.8, stageVisual);
-  if (sunAlpha > 0.01) {
-    const sunX = width * 0.79 - parallaxX * 30;
-    const sunY = height * 0.15 - parallaxY * 12;
-    const radius = clamp(width * 0.027, 24, 44);
-    context.save();
-    context.globalAlpha = sunAlpha;
-    const glow = context.createRadialGradient(sunX, sunY, 2, sunX, sunY, radius * 3.2);
-    glow.addColorStop(0, 'rgba(255,255,218,.96)');
-    glow.addColorStop(0.22, 'rgba(255,218,105,.88)');
-    glow.addColorStop(1, 'rgba(255,190,66,0)');
-    context.fillStyle = glow;
-    context.fillRect(sunX - radius * 3.3, sunY - radius * 3.3, radius * 6.6, radius * 6.6);
-    context.fillStyle = '#ffe583';
-    context.beginPath();
-    context.arc(sunX, sunY, radius, 0, Math.PI * 2);
-    context.fill();
-    context.restore();
-  }
-
-  if (nightAlpha > 0.02) {
-    const moonX = width * 0.79 - parallaxX * 22;
-    const moonY = height * 0.15 - parallaxY * 8;
-    const radius = clamp(width * 0.02, 19, 34);
-    context.save();
-    context.globalAlpha = nightAlpha;
-    const moonGlow = context.createRadialGradient(moonX, moonY, 1, moonX, moonY, radius * 3.2);
-    moonGlow.addColorStop(0, 'rgba(255,244,189,.72)');
-    moonGlow.addColorStop(1, 'rgba(255,214,107,0)');
-    context.fillStyle = moonGlow;
-    context.fillRect(moonX - radius * 3.3, moonY - radius * 3.3, radius * 6.6, radius * 6.6);
-    context.fillStyle = '#f5e8ba';
-    context.beginPath();
-    context.arc(moonX, moonY, radius, 0, Math.PI * 2);
-    context.fill();
-    context.fillStyle = theme.skyTop;
-    context.beginPath();
-    context.arc(moonX + radius * 0.38, moonY - radius * 0.15, radius * 0.94, 0, Math.PI * 2);
-    context.fill();
-    context.restore();
-  }
-
-  // Aurora is reserved for the final phase.
-  if (nightAlpha > 0.05) {
-    context.save();
-    context.globalAlpha = nightAlpha * 0.28;
-    context.lineWidth = 25;
-    context.lineCap = 'round';
-    for (let ribbon = 0; ribbon < 3; ribbon += 1) {
-      const gradient = context.createLinearGradient(0, 0, width, 0);
-      gradient.addColorStop(0, 'rgba(105,242,206,0)');
-      gradient.addColorStop(0.35, ribbon === 1 ? 'rgba(119,185,255,.5)' : 'rgba(105,242,206,.55)');
-      gradient.addColorStop(0.72, 'rgba(255,214,107,.22)');
-      gradient.addColorStop(1, 'rgba(105,242,206,0)');
-      context.strokeStyle = gradient;
-      context.beginPath();
-      for (let x = -40; x <= width + 40; x += 20) {
-        const y = height * (0.18 + ribbon * 0.06) + Math.sin(x * 0.009 + time * 0.22 + ribbon) * 24;
-        if (x === -40) context.moveTo(x, y);
-        else context.lineTo(x, y);
-      }
-      context.stroke();
-    }
-    context.restore();
-  }
-
-  for (const cloud of clouds) {
-    const layerFactor = 0.45 + cloud.layer * 0.27;
-    const x = ((cloud.x + time * cloud.speed) % 1.25 - 0.12) * width - parallaxX * 38 * layerFactor;
-    const y = cloud.y * height - parallaxY * 10 * layerFactor;
-    const stormDim = 1 - smoothstep(2.3, 3.2, stageVisual) * 0.45;
-    drawCloud(x, y, cloud.scale, cloud.opacity * stormDim);
-  }
-
-  const haze = context.createLinearGradient(0, horizon - height * 0.2, 0, horizon + 25);
-  haze.addColorStop(0, 'rgba(255,255,255,0)');
-  haze.addColorStop(1, 'rgba(236,222,181,.14)');
-  context.fillStyle = haze;
-  context.fillRect(0, horizon - height * 0.22, width, height * 0.25);
-
-  drawMountainLayer({ baseY: horizon + 22, amplitude: height * 0.16, color: theme.mountainFar, parallax: 12, seedOffset: 7, step: clamp(width * 0.12, 90, 170) });
-  drawMountainLayer({ baseY: horizon + 34, amplitude: height * 0.115, color: theme.mountainNear, parallax: 22, seedOffset: 31, step: clamp(width * 0.095, 72, 135) });
-  drawSkyline(theme, time, parallaxX);
-  drawPerspectiveGround(theme, parallaxX);
-
-  // Foreground silhouettes create a near plane around the weapon.
-  context.fillStyle = 'rgba(2,15,19,.72)';
-  for (let x = -30; x < width + 50; x += 36) {
-    const radius = 25 + ((x + 90) % 5) * 3;
-    const sway = Math.sin(time * 1.25 + x * 0.07) * 2.2;
-    context.beginPath();
-    context.arc(x + sway, height + 7, radius, Math.PI, Math.PI * 2);
-    context.fill();
-  }
-
-  const stormAlpha = smoothstep(2.15, 3, stageVisual) * (1 - smoothstep(3.25, 4, stageVisual));
-  if (stormAlpha > 0.02) {
-    context.save();
-    context.globalAlpha = stormAlpha * 0.42;
-    context.strokeStyle = 'rgba(190,225,235,.55)';
-    context.lineWidth = 1;
-    for (const drop of rain) {
-      const y = ((drop.y + time * drop.speed) % 1.1) * height;
-      const x = drop.x * width + y * 0.09;
-      context.beginPath();
-      context.moveTo(x, y);
-      context.lineTo(x - drop.length * 0.38, y + drop.length);
-      context.stroke();
-    }
-    context.restore();
-  }
-
-  context.save();
-  for (const mote of dust) {
-    const drift = Math.sin(time * mote.speed + mote.phase);
-    context.globalAlpha = 0.08 + (drift + 1) * 0.045;
-    context.fillStyle = state.stage === 4 ? '#ffd66b' : '#b7ffe9';
-    context.beginPath();
-    context.arc(mote.x * width + drift * 13 - parallaxX * 9, mote.y * height, mote.size, 0, Math.PI * 2);
-    context.fill();
-  }
-  context.restore();
-
-  if (lightning > 0.01) {
-    context.fillStyle = `rgba(190,224,255,${lightning * 0.17})`;
-    context.fillRect(0, 0, width, height);
-  }
-
-  // Camera recoil adds a faint exposure pulse rather than a full white flash.
-  if (recoil > 0.02) {
-    const exposure = context.createRadialGradient(width * 0.5, height * 0.78, 10, width * 0.5, height * 0.78, height * 0.52);
-    exposure.addColorStop(0, `rgba(255,227,155,${recoil * 0.045})`);
-    exposure.addColorStop(1, 'rgba(255,227,155,0)');
-    context.fillStyle = exposure;
-    context.fillRect(0, 0, width, height);
-  }
-
-  // Slow-motion field.
-  if (now < flowUntil) {
-    const pulse = 0.5 + Math.sin(now * 0.006) * 0.5;
-    context.save();
-    context.strokeStyle = `rgba(105,242,206,${0.12 + pulse * 0.1})`;
-    context.lineWidth = 2;
-    const radius = Math.max(width, height) * (0.38 + pulse * 0.015);
-    context.beginPath();
-    context.arc(width / 2, height * 0.47, radius, 0, Math.PI * 2);
-    context.stroke();
-    context.restore();
-  }
-}
-
-function interpolatePoint(a, b, amount) {
-  return { x: lerp(a.x, b.x, amount), y: lerp(a.y, b.y, amount) };
-}
-
-function drawTexturedQuad(image, quad, slices = 16) {
-  if (!image || quad.length !== 4) return;
-  const [topLeft, topRight, bottomRight, bottomLeft] = quad;
-  const sourceSlice = image.width / slices;
-
-  for (let index = 0; index < slices; index += 1) {
-    const t0 = index / slices;
-    const t1 = (index + 1) / slices;
-    const top0 = interpolatePoint(topLeft, topRight, t0);
-    const top1 = interpolatePoint(topLeft, topRight, t1);
-    const bottom0 = interpolatePoint(bottomLeft, bottomRight, t0);
-    const bottom1 = interpolatePoint(bottomLeft, bottomRight, t1);
-    const sourceX = index * sourceSlice;
-
-    context.save();
-    context.beginPath();
-    context.moveTo(top0.x, top0.y);
-    context.lineTo(top1.x + 0.8, top1.y);
-    context.lineTo(bottom1.x + 0.8, bottom1.y + 0.8);
-    context.lineTo(bottom0.x, bottom0.y + 0.8);
-    context.closePath();
-    context.clip();
-
-    context.translate(top0.x, top0.y);
-    context.transform(
-      (top1.x - top0.x) / sourceSlice,
-      (top1.y - top0.y) / sourceSlice,
-      (bottom0.x - top0.x) / image.height,
-      (bottom0.y - top0.y) / image.height,
-      0,
-      0,
-    );
-    context.drawImage(image, sourceX, 0, sourceSlice + 1, image.height, 0, 0, sourceSlice + 1, image.height);
-    context.restore();
-  }
-}
-
-function drawTargetShadow(target) {
-  const groundPoint = projectPoint(
-    { x: target.position.x, y: 0.04, z: target.position.z + 0.3 },
-    camera,
-    { width: world.width, height: world.height, horizon: world.horizon },
-  );
-  if (!groundPoint.visible) return;
-  const profile = targetProfiles[target.kind];
-  const width = profile.size.x * groundPoint.scale * 0.72;
-  const altitude = clamp(target.position.y / 6, 0, 1);
-  context.save();
-  context.globalAlpha = target.alpha * (0.28 - altitude * 0.11);
-  context.fillStyle = '#020a0f';
-  context.shadowColor = 'rgba(0,0,0,.58)';
-  context.shadowBlur = 14 + altitude * 18;
-  context.translate(groundPoint.x, groundPoint.y);
-  context.rotate(target.rotation.roll * 0.22);
-  context.scale(1, 0.2 + 0.05 * (1 - altitude));
-  context.beginPath();
-  context.ellipse(0, 0, width * 0.5, width * 0.26, 0, 0, Math.PI * 2);
-  context.fill();
-  context.restore();
-}
-
-function drawTargetTrail(target) {
-  if (target.hit || target.trail.length < 2) return;
-  const profile = targetProfiles[target.kind];
-  context.save();
-  context.lineCap = 'round';
-  context.lineJoin = 'round';
-  for (let index = 1; index < target.trail.length; index += 1) {
-    const current = target.trail[index - 1];
-    const next = target.trail[index];
-    const alpha = clamp(next.life, 0, 1) * (target.kind === 'priority' ? 0.34 : 0.2);
-    context.strokeStyle = target.kind === 'critical'
-      ? `rgba(255,214,107,${alpha})`
-      : target.kind === 'priority'
-        ? `rgba(255,139,126,${alpha})`
-        : `rgba(210,255,242,${alpha})`;
-    context.lineWidth = clamp(current.size * 0.035 * next.life, 1, 5);
-    context.beginPath();
-    context.moveTo(current.x, current.y);
-    context.lineTo(next.x, next.y);
-    context.stroke();
-  }
-  context.restore();
-}
-
-function drawCriticalAura(target) {
-  if (target.kind !== 'critical' || target.hit || !target.mesh?.hull?.length) return;
-  const center = target.screenCenter;
-  const projectedWidth = Math.max(...target.mesh.hull.map((point) => point.x)) - Math.min(...target.mesh.hull.map((point) => point.x));
-  const pulse = 0.5 + Math.sin(animationTime * 4.1) * 0.5;
-  context.save();
-  context.translate(center.x, center.y);
-  context.rotate(animationTime * 0.35);
-  context.strokeStyle = `rgba(255,214,107,${0.2 + pulse * 0.22})`;
-  context.lineWidth = 2;
-  context.setLineDash([9, 8]);
-  context.beginPath();
-  context.ellipse(0, 0, projectedWidth * (0.62 + pulse * 0.025), projectedWidth * 0.38, 0, 0, Math.PI * 2);
-  context.stroke();
-  context.rotate(-animationTime * 0.78);
-  context.strokeStyle = `rgba(255,108,95,${0.17 + (1 - pulse) * 0.2})`;
-  context.setLineDash([3, 10]);
-  context.beginPath();
-  context.ellipse(0, 0, projectedWidth * 0.73, projectedWidth * 0.45, 0, 0, Math.PI * 2);
-  context.stroke();
-  context.restore();
-}
-
-function drawTarget(target) {
-  if (!target.mesh || !target.screenCenter.visible) return;
-  const profile = targetProfiles[target.kind];
-  const mesh = target.mesh;
-  const frontFace = mesh.faces.find((face) => face.name === 'front');
-
-  drawTargetShadow(target);
-  drawTargetTrail(target);
-  drawCriticalAura(target);
-
-  context.save();
-  context.globalAlpha = target.alpha;
-  if (target.kind === 'priority' || target.kind === 'critical') {
-    context.shadowColor = target.kind === 'critical' ? 'rgba(255,214,107,.24)' : 'rgba(255,93,83,.18)';
-    context.shadowBlur = target.kind === 'critical' ? 26 : 15;
-  }
-
-  for (const face of mesh.faces) {
-    if (face.points.some((point) => !point.visible) || Math.abs(polygonArea(face.points)) < 0.35) continue;
-    let color = profile.colors.front;
-    if (face.name === 'top') color = profile.colors.light;
-    else if (face.name === 'right' || face.name === 'bottom') color = profile.colors.dark;
-    else if (face.name === 'left' || face.name === 'back') color = shadeColor(profile.colors.front, face.light);
-
-    const fill = context.createLinearGradient(
-      Math.min(...face.points.map((point) => point.x)),
-      Math.min(...face.points.map((point) => point.y)),
-      Math.max(...face.points.map((point) => point.x)),
-      Math.max(...face.points.map((point) => point.y)),
-    );
-    fill.addColorStop(0, shadeColor(color, 1.13));
-    fill.addColorStop(0.5, color);
-    fill.addColorStop(1, shadeColor(color, 0.7));
-    drawPolygon(face.points, fill, face.name === 'front' ? profile.colors.edge : 'rgba(255,255,255,.18)', face.name === 'front' ? 1.8 : 1.05);
-  }
-
-  if (frontFace && frontFace.points.every((point) => point.visible) && Math.abs(polygonArea(frontFace.points)) > 14) {
-    const [bottomLeft, bottomRight, topRight, topLeft] = frontFace.points;
-    const texture = target.hit ? target.textureClosed : target.textureOpen;
-    drawTexturedQuad(texture, [topLeft, topRight, bottomRight, bottomLeft], target.kind === 'critical' ? 22 : 16);
-
-    // A moving specular scan line makes the face feel like a lit object rather than a flat card.
-    const scan = (target.age * 0.42 + target.id * 0.17) % 1;
-    const left = interpolatePoint(topLeft, bottomLeft, scan);
-    const right = interpolatePoint(topRight, bottomRight, scan);
-    context.save();
-    drawPolygon([topLeft, topRight, bottomRight, bottomLeft], null);
-    context.clip();
-    context.strokeStyle = target.kind === 'critical' ? 'rgba(255,226,130,.22)' : 'rgba(255,255,255,.14)';
-    context.lineWidth = clamp(target.screenCenter.scale * 0.02, 1, 4);
-    context.beginPath();
-    context.moveTo(left.x, left.y);
-    context.lineTo(right.x, right.y);
-    context.stroke();
-    context.restore();
-  }
-  context.restore();
-}
-
-function drawEffects() {
-  for (const tracer of tracerLines) {
-    const alpha = clamp(tracer.life / tracer.maxLife, 0, 1);
-    const gradient = context.createLinearGradient(tracer.x1, tracer.y1, tracer.x2, tracer.y2);
-    gradient.addColorStop(0, `rgba(255,214,107,${alpha * 0.05})`);
-    gradient.addColorStop(0.72, `rgba(255,244,196,${alpha * 0.34})`);
-    gradient.addColorStop(1, `rgba(255,255,255,${alpha * 0.8})`);
-    context.save();
-    context.strokeStyle = gradient;
-    context.lineWidth = 1.5 + alpha * 2;
-    context.shadowColor = tracer.color;
-    context.shadowBlur = 11;
-    context.beginPath();
-    context.moveTo(tracer.x1, tracer.y1);
-    context.lineTo(tracer.x2, tracer.y2);
-    context.stroke();
-    context.restore();
-  }
-
-  for (const wave of shockwaves) {
-    context.save();
-    context.globalAlpha = clamp(wave.life / wave.maxLife, 0, 1);
-    context.strokeStyle = wave.color;
-    context.lineWidth = wave.width;
-    context.shadowColor = wave.color;
-    context.shadowBlur = 13;
-    context.beginPath();
-    context.arc(wave.x, wave.y, wave.radius, 0, Math.PI * 2);
-    context.stroke();
-    context.restore();
-  }
-
-  for (const particle of particles) {
-    context.save();
-    context.globalAlpha = clamp(particle.life / particle.maxLife, 0, 1);
-    context.translate(particle.x, particle.y);
-    context.rotate(particle.rotation);
-    if (particle.glow) {
-      context.shadowColor = particle.color;
-      context.shadowBlur = 9;
-    }
-    context.fillStyle = particle.color;
-    context.fillRect(-particle.width / 2, -particle.height / 2, particle.width, particle.height);
-    context.fillStyle = 'rgba(255,255,255,.3)';
-    context.fillRect(-particle.width / 2, -particle.height / 2, particle.width, 1.5);
-    context.restore();
-  }
-}
-
-function drawConfetti() {
-  for (const piece of confetti) {
-    context.save();
-    context.translate(piece.x, piece.y);
-    context.rotate(piece.rotation);
-    context.fillStyle = piece.color;
-    context.fillRect(-piece.width / 2, -piece.height / 2, piece.width, piece.height);
-    context.fillStyle = 'rgba(255,255,255,.25)';
-    context.fillRect(-piece.width / 2, -piece.height / 2, piece.width, 1.3);
-    context.restore();
-  }
-}
-
-function render(now) {
-  context.setTransform(world.dpr, 0, 0, world.dpr, 0, 0);
-  context.clearRect(0, 0, world.width, world.height);
-
-  const shakeX = reducedMotion ? 0 : (Math.random() - 0.5) * cameraShake * 4;
-  const shakeY = reducedMotion ? 0 : (Math.random() - 0.5) * cameraShake * 2.7;
-  context.save();
-  context.translate(shakeX, shakeY + recoil * 1.8);
-  drawBackground(now);
-
-  const orderedTargets = [...targets].sort((a, b) => b.position.z - a.position.z);
-  for (const target of orderedTargets) drawTarget(target);
-  drawEffects();
-  if (confetti.length) drawConfetti();
-  context.restore();
-}
-
-function spawnIntervalForStage(stage) {
-  const base = [1.05, 0.8, 0.62, 99][stage - 1] || 1;
-  return randomBetween(base * 0.82, base * 1.18);
-}
-
-function maxTargetsForStage(stage) {
-  const desktop = [2, 3, 4, 1][stage - 1] || 2;
-  if (!touchDevice) return desktop;
-  return Math.max(1, desktop - (stage >= 3 ? 1 : 0));
-}
-
-function updateCamera(rawDelta) {
-  const normalizedX = clamp(aim.x / Math.max(1, world.width) * 2 - 1, -1, 1);
-  const normalizedY = clamp(aim.y / Math.max(1, world.height) * 2 - 1, -1, 1);
-  const targetX = normalizedX * 0.36;
-  const targetY = 2.18 + normalizedY * 0.12 - recoil * 0.03;
-  const easing = 1 - Math.exp(-rawDelta * 8);
-  camera.x = lerp(camera.x, targetX, easing);
-  camera.y = lerp(camera.y, targetY, easing);
-  recoil *= Math.exp(-rawDelta * 14);
-  cameraShake *= Math.exp(-rawDelta * 12);
-  lightning *= Math.exp(-rawDelta * 3.8);
-  stageVisual = lerp(stageVisual, state.stage, 1 - Math.exp(-rawDelta * 1.8));
+  positionReticle();
+  sound.stopAmbient();
+  sound.win();
+  renderer.pulseLevel();
+  spawnConfetti();
+  showOverlay(ui.winOverlay);
+  ui.restartButton.focus({ preventScroll: true });
 }
 
 function gameLoop(now) {
-  const rawDelta = clamp((now - lastFrame) / 1000, 0, 0.05);
+  const rawDelta = clamp((now - lastFrame) / 1000, 0, .05);
   lastFrame = now;
-  updateCamera(rawDelta);
+  const slowActive = now < slowUntil;
+  const active = state.status === 'running' && !paused && !quizActive && !quizPending && !pendingWin;
+  const delta = active ? rawDelta * (slowActive ? .52 : 1) : 0;
 
-  const flowActive = now < flowUntil;
-  const worldActive = state.status === 'running' && !paused && !quizActive && !quizPending;
-  const hitStopped = now < hitStopUntil;
-  const timeScale = flowActive ? 0.58 : 1;
-  const delta = worldActive && !hitStopped ? rawDelta * timeScale : 0;
-  animationTime += rawDelta * (worldActive ? timeScale : 0.18);
+  renderer.update(rawDelta);
+  renderer.setProgress(state.casesSolved / TARGET_CASES);
+  updatePowerup(now);
 
-  if (worldActive) {
-    if (state.stage < 4) {
-      spawnClock -= delta;
-      const activeTargets = targets.filter((target) => !target.hit).length;
-      if (spawnClock <= 0 && activeTargets < maxTargetsForStage(state.stage)) {
-        spawnTarget();
-        spawnClock = spawnIntervalForStage(state.stage);
-      }
+  updateTargets(delta, rawDelta);
+  if (active) {
+    spawnClock -= delta;
+    const level = LEVELS[state.level - 1];
+    const finale = state.casesSolved === TARGET_CASES - 1;
+    const liveTargets = targets.filter((target) => !target.hit).length;
+    const maxTargets = finale ? 1 : level.maxTargets;
+    if (spawnClock <= 0 && liveTargets < maxTargets) {
+      spawnTarget(finale ? { kind: 'major' } : {});
+      spawnClock = randomBetween(level.interval[0], level.interval[1]);
     }
-
-    updateTargets(delta, now);
-    updateEffects(rawDelta * (hitStopped ? 0.28 : 1));
-
     if (aim.hideAt && now > aim.hideAt) {
       aim.visible = false;
       aim.hideAt = 0;
-      positionCrosshair();
+      positionReticle();
     }
-  } else {
-    updateEffects(rawDelta * 0.2);
-    for (const target of targets) updateTargetMesh(target);
   }
 
-  if (confetti.length) updateConfetti(rawDelta);
-  updateFlowPower(now);
-  updateClock(Date.now());
-  updateAimLock();
-  render(now);
+  renderer.render({ targets, state });
+  updateReticleLock();
+  radarClock -= rawDelta;
+  if (radarClock <= 0) {
+    updateRadar();
+    radarClock = .09;
+  }
   requestAnimationFrame(gameLoop);
-}
-
-function debugStationaryTarget(kind = 'normal') {
-  const target = spawnTarget({
-    kind: state.stage === 4 ? 'critical' : kind,
-    direction: 1,
-    baseZ: state.stage === 4 ? 7.9 : 8.8,
-    x: 0,
-    y: 4.25,
-    baseY: 4.25,
-    speed: 0,
-    amplitudeY: 0,
-    amplitudeZ: 0,
-  });
-  if (target.kind === 'critical') {
-    finalTargetSpawned = true;
-    target.entryX = 0;
-    target.age = 1.6;
-    target.criticalEntered = true;
-  }
-  updateTargetMesh(target);
-  return target;
-}
-
-function debugHit(randomValue = 0.99, kind = 'normal') {
-  if (state.status !== 'running' || paused || quizActive || quizPending) return false;
-  const target = debugStationaryTarget(kind);
-  return resolvePlayerShot(target, target.screenCenter.x, target.screenCenter.y, randomValue);
-}
-
-async function shareResult() {
-  const rank = performanceRank(state);
-  const accuracy = Math.round(accuracyPercent(state));
-  const text = `Brukerstøttejakten: ${TARGET_CASES}/${TARGET_CASES} saker løst, ${state.points} prestisjepoeng, ${accuracy} % treffsikkerhet og rang ${rank.grade} – ${rank.title}.`;
-  const shareData = {
-    title: 'Brukerstøttejakten 3.0',
-    text,
-    url: window.location.href.split('?')[0],
-  };
-
-  try {
-    if (navigator.share) {
-      await navigator.share(shareData);
-      return;
-    }
-    await navigator.clipboard.writeText(`${text} ${shareData.url}`);
-    const span = ui.shareButton.querySelector('span');
-    const original = span.textContent;
-    span.textContent = 'Kopiert';
-    window.setTimeout(() => { span.textContent = original; }, 1400);
-  } catch (error) {
-    if (error?.name !== 'AbortError') {
-      const span = ui.shareButton.querySelector('span');
-      span.textContent = 'Kunne ikke dele';
-      window.setTimeout(() => { span.textContent = 'Del resultat'; }, 1400);
-    }
-  }
 }
 
 canvas.addEventListener('pointermove', (event) => {
   const point = pointerPosition(event);
   setAim(point.x, point.y, event.pointerType || 'mouse');
 });
-
+canvas.addEventListener('pointerleave', (event) => {
+  if (event.pointerType === 'mouse') {
+    aim.visible = false;
+    positionReticle();
+  }
+});
 canvas.addEventListener('pointerdown', (event) => {
   if (event.button !== undefined && event.button !== 0) return;
   event.preventDefault();
   const point = pointerPosition(event);
   setAim(point.x, point.y, event.pointerType || 'mouse');
-  audio.ensure();
+  sound.ensure();
   shoot(point.x, point.y);
-});
-
-canvas.addEventListener('pointerleave', () => {
-  if (aim.pointerType === 'mouse') {
-    aim.visible = false;
-    positionCrosshair();
-  }
 });
 canvas.addEventListener('contextmenu', (event) => event.preventDefault());
 
 window.addEventListener('keydown', (event) => {
   const key = event.key.toLowerCase();
-
-  if (quizActive && (key === '1' || key === '2')) {
-    event.preventDefault();
-    const option = Number(key) - 1;
-    const button = ui.quizOptions.querySelector(`[data-option-index="${option}"]`);
-    if (button && !button.disabled) answerQuiz(option);
-    return;
-  }
-
-  if (key === 'p' && state.status === 'running' && !quizActive) {
+  if (key === 'p' && state.status === 'running' && !quizActive && !quizPending && !pendingWin) {
     event.preventDefault();
     togglePause();
     return;
   }
-
-  if (key === 'f' && !event.ctrlKey && !event.metaKey) {
+  if (key === 'm') {
     event.preventDefault();
-    ui.fullscreenButton.click();
+    sound.setEnabled(!sound.enabled);
+    ui.soundButton.setAttribute('aria-pressed', String(sound.enabled));
     return;
   }
-
-  if (state.status !== 'running' || paused || quizActive || quizPending) return;
+  if (state.status !== 'running' || paused || quizActive || quizPending || pendingWin) return;
 
   const step = event.shiftKey ? 38 : 22;
   let moved = true;
@@ -2247,12 +1127,11 @@ window.addEventListener('keydown', (event) => {
     setAim(aim.x, aim.y, 'keyboard');
     return;
   }
-
   if (key === ' ' || key === 'enter') {
     event.preventDefault();
-    audio.ensure();
+    sound.ensure();
     aim.visible = true;
-    positionCrosshair();
+    positionReticle();
     shoot(aim.x, aim.y);
   }
 });
@@ -2261,61 +1140,60 @@ ui.startButton.addEventListener('click', startRound);
 ui.restartButton.addEventListener('click', startRound);
 ui.resumeButton.addEventListener('click', () => togglePause(false));
 ui.pauseButton.addEventListener('click', () => togglePause());
-ui.shareButton.addEventListener('click', shareResult);
-
 ui.soundButton.addEventListener('click', () => {
-  soundEnabled = !soundEnabled;
-  audio.setEnabled(soundEnabled);
-  ui.soundButton.setAttribute('aria-pressed', String(soundEnabled));
-  ui.soundButton.querySelector('span').textContent = soundEnabled ? 'Lyd på' : 'Lyd av';
-  ui.soundButton.querySelector('i').textContent = soundEnabled ? '◖' : '×';
-  if (soundEnabled) audio.tone(440, 0.1, { type: 'triangle', gain: 0.024 });
+  sound.setEnabled(!sound.enabled);
+  ui.soundButton.setAttribute('aria-pressed', String(sound.enabled));
+  ui.soundButton.querySelector('b').textContent = sound.enabled ? 'Lyd' : 'Lyd av';
 });
-
 ui.fullscreenButton.addEventListener('click', async () => {
   try {
-    if (!document.fullscreenElement) await board.requestFullscreen();
-    else await document.exitFullscreen();
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await ui.appShell.requestFullscreen?.({ navigationUI: 'hide' });
   } catch {
-    showMessage('Fullskjerm støttes ikke i denne nettleseren.', true);
+    showMessage('Fullskjerm kunne ikke aktiveres i denne nettleseren.', true);
   }
 });
-
 document.addEventListener('fullscreenchange', () => {
-  ui.fullscreenButton.querySelector('span').textContent = document.fullscreenElement ? 'Avslutt fullskjerm' : 'Fullskjerm';
+  ui.fullscreenButton.querySelector('b').textContent = document.fullscreenElement ? 'Avslutt' : 'Fullskjerm';
+  window.setTimeout(resize, 60);
 });
-
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden && state.status === 'running' && !paused && !quizActive) togglePause(true);
+  if (document.hidden && state.status === 'running' && !paused && !quizActive && !quizPending && !pendingWin) togglePause(true);
 });
+window.addEventListener('resize', resize, { passive: true });
+new ResizeObserver(resize).observe(board);
 
-window.addEventListener('resize', resizeCanvas, { passive: true });
-new ResizeObserver(resizeCanvas).observe(board);
+function debugHit(kind = 'normal', quizRoll = 1) {
+  if (state.status !== 'running' || paused || quizActive || quizPending || pendingWin) return false;
+  const resolvedKind = state.casesSolved === TARGET_CASES - 1 ? 'major' : kind;
+  const target = spawnTarget({ x: 0, baseY: 1.8, z: -10, direction: 1, speed: 0, kind: resolvedKind, size: resolvedKind === 'major' ? 1.35 : 1 });
+  target.y = target.baseY;
+  const point = renderer.projectWorld([target.x, target.y, target.z]) || { x: renderer.width / 2, y: renderer.height / 2 };
+  return resolveShot(target, point.x, point.y, quizRoll);
+}
 
 if (testMode) {
   window.__brukerstottejakten = {
     start: startRound,
-    hit: (randomValue = 0.99, kind = 'normal') => debugHit(randomValue, kind),
-    miss: () => shoot(world.width * 0.06, world.height * 0.16, 0.99),
+    hit: debugHit,
+    miss: () => resolveShot(null, renderer.width / 2, renderer.height / 2, 1),
+    forceQuiz: () => {
+      if (state.status !== 'running' || quizActive || quizPending || pendingWin) return false;
+      quizPending = true;
+      openQuiz();
+      return true;
+    },
     answerCorrect: () => currentQuestion ? answerQuiz(currentQuestion.correct) : false,
     answerWrong: () => currentQuestion ? answerQuiz(currentQuestion.correct === 0 ? 1 : 0) : false,
     pause: () => togglePause(true),
     resume: () => togglePause(false),
-    spawnCritical: spawnCriticalTarget,
-    getState: () => ({
-      ...state,
-      paused,
-      quizActive,
-      quizPending,
-      flowActive: performance.now() < flowUntil,
-      targetCount: targets.filter((target) => !target.hit).length,
-      finalTargetSpawned,
-    }),
+    getState: () => ({ ...state, paused, quizActive, quizPending, pendingWin, slowActive: performance.now() < slowUntil }),
+    renderer: () => renderer.info,
+    getTargets: () => targets.map((target) => ({ id: target.id, kind: target.kind, hit: target.hit, screenBounds: target.screenBounds ? { ...target.screenBounds } : null })),
   };
 }
 
-createSceneSeeds();
-resizeCanvas();
+resize();
 updateHud();
-updateClock();
+updateRadar();
 requestAnimationFrame(gameLoop);
