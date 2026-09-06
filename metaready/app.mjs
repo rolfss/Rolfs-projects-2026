@@ -40,12 +40,12 @@ function csvCell(value){let s=String(value??'');if(/^[=+\-@]/.test(s))s=`'${s}`;
 function exportBacklog(){const rows=[['Prioritet','Tiltak','Ressurser','Ansvarlig rolle','Status','Begrunnelse'],...state.backlog.map(x=>[priorityScore(x),x.title,x.assetIds.join('; '),x.ownerRole,statusName(x.status),x.reason])];download('metaready-tiltakslogg.csv',rows.map(r=>r.map(csvCell).join(',')).join('\n'),'text/csv;charset=utf-8');toast('Tiltaksloggen er eksportert.');}
 function exportPortfolioBrief(){download('metaready-ledelsesbrief.md',buildPortfolioBrief(state,relationships),'text/markdown;charset=utf-8');addAudit('Eksporterte ledelsesbrief','Informasjonsporteføljen','Porteføljestatus, styringsgap og prioriterte tiltak ble sammenstilt lokalt.');save();toast('Ledelsesbriefen er eksportert.');}
 const demoSteps={
-  1:{view:'overview',message:'1/6: Start med porteføljebildet og styringsgapene.'},
-  2:{view:'catalog',selectedAssetId:'CW-DOC-002',detailOpen:true,message:'2/6: Åpne Eldre prosedyrearkiv og se manglene med bevis.'},
-  3:{view:'readiness',readinessAssetId:'CW-DOC-002',useCaseId:'rag_assistant',message:'3/6: Vurder samme ressurs som kilde for en RAG-assistent.'},
-  4:{view:'lineage',lineageAssetId:'CW-DOC-001',message:'4/6: Følg relasjoner og se hva en endring kan påvirke.'},
-  5:{view:'backlog',message:'5/6: Se hvordan funn blir prioritert som konkrete tiltak.'},
-  6:{view:'audit',message:'6/6: Avslutt i styringssporet og se hva som er dokumentert.'}
+  1:{activeView:'overview',message:'1/6: Start med porteføljebildet og styringsgapene.'},
+  2:{activeView:'catalog',selectedAssetId:'CW-DOC-002',detailOpen:true,message:'2/6: Åpne Eldre prosedyrearkiv og se manglene med bevis.'},
+  3:{activeView:'readiness',readinessAssetId:'CW-DOC-002',useCaseId:'rag_assistant',message:'3/6: Vurder samme ressurs som kilde for en RAG-assistent.'},
+  4:{activeView:'lineage',lineageAssetId:'CW-DOC-001',message:'4/6: Følg relasjoner og se hva en endring kan påvirke.'},
+  5:{activeView:'backlog',message:'5/6: Se hvordan funn blir prioritert som konkrete tiltak.'},
+  6:{activeView:'audit',message:'6/6: Avslutt i styringssporet og se hva som er dokumentert.'}
 };
 function runDemoStep(step){const config=demoSteps[Number(step)]||demoSteps[1];const {message,...changes}=config;Object.assign(state,changes);save();render();guide.hidden=false;guide.querySelectorAll('[data-step]').forEach(button=>button.classList.toggle('is-current',Number(button.dataset.step)===Number(step)));document.querySelector('#demo-guide-status').textContent=message;toast(message);}
 function remediate(id,ruleId){if(!require('remediate'))return;const index=state.assets.findIndex(a=>a.id===id);const before=state.assets[index];state.assets[index]=applySuggestedRemediation(before,ruleId);addAudit('Brukte foreslått utbedring',before.title,`${ruleId} ble oppdatert; versjon ${before.version} → ${state.assets[index].version}.`);save();render();toast(`${ruleId} er utbedret i demoen.`);}
