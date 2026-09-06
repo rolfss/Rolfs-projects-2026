@@ -9,6 +9,11 @@ function countBy(items, key) {
   return [...counts.entries()].sort((a, b) => b[1] - a[1] || String(a[0]).localeCompare(String(b[0]), 'nb'));
 }
 
+function qualityScore(dimensions = []) {
+  if (!dimensions.length) return 0;
+  return Math.round(dimensions.reduce((sum, dimension) => sum + Number(dimension.score || 0), 0) / dimensions.length);
+}
+
 export function portfolioSnapshot(state, relationships = []) {
   const assets = state?.assets || [];
   const backlog = state?.backlog || [];
@@ -19,6 +24,7 @@ export function portfolioSnapshot(state, relationships = []) {
       asset,
       findings,
       quality,
+      qualityScore: qualityScore(quality),
       required: findings.filter((finding) => finding.severity === 'required').length,
     };
   });
@@ -26,8 +32,8 @@ export function portfolioSnapshot(state, relationships = []) {
   const ownershipGaps = assets.filter((asset) => !String(asset.owner || '').trim()).length;
   const stewardshipGaps = assets.filter((asset) => !String(asset.steward || '').trim()).length;
   const attention = rows
-    .filter((row) => row.required > 0 || Number(row.quality?.score ?? row.quality ?? 100) < 70)
-    .sort((a, b) => b.required - a.required || Number(a.quality?.score ?? a.quality ?? 0) - Number(b.quality?.score ?? b.quality ?? 0));
+    .filter((row) => row.required > 0 || row.qualityScore < 70)
+    .sort((a, b) => b.required - a.required || a.qualityScore - b.qualityScore);
   const prioritizedBacklog = [...backlog]
     .sort((a, b) => priorityScore(b) - priorityScore(a))
     .slice(0, 7);
@@ -63,8 +69,7 @@ export function buildPortfolioBrief(state, relationships = [], { generatedAt = n
   lines.push('', '## Ressurser som bør få oppmerksomhet');
   if (!snapshot.attention.length) lines.push('- Ingen tydelige sperrer i demonstrasjonsprofilen.');
   for (const row of snapshot.attention.slice(0, 8)) {
-    const score = Math.round(Number(row.quality?.score ?? row.quality ?? 0));
-    lines.push(`- **${row.asset.title}** (${row.asset.id}) — kvalitet ${score} %, ${row.required} obligatoriske mangler.`);
+    lines.push(`- **${row.asset.title}** (${row.asset.id}) — kvalitet ${row.qualityScore} %, ${row.required} obligatoriske mangler.`);
   }
 
   lines.push('', '## Prioriterte tiltak');
