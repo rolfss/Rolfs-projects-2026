@@ -17,6 +17,7 @@
 - 71 kontrollerte kildeposter fra ti offisielle kilder.
 - Lokalt, BM25-lignende søk med arkivfaglige synonymer og kravnummergjenkjenning.
 - Korte svar med kilde, seksjon, side og kravnummer.
+- Synlig kildedekning og kopierbart beslutningsnotat med svar, forbehold og originalkilder.
 - Kravbibliotek for Noark-krav, metadataelementer og veiledning til arkivforskrifta § 5.
 - Virker uten API-nøkkel, server, konto eller opplastning.
 - 15 automatiske domenetester, inkludert beslutningsnotatet.
@@ -34,8 +35,8 @@ Archive Assist leser dokumentinnhold og tilgjengelige metadata, foreslår en red
 - Valgfri lokal nettleser-AI der dette støttes, uten API-nøkkel eller dokumentopplasting.
 - Menneskelig godkjenning eller redigering før tittelen regnes som kontrollert.
 - SHA-256, kvalitetskontroll og eksport til JSON, CSV og ZIP.
-- Egen kontrollrapport med overføringsstatus, tittelgjennomgang, mangler og duplikater.
-- 27 automatiske tester av tittelregler, prompt, innholdsuttrekk, metadata og ZIP.
+- Egen kontrollrapport med overføringsstatus, tittelgjennomgang, mangler, duplikater og sporbarhet.
+- 30 automatiske tester av tittelregler, prompt, innholdsuttrekk, metadata, ZIP og kontrollrapport.
 
 ## MetaReady
 
