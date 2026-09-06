@@ -24,7 +24,74 @@ function installVisualSafetyStyles() {
   document.head.append(style);
 }
 
-class GrooveEngine {
+function midi(note) {
+  return 440 * (2 ** ((note - 69) / 12));
+}
+
+const SOUNDTRACK = [
+  {
+    title: 'Queue Funk', genre: 'groove', bpm: 112, root: 40,
+    bass: [0, null, 0, 3, null, 7, 5, null, 0, null, 10, 7, null, 5, 3, 7],
+    chords: [[52, 55, 59], [50, 55, 57], [47, 52, 55], [50, 54, 57]],
+    stabs: [2, 5, 7, 10, 13, 15], lead: [12, null, 10, 7, null, 5, 7, null],
+  },
+  {
+    title: 'SLA Overdrive', genre: 'trance', bpm: 148, root: 42,
+    bass: [0, 0, null, 0, 7, 0, null, 0, 10, 0, null, 7, 5, 0, 7, 10],
+    chords: [[54, 57, 61], [50, 54, 57], [57, 61, 64], [52, 57, 61]],
+    arp: [0, 7, 12, 7, 3, 10, 15, 10],
+  },
+  {
+    title: 'Midnight Ticket', genre: 'jazz', bpm: 118, root: 34,
+    bass: [0, 4, 7, 9, 10, 9, 7, 4, 5, 9, 12, 10, 7, 5, 4, 2],
+    chords: [[46, 50, 53, 57], [51, 55, 58, 62], [43, 46, 50, 53], [48, 52, 55, 58]],
+    melody: [14, null, 12, 9, 7, null, 5, 7, 10, null, 9, 7, 5, 4, null, 2],
+  },
+  {
+    title: 'Patch Tuesday Strut', genre: 'groove', bpm: 116, root: 38,
+    bass: [0, null, 7, 0, 3, null, 5, 7, 10, null, 7, 5, 3, null, 0, 7],
+    chords: [[50, 53, 57], [55, 59, 62], [48, 53, 57], [53, 57, 60]],
+    stabs: [1, 4, 6, 9, 11, 14], lead: [7, 10, null, 12, 10, 7, null, 5],
+  },
+  {
+    title: 'Duplicate Reactor', genre: 'trance', bpm: 150, root: 43,
+    bass: [0, 0, 7, 0, null, 0, 10, 0, 12, 0, 7, 0, 5, 0, 3, 0],
+    chords: [[55, 58, 62], [51, 55, 58], [58, 62, 65], [53, 58, 62]],
+    arp: [0, 12, 7, 15, 10, 7, 3, 10],
+  },
+  {
+    title: 'Legacy Lounge', genre: 'jazz', bpm: 122, root: 36,
+    bass: [0, 3, 7, 10, 5, 9, 12, 9, 7, 10, 14, 12, 5, 4, 2, 7],
+    chords: [[48, 51, 55, 58], [53, 57, 60, 63], [55, 58, 62, 65], [50, 53, 57, 60]],
+    melody: [12, 15, null, 14, 10, 7, null, 9, 12, null, 10, 9, 7, null, 5, 3],
+  },
+  {
+    title: 'Escalation Station', genre: 'groove', bpm: 120, root: 41,
+    bass: [0, 0, null, 5, 7, null, 10, 7, 0, null, 3, 5, 7, 10, null, 12],
+    chords: [[53, 57, 60], [58, 62, 65], [50, 53, 57], [55, 60, 62]],
+    stabs: [2, 3, 6, 8, 11, 13, 15], lead: [12, 10, 7, null, 5, 7, 10, 12],
+  },
+  {
+    title: 'Priority Hyperdrive', genre: 'trance', bpm: 152, root: 45,
+    bass: [0, 0, null, 0, 3, 0, 7, 0, 10, 0, 12, 0, 7, 0, 5, 0],
+    chords: [[57, 60, 64], [53, 57, 60], [60, 64, 67], [55, 60, 64]],
+    arp: [0, 7, 12, 15, 12, 10, 7, 3],
+  },
+  {
+    title: 'Night Shift Blue', genre: 'jazz', bpm: 124, root: 39,
+    bass: [0, 4, 7, 11, 5, 8, 10, 12, 7, 10, 14, 12, 5, 3, 2, 7],
+    chords: [[51, 55, 58, 62], [56, 60, 63, 67], [58, 62, 65, 68], [53, 56, 60, 63]],
+    melody: [14, 12, null, 10, 7, 8, null, 11, 14, null, 12, 10, 8, 7, 5, null],
+  },
+  {
+    title: 'Main Incident Boogie', genre: 'groove', bpm: 124, root: 40,
+    bass: [0, 0, 3, 0, 7, 5, 10, 7, 12, 10, 7, 5, 3, 5, 7, 12],
+    chords: [[52, 55, 59], [57, 60, 64], [47, 52, 55], [50, 55, 59]],
+    stabs: [1, 2, 5, 7, 9, 10, 13, 15], lead: [12, 15, 17, 15, 12, 10, 7, 10], finale: true,
+  },
+];
+
+class SoundtrackEngine {
   constructor() {
     this.context = null;
     this.master = null;
@@ -32,7 +99,9 @@ class GrooveEngine {
     this.step = 0;
     this.nextTime = 0;
     this.started = false;
-    this.stepDuration = 60 / 112 / 4;
+    this.level = 1;
+    this.song = SOUNDTRACK[0];
+    this.stepDuration = 60 / this.song.bpm / 4;
     this.noiseBuffer = null;
     this.bindControls();
   }
@@ -63,6 +132,16 @@ class GrooveEngine {
     document.addEventListener('visibilitychange', () => this.sync());
   }
 
+  setLevel(level) {
+    const nextLevel = Math.max(1, Math.min(SOUNDTRACK.length, Math.round(Number(level) || 1)));
+    if (nextLevel === this.level) return;
+    this.level = nextLevel;
+    this.song = SOUNDTRACK[nextLevel - 1];
+    this.stepDuration = 60 / this.song.bpm / 4;
+    this.step = 0;
+    if (this.context && this.timer) this.nextTime = this.context.currentTime + 0.055;
+  }
+
   ensure() {
     if (this.context) {
       if (this.context.state === 'suspended') this.context.resume().catch(() => {});
@@ -90,7 +169,7 @@ class GrooveEngine {
   createNoiseBuffer() {
     const context = this.context;
     if (!context) return null;
-    const length = Math.floor(context.sampleRate * 0.25);
+    const length = Math.floor(context.sampleRate * 0.28);
     const buffer = context.createBuffer(1, length, context.sampleRate);
     const data = buffer.getChannelData(0);
     for (let index = 0; index < length; index += 1) data[index] = Math.random() * 2 - 1;
@@ -142,7 +221,7 @@ class GrooveEngine {
     while (this.nextTime < context.currentTime + 0.12) {
       this.scheduleStep(this.step, this.nextTime);
       this.nextTime += this.stepDuration;
-      this.step = (this.step + 1) % 16;
+      this.step = (this.step + 1) % 32;
     }
   }
 
@@ -152,7 +231,9 @@ class GrooveEngine {
     gainNode.gain.exponentialRampToValueAtTime(0.0001, time + duration);
   }
 
-  oscillator(frequency, time, duration, { type = 'sine', gain = 0.2, endFrequency = null, filterFrequency = null, pan = 0 } = {}) {
+  oscillator(frequency, time, duration, {
+    type = 'sine', gain = 0.2, endFrequency = null, filterFrequency = null, pan = 0, detune = 0,
+  } = {}) {
     const context = this.context;
     if (!context || !this.master) return;
     const oscillator = context.createOscillator();
@@ -161,6 +242,7 @@ class GrooveEngine {
     const panner = typeof context.createStereoPanner === 'function' ? context.createStereoPanner() : null;
     oscillator.type = type;
     oscillator.frequency.setValueAtTime(frequency, time);
+    oscillator.detune.setValueAtTime(detune, time);
     if (endFrequency) oscillator.frequency.exponentialRampToValueAtTime(endFrequency, time + duration);
     if (filter) {
       filter.type = 'lowpass';
@@ -207,53 +289,139 @@ class GrooveEngine {
     this.oscillator(62, time, 0.11, { type: 'triangle', gain: 0.16 * accent, endFrequency: 42 });
   }
 
-  snare(time) {
-    this.noise(time, 0.12, { gain: 0.32, highpass: 1200, pan: 0.05 });
-    this.oscillator(185, time, 0.09, { type: 'triangle', gain: 0.16, endFrequency: 125 });
+  tranceKick(time, accent = 1) {
+    this.oscillator(168, time, 0.18, { type: 'sine', gain: 0.82 * accent, endFrequency: 44 });
+    this.oscillator(54, time, 0.14, { type: 'triangle', gain: 0.2 * accent, endFrequency: 35 });
   }
 
-  hat(time, open = false, pan = 0) {
-    this.noise(time, open ? 0.11 : 0.035, { gain: open ? 0.085 : 0.055, highpass: 6500, pan });
+  snare(time, jazz = false) {
+    this.noise(time, jazz ? 0.085 : 0.12, { gain: jazz ? 0.19 : 0.32, highpass: jazz ? 1900 : 1200, pan: 0.05 });
+    if (!jazz) this.oscillator(185, time, 0.09, { type: 'triangle', gain: 0.16, endFrequency: 125 });
   }
 
-  bass(frequency, time, accent = 1) {
+  hat(time, open = false, pan = 0, jazz = false) {
+    this.noise(time, open ? (jazz ? 0.16 : 0.11) : 0.035, {
+      gain: jazz ? (open ? 0.06 : 0.035) : (open ? 0.085 : 0.055),
+      highpass: jazz ? 5200 : 6500,
+      pan,
+    });
+  }
+
+  grooveBass(frequency, time, accent = 1) {
     this.oscillator(frequency, time, 0.105, { type: 'sawtooth', gain: 0.18 * accent, filterFrequency: 520 });
     this.oscillator(frequency / 2, time, 0.13, { type: 'sine', gain: 0.1 * accent });
   }
 
-  clav(time, variant = 0) {
-    const chords = [
-      [164.81, 196, 246.94],
-      [146.83, 196, 220],
-      [123.47, 164.81, 196],
-      [146.83, 185, 220],
-    ];
-    const chord = chords[variant % chords.length];
-    chord.forEach((frequency, index) => {
-      this.oscillator(frequency * 2, time + index * 0.002, 0.075, {
-        type: index === 1 ? 'triangle' : 'square',
-        gain: 0.035,
-        filterFrequency: 1800,
-        pan: index === 0 ? -0.3 : index === 2 ? 0.3 : 0,
+  tranceBass(frequency, time, accent = 1) {
+    this.oscillator(frequency, time, 0.09, { type: 'sawtooth', gain: 0.15 * accent, filterFrequency: 760 });
+    this.oscillator(frequency, time, 0.085, { type: 'square', gain: 0.055 * accent, filterFrequency: 620, detune: 7 });
+  }
+
+  jazzBass(frequency, time, accent = 1) {
+    this.oscillator(frequency, time, 0.19, { type: 'triangle', gain: 0.16 * accent, filterFrequency: 430 });
+    this.oscillator(frequency / 2, time, 0.17, { type: 'sine', gain: 0.075 * accent });
+  }
+
+  chord(notes, time, { duration = 0.08, gain = 0.034, type = 'square', filterFrequency = 1800, spread = 0.3 } = {}) {
+    notes.forEach((note, index) => {
+      const center = (notes.length - 1) / 2;
+      this.oscillator(midi(note), time + index * 0.002, duration, {
+        type: index % 2 ? 'triangle' : type,
+        gain,
+        filterFrequency,
+        pan: (index - center) * spread,
       });
     });
   }
 
-  scheduleStep(step, time) {
-    const bassLine = [82.41, null, 82.41, 98, null, 123.47, 110, null, 82.41, null, 146.83, 123.47, null, 110, 98, 123.47];
-    if ([0, 4, 8, 12].includes(step)) this.kick(time, step === 0 ? 1.08 : 0.92);
-    if (step === 10) this.kick(time, 0.5);
-    if (step === 4 || step === 12) this.snare(time);
-    if (step % 2 === 0) this.hat(time, false, step % 4 === 0 ? -0.18 : 0.18);
-    if (step === 7 || step === 15) this.hat(time, true, 0.28);
+  tranceLead(frequency, time, accent = 1) {
+    this.oscillator(frequency, time, 0.11, { type: 'sawtooth', gain: 0.065 * accent, filterFrequency: 2100, pan: -0.16, detune: -8 });
+    this.oscillator(frequency, time, 0.11, { type: 'sawtooth', gain: 0.065 * accent, filterFrequency: 2100, pan: 0.16, detune: 8 });
+    this.oscillator(frequency * 2, time, 0.08, { type: 'triangle', gain: 0.025 * accent, filterFrequency: 2600 });
+  }
 
-    const bassNote = bassLine[step];
-    if (bassNote) this.bass(bassNote, time + (step === 3 || step === 11 ? 0.018 : 0), step === 0 || step === 10 ? 1.12 : 0.9);
+  jazzLead(frequency, time, accent = 1) {
+    this.oscillator(frequency, time, 0.16, { type: 'triangle', gain: 0.07 * accent, filterFrequency: 1450, pan: 0.08 });
+    this.oscillator(frequency / 2, time, 0.12, { type: 'sine', gain: 0.025 * accent, filterFrequency: 1100, pan: -0.08 });
+  }
 
-    if ([2, 5, 7, 10, 13, 15].includes(step)) {
-      const chordVariant = step < 5 ? 0 : step < 9 ? 1 : step < 13 ? 2 : 3;
-      this.clav(time + 0.012, chordVariant);
+  scheduleGroove(step, time, song) {
+    const phraseStep = step % 16;
+    const bar = Math.floor(step / 16);
+    if ([0, 4, 8, 12].includes(phraseStep)) this.kick(time, phraseStep === 0 ? 1.08 : 0.92);
+    if (phraseStep === 10 && (bar || song.finale)) this.kick(time, 0.56);
+    if (phraseStep === 4 || phraseStep === 12) this.snare(time);
+    if (phraseStep % 2 === 0) this.hat(time, false, phraseStep % 4 === 0 ? -0.18 : 0.18);
+    if (phraseStep === 7 || phraseStep === 15) this.hat(time, true, 0.28);
+
+    const interval = song.bass[phraseStep];
+    if (interval != null) {
+      const variation = bar && phraseStep === 14 ? 12 : interval;
+      this.grooveBass(midi(song.root + variation), time + ([3, 11].includes(phraseStep) ? 0.018 : 0), phraseStep === 0 ? 1.12 : 0.9);
     }
+
+    if (song.stabs.includes(phraseStep)) {
+      const chordIndex = Math.floor(phraseStep / 4) % song.chords.length;
+      this.chord(song.chords[chordIndex], time + 0.012, { duration: 0.075, gain: song.finale ? 0.04 : 0.034 });
+    }
+
+    if (bar && phraseStep % 2 === 0) {
+      const leadInterval = song.lead[(phraseStep / 2) % song.lead.length];
+      if (leadInterval != null) this.oscillator(midi(song.root + 12 + leadInterval), time + 0.018, 0.09, {
+        type: 'triangle', gain: song.finale ? 0.045 : 0.03, filterFrequency: 1900, pan: phraseStep % 4 ? 0.22 : -0.22,
+      });
+    }
+  }
+
+  scheduleTrance(step, time, song) {
+    const phraseStep = step % 16;
+    const bar = Math.floor(step / 16);
+    if ([0, 4, 8, 12].includes(phraseStep)) this.tranceKick(time, phraseStep === 0 ? 1.05 : 0.96);
+    if (phraseStep === 4 || phraseStep === 12) this.snare(time);
+    if (phraseStep % 2 === 0) this.hat(time, false, phraseStep % 4 ? 0.2 : -0.2);
+    if ([2, 6, 10, 14].includes(phraseStep)) this.hat(time, true, 0.25);
+
+    const interval = song.bass[phraseStep];
+    if (interval != null && phraseStep % 4 !== 0) this.tranceBass(midi(song.root + interval), time + 0.006, 0.95);
+
+    const chordIndex = Math.floor(phraseStep / 4) % song.chords.length;
+    if (phraseStep % 4 === 2) this.chord(song.chords[chordIndex], time, { duration: 0.12, gain: 0.024, type: 'sawtooth', filterFrequency: 1500, spread: 0.22 });
+
+    const arpInterval = song.arp[phraseStep % song.arp.length];
+    if (phraseStep % 2 === (bar ? 1 : 0)) {
+      this.tranceLead(midi(song.root + 12 + arpInterval), time + 0.01, bar ? 1.08 : 0.9);
+    }
+  }
+
+  scheduleJazz(step, time, song) {
+    const phraseStep = step % 16;
+    const bar = Math.floor(step / 16);
+    const swing = phraseStep % 2 ? this.stepDuration * 0.22 : 0;
+    const t = time + swing;
+
+    if (phraseStep === 0 || phraseStep === 8) this.kick(t, 0.46);
+    if (phraseStep === 4 || phraseStep === 12) this.snare(t, true);
+    if ([0, 3, 6, 8, 11, 14].includes(phraseStep)) this.hat(t, phraseStep === 6 || phraseStep === 14, phraseStep % 2 ? 0.16 : -0.16, true);
+
+    const interval = song.bass[phraseStep];
+    if (interval != null && phraseStep % 2 === 0) this.jazzBass(midi(song.root + interval), t, phraseStep === 0 ? 1.06 : 0.9);
+
+    if ([0, 6, 10, 14].includes(phraseStep)) {
+      const chordIndex = Math.floor((phraseStep + bar * 2) / 4) % song.chords.length;
+      this.chord(song.chords[chordIndex], t + 0.018, { duration: 0.21, gain: 0.026, type: 'triangle', filterFrequency: 1300, spread: 0.24 });
+    }
+
+    const melodyInterval = song.melody[phraseStep];
+    if (melodyInterval != null && (bar || phraseStep % 4 !== 0)) {
+      this.jazzLead(midi(song.root + 12 + melodyInterval), t + 0.02, bar ? 1.05 : 0.88);
+    }
+  }
+
+  scheduleStep(step, time) {
+    const song = this.song;
+    if (song.genre === 'trance') this.scheduleTrance(step, time, song);
+    else if (song.genre === 'jazz') this.scheduleJazz(step, time, song);
+    else this.scheduleGroove(step, time, song);
   }
 }
 
@@ -263,7 +431,7 @@ export class SceneRenderer extends BaseSceneRenderer {
     installVisualSafetyStyles();
     this.levelPulse = 0;
     this.impactFlash = 0;
-    this.groove = new GrooveEngine();
+    this.soundtrack = new SoundtrackEngine();
   }
 
   pulseLevel() {
@@ -317,6 +485,7 @@ export class SceneRenderer extends BaseSceneRenderer {
   render(frame = {}) {
     this.levelPulse = 0;
     this.impactFlash = 0;
+    this.soundtrack.setLevel(frame.level || 1);
     for (const target of frame.targets || []) {
       target.flash = 0;
       if (!target.__doubleSpeedApplied && Number.isFinite(target.speed)) {
