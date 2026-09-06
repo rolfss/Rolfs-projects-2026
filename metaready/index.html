@@ -31,6 +31,8 @@
             <option value="admin">Administrator</option>
           </select>
         </label>
+        <button class="button button-quiet" type="button" data-action="guided-demo">3-minutters demo</button>
+        <button class="button button-quiet" type="button" data-action="portfolio-brief">Ledelsesbrief</button>
         <button class="button button-quiet" type="button" data-action="reset-demo">Nullstill demo</button>
       </div>
     </header>
@@ -94,6 +96,19 @@
       </div>
     </form>
   </dialog>
+
+  <section id="demo-guide" class="demo-guide" hidden aria-labelledby="demo-guide-title">
+    <div class="demo-guide-head"><div><p class="eyebrow">Styrt demonstrasjon</p><h2 id="demo-guide-title">MetaReady på tre minutter</h2></div><button class="icon-button" type="button" data-action="close-guide" aria-label="Lukk demoguiden">×</button></div>
+    <p id="demo-guide-status">Velg et trinn for å se hvordan funn går fra portefølje til styringsspor.</p>
+    <ol>
+      <li><button type="button" data-action="demo-step" data-step="1"><b>01</b><span>Porteføljebilde</span></button></li>
+      <li><button type="button" data-action="demo-step" data-step="2"><b>02</b><span>Dokumenter mangler</span></button></li>
+      <li><button type="button" data-action="demo-step" data-step="3"><b>03</b><span>AI-beredskap</span></button></li>
+      <li><button type="button" data-action="demo-step" data-step="4"><b>04</b><span>Konsekvens</span></button></li>
+      <li><button type="button" data-action="demo-step" data-step="5"><b>05</b><span>Prioriter tiltak</span></button></li>
+      <li><button type="button" data-action="demo-step" data-step="6"><b>06</b><span>Styringsspor</span></button></li>
+    </ol>
+  </section>
 
   <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
   <script type="module" src="./app.mjs"></script>

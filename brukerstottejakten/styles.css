@@ -1257,3 +1257,17 @@ kbd { padding: 4px 6px; border: 1px solid rgba(219,255,244,.23); border-bottom-w
   .gun-capacitor i,
   .gun-energy-line { animation: none; }
 }
+
+/* Visuell sikkerhet – ingen blinkende spillfeedback */
+.muzzle-flash { display: none !important; }
+.brand-mark::after { animation: none !important; left: 8px; opacity: .08; }
+.radar-sweep { animation: none !important; opacity: .12; transform: rotate(-24deg); }
+.combo-cell.is-hot { animation: none !important; transform: none !important; }
+.boss-banner.is-visible { animation: none !important; opacity: 1; filter: none; transform: translate(-50%, -50%) scale(1); }
+.gun-core i { animation-duration: 16s !important; }
+@media (max-width: 720px) {
+  #musicButton b, #soundButton b { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}

@@ -14,6 +14,7 @@ import {
   searchRecords,
   sourceUrl,
 } from "./engine.mjs";
+import { buildDecisionNote } from "./decision-note.mjs";
 
 const HISTORY_KEY = "noark-assistent-history-v1";
 const MAX_HISTORY = 8;
@@ -120,8 +121,8 @@ function assistantMessage(answer) {
   answerHeader.append(
     element("span", {
       className: `confidence confidence-${answer.confidence.level}`,
-      text: answer.confidence.label,
-      attrs: { title: `Beregnet dekning: ${answer.confidence.score} av 100` },
+      text: `${answer.confidence.label} · ${answer.confidence.score}/100`,
+      attrs: { title: "Kildedekning beregnet fra treffstyrke og direkte termtreff. Ikke en sannsynlighet for at svaret er juridisk riktig." },
     }),
     element("span", { className: "answer-mode", text: "Lokal kildesyntese" }),
   );
@@ -152,6 +153,7 @@ function assistantMessage(answer) {
   const actions = element("div", { className: "answer-actions" });
   actions.append(
     element("button", { className: "quiet-button", text: "Kopier svar", attrs: { type: "button", "data-action": "copy-answer" } }),
+    element("button", { className: "quiet-button", text: "Kopier beslutningsnotat", attrs: { type: "button", "data-action": "copy-decision-note" } }),
     element("button", { className: "quiet-button", text: "Kopier delingslenke", attrs: { type: "button", "data-action": "copy-link" } }),
   );
   content.append(actions);
@@ -441,6 +443,9 @@ function bindEvents() {
     const action = event.target.closest("[data-action]");
     if (action?.dataset.action === "copy-answer" && state.latestAnswer) {
       copyText(plainTextAnswer(state.latestAnswer), "Svaret er kopiert");
+    }
+    if (action?.dataset.action === "copy-decision-note" && state.latestAnswer) {
+      copyText(buildDecisionNote(state.latestAnswer), "Beslutningsnotatet er kopiert");
     }
     if (action?.dataset.action === "copy-link" && state.latestAnswer) {
       copyText(shareUrl(state.latestAnswer.query), "Delingslenken er kopiert");

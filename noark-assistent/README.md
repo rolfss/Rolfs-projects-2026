@@ -9,6 +9,7 @@ Appen er laget for arkivarer, dokumentasjonsforvaltere, systemeiere, løsningsar
 - Henter relevante kildeposter med lokal, BM25-lignende rangering.
 - Gjenkjenner sentrale spørsmål om Noark-status, systemvalg, integrasjon, journalføring, uttrekk, metadata og arkivforskrifta § 5.
 - Setter sammen korte svar bare fra forhåndskontrollerte kildeoppsummeringer.
+- Viser eksplisitt kildedekning og kan kopiere et beslutningsnotat med svar, forbehold og originalkilder.
 - Viser kilde, seksjon, side og kravnummer der dette finnes.
 - Har et filtrerbart kravbibliotek med kravtypene O, B, V og samleposter med blandede kravtyper.
 - Lagrer bare nylige spørsmål lokalt i nettleseren.

@@ -85,6 +85,7 @@
         <article><span>Gjennomsnittlig utfylling</span><strong id="average-score">0 %</strong></article>
         <article><span>Punkter til kontroll</span><strong id="warning-count">0</strong></article>
         <article><span>Mulige duplikatgrupper</span><strong id="duplicate-count">0</strong></article>
+        <article class="control-summary"><span>Overføringsstatus</span><strong id="control-status">Tom arbeidsflate</strong><small id="control-status-detail">Legg til filer for kontroll</small></article>
       </div>
 
       <section id="ai-banner" class="ai-banner" aria-live="polite">
@@ -178,6 +179,7 @@
         <div class="export-actions">
           <button id="download-json" class="button button-secondary" type="button">JSON-manifest</button>
           <button id="download-csv" class="button button-secondary" type="button">CSV-manifest</button>
+          <button id="download-report" class="button button-secondary" type="button">Kontrollrapport</button>
           <button id="download-zip" class="button button-primary" type="button">Komplett ZIP-pakke</button>
         </div>
       </section>
@@ -187,6 +189,7 @@
       <article><span>01</span><h2>Innhold før filnavn</h2><p>Saksdokumenttittelen bygges først fra emnefelt, overskrift, dokumenttype og meningsbærende innhold. Filnavnet brukes bare som reserve.</p></article>
       <article><span>02</span><h2>Menneskelig kontroll</h2><p>Forslag, metode, begrunnelse og sikkerhet vises tydelig. Saksbehandler eller arkivar godkjenner eller redigerer tittelen før videre bruk.</p></article>
       <article><span>03</span><h2>Flyttbart resultat</h2><p>Kontrollstatus og forslagsgrunnlag følger med i JSON, CSV og sidecar-metadata sammen med resten av arkivkonteksten.</p></article>
+      <article><span>04</span><h2>Kontrollspor</h2><p>En egen kontrollrapport oppsummerer tittelgjennomgang, obligatoriske mangler, duplikater og SHA-256 før videre overføring.</p></article>
     </section>
   </main>
 

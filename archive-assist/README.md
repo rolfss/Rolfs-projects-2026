@@ -36,6 +36,7 @@ Se den versjonerte [prompten for saksdokumenttittel](./TITTELPROMPT.md).
 - SHA-256 og duplikatindikasjon.
 - Normaliserte filnavn basert på kontrollert saksdokumenttittel.
 - Eksport av JSON-manifest, CSV-manifest og ZIP-pakke med dokumenter og JSON-sidecars.
+- Kontrollrapport i Markdown med overføringsstatus, tittelgjennomgang, obligatoriske mangler, duplikater og SHA-256.
 - Tre syntetiske eksempelfiler for rask testing.
 - 27 automatiske tester av tittelregler, promptformat, innholdsuttrekk, metadata og ZIP-bygger.
 

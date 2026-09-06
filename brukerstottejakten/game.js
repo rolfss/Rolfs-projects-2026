@@ -42,6 +42,7 @@ const ui = {
   dutyStatus: document.querySelector('#dutyStatus'),
   graphicsText: document.querySelector('#graphicsText'),
   soundButton: document.querySelector('#soundButton'),
+  musicButton: document.querySelector('#musicButton'),
   fullscreenButton: document.querySelector('#fullscreenButton'),
   pauseButton: document.querySelector('#pauseButton'),
   dailyName: document.querySelector('#dailyName'),
@@ -243,6 +244,7 @@ function createDailyChallenge() {
 class SoundEngine {
   constructor() {
     this.enabled = true;
+    this.musicEnabled = true;
     this.context = null;
     this.master = null;
     this.compressor = null;
@@ -319,11 +321,11 @@ class SoundEngine {
   }
 
   startAmbient() {
-    if (!this.enabled || this.ambientTimer) return;
+    if (!this.enabled || !this.musicEnabled || this.ambientTimer) return;
     this.ensure();
     const notes = [82.41, 110, 123.47, 146.83, 110, 138.59, 164.81, 123.47];
     const tick = () => {
-      if (!this.enabled || state.status !== 'running' || paused || quizActive || intermissionActive) return;
+      if (!this.enabled || !this.musicEnabled || state.status !== 'running' || paused || quizActive || intermissionActive) return;
       const note = notes[this.ambientStep % notes.length];
       this.tone(note, .58, { type: 'triangle', gain: .0048 });
       if (this.ambientStep % 2 === 0) this.tone(note * 2, .22, { type: 'sine', gain: .0028, delay: .08 });
@@ -336,6 +338,12 @@ class SoundEngine {
   stopAmbient() {
     if (this.ambientTimer) window.clearInterval(this.ambientTimer);
     this.ambientTimer = 0;
+  }
+
+  setMusicEnabled(enabled) {
+    this.musicEnabled = Boolean(enabled);
+    if (!this.musicEnabled) this.stopAmbient();
+    else if (this.enabled) this.startAmbient();
   }
 
   setEnabled(enabled) {
@@ -1273,7 +1281,7 @@ function finishRound() {
 
 function resultShareText() {
   if (!finalSnapshot) return '';
-  return `Brukerstøttejakten 4.0 — ${finalSnapshot.dailyCode}\n${finalSnapshot.grade.grade} · ${finalSnapshot.grade.title}\n${state.score.toLocaleString('nb-NO')} poeng · ${formatTime(finalSnapshot.activeElapsedMs)} · ${finalSnapshot.accuracy} % treff\nBeste serie: ${state.bestStreak} · Noark 5: ${state.quizCorrect}/${state.quizAnswered}\n${window.location.origin}${window.location.pathname}`;
+  return `Brukerstøttejakten 4.1 — ${finalSnapshot.dailyCode}\n${finalSnapshot.grade.grade} · ${finalSnapshot.grade.title}\n${state.score.toLocaleString('nb-NO')} poeng · ${formatTime(finalSnapshot.activeElapsedMs)} · ${finalSnapshot.accuracy} % treff\nBeste serie: ${state.bestStreak} · Noark 5: ${state.quizCorrect}/${state.quizAnswered}\n${window.location.origin}${window.location.pathname}`;
 }
 
 async function shareResult() {
@@ -1281,7 +1289,7 @@ async function shareResult() {
   if (!text) return;
   try {
     if (navigator.share) {
-      await navigator.share({ title: 'Brukerstøttejakten 4.0', text });
+      await navigator.share({ title: 'Brukerstøttejakten 4.1', text });
       ui.shareStatus.textContent = 'Resultatet er delt.';
       return;
     }
@@ -1411,6 +1419,11 @@ ui.soundButton.addEventListener('click', () => {
   sound.setEnabled(!sound.enabled);
   ui.soundButton.setAttribute('aria-pressed', String(sound.enabled));
   ui.soundButton.querySelector('b').textContent = sound.enabled ? 'Lyd' : 'Lyd av';
+});
+ui.musicButton.addEventListener('click', () => {
+  sound.setMusicEnabled(!sound.musicEnabled);
+  ui.musicButton.setAttribute('aria-pressed', String(sound.musicEnabled));
+  ui.musicButton.querySelector('b').textContent = sound.musicEnabled ? 'Musikk' : 'Musikk av';
 });
 ui.fullscreenButton.addEventListener('click', async () => {
   try {
