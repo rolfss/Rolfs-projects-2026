@@ -3,6 +3,8 @@ import {
   FLOW_MAX,
   LEVELS,
   LEVEL_COUNT,
+  LUCKY_CASE_SCORE,
+  LUCKY_CASE_RELIEF,
   QUEUE_MAX,
   TARGET_CASES,
   UPGRADE_DEFINITIONS,
@@ -14,6 +16,7 @@ import {
   careerXpForRun,
   clamp,
   createGameState,
+  isLuckyCase,
   levelObjectiveComplete,
   levelProgressPercent,
   levelStars,
@@ -800,6 +803,7 @@ function spawnTarget(overrides = {}) {
     id: targetId,
     ticket: 4700 + targetId,
     kind,
+    lucky: overrides.lucky ?? isLuckyCase(kind),
     direction,
     x: overrides.x ?? (direction > 0 ? -xLimit - width : xLimit + width),
     y: overrides.y ?? randomBetween(1.2, 5.2),
@@ -944,6 +948,7 @@ function handleTargetHit(target, x, y, quizRoll = Math.random()) {
     scoreScale,
     flowScale: daily.flowScale || 1,
     shieldBroken,
+    lucky: target.lucky,
   });
   state = result.state;
 
@@ -955,7 +960,9 @@ function handleTargetHit(target, x, y, quizRoll = Math.random()) {
     target.resolving = true;
     target.resolveAge = 0;
     showScorePop(`+${result.events.scoreGain.toLocaleString('nb-NO')}`, x, y);
-    showMessage(state.status === 'won' ? 'Hovedhendelsen er lukket!' : POSITIVE_MESSAGES[Math.floor(Math.random() * POSITIVE_MESSAGES.length)]);
+    showMessage(state.status === 'won' ? 'Hovedhendelsen er lukket!' : result.events.luckyResolved
+      ? `Lykkesak! +${LUCKY_CASE_SCORE} bonuspoeng og −${LUCKY_CASE_RELIEF} køtrykk.`
+      : POSITIVE_MESSAGES[Math.floor(Math.random() * POSITIVE_MESSAGES.length)]);
   } else {
     showScorePop(`SKJERMING ${target.health}/${target.maxHealth}`, x, y);
     showMessage(target.kind === 'major' ? `Hovedhendelsen: ${target.health} skjermingslag gjenstår.` : 'Skjermingen er svekket. Treff igjen.');
@@ -1341,9 +1348,10 @@ function gameLoop(now) {
   requestAnimationFrame(gameLoop);
 }
 
-function debugTarget(kind = 'normal') {
+function debugTarget(kind = 'normal', lucky = false) {
   const target = spawnTarget({
     kind,
+    lucky,
     direction: 1,
     x: 0,
     y: 2.6,
@@ -1358,9 +1366,9 @@ function debugTarget(kind = 'normal') {
   return null;
 }
 
-function debugResolve(kind = 'normal', quizRoll = 1) {
+function debugResolve(kind = 'normal', quizRoll = 1, lucky = false) {
   if (state.status !== 'running' || paused || quizActive || quizPending || intermissionActive || intermissionPending || pendingWin) return false;
-  const created = debugTarget(kind);
+  const created = debugTarget(kind, lucky);
   if (!created) return false;
   while (!created.target.resolving && created.target.health > 0) handleTargetHit(created.target, created.center.x, created.center.y, quizRoll);
   return true;
@@ -1442,6 +1450,7 @@ if (testMode) {
   window.__brukerstottejakten = {
     start: startRound,
     resolve: (kind = 'normal') => debugResolve(kind, 1),
+    resolveLucky: (kind = 'normal') => debugResolve(kind, 1, true),
     resolveWithQuiz: (kind = 'normal') => debugResolve(kind, 0),
     miss: () => shoot(4, 4),
     answerCorrect: () => currentQuestion ? answerQuiz(currentQuestion.correct) : false,

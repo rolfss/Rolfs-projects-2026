@@ -12,6 +12,7 @@ import {
   careerRank,
   careerXpForRun,
   createGameState,
+  isLuckyCase,
   levelForCases,
   levelObjectiveComplete,
   levelProgressPercent,
@@ -26,6 +27,51 @@ import {
   startGame,
   upgradeModifiers,
 } from '../game-core.js';
+
+test('lykkesaker har tolv prosent sjanse, aldri på duplikater eller boss', () => {
+  for (const kind of ['normal', 'priority', 'legacy', 'shield', 'critical']) {
+    assert.equal(isLuckyCase(kind, 0), true);
+    assert.equal(isLuckyCase(kind, 0.119999), true);
+    for (const roll of [0.12, 1, -1, NaN, Infinity]) assert.equal(isLuckyCase(kind, roll), false);
+  }
+  for (const kind of ['duplicate', 'major', 'unknown']) assert.equal(isLuckyCase(kind, 0), false);
+});
+
+test('lykkesak gir fast bonus og køavlastning uten å endre progresjon eller saksflyt', () => {
+  const state = { ...startGame(createGameState()), queuePressure: 60, levelPeakPressure: 60, streak: 8 };
+  for (const kind of ['normal', 'priority', 'legacy', 'shield', 'critical']) {
+    const shot = { hit: true, resolved: true, kind, scoreScale: 2, now: 1000 };
+    const ordinary = recordShot(state, shot);
+    const lucky = recordShot(state, { ...shot, lucky: true });
+    assert.equal(lucky.events.luckyResolved, true);
+    assert.equal(lucky.events.scoreGain - ordinary.events.scoreGain, 400);
+    assert.deepEqual(lucky.state, { ...ordinary.state, score: ordinary.state.score + 400, queuePressure: ordinary.state.queuePressure - 15 });
+  }
+});
+
+test('lykkebonus venter på siste skjermingstreff og gis ikke ved bom eller inaktivt spill', () => {
+  const state = { ...startGame(createGameState()), queuePressure: 10 };
+  for (const shot of [{ hit: false }, { hit: true, resolved: false, kind: 'shield' }, { hit: true, resolved: true, kind: 'major' }]) {
+    assert.deepEqual(recordShot(state, { ...shot, lucky: true }), recordShot(state, shot));
+  }
+  const partial = recordShot(state, { hit: true, kind: 'shield', lucky: true }).state;
+  const closed = recordShot(partial, { hit: true, resolved: true, kind: 'shield', lucky: true });
+  assert.equal(closed.events.luckyResolved, true);
+  assert.equal(closed.state.casesSolved, 1);
+  assert.equal(closed.state.queuePressure, 0);
+  const idle = createGameState();
+  assert.equal(recordShot(idle, { hit: true, resolved: true, lucky: true }).state, idle);
+});
+
+test('lykkesak på nivåslutt beholder bonus og vanlig nivåovergang', () => {
+  const state = { ...startGame(createGameState()), casesSolved: 7, levelCases: 7 };
+  const result = recordShot(state, { hit: true, resolved: true, lucky: true });
+  assert.equal(result.events.levelCompleted, true);
+  assert.equal(result.events.luckyResolved, true);
+  assert.equal(result.state.level, 2);
+  assert.equal(result.state.casesSolved, 8);
+  assert.equal(beginLevel(result.state, 2).score, result.state.score);
+});
 
 test('kampanjen har ti nivåer og åtti saker', () => {
   assert.equal(TARGET_CASES, 80);

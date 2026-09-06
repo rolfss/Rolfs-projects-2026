@@ -565,7 +565,7 @@ export class SceneRenderer {
 
   drawTarget(target, time) {
     const context = this.context;
-    const style = KIND_STYLE[target.kind] || KIND_STYLE.normal;
+    const style = target.lucky ? KIND_STYLE.bonus : KIND_STYLE[target.kind] || KIND_STYLE.normal;
     const screen = this.computeTargetScreen(target);
     target.screen = screen;
     const { front, offset, width, height } = screen;
@@ -647,7 +647,7 @@ export class SceneRenderer {
     context.font = `900 ${fontSize}px ui-monospace, SFMono-Regular, Consolas, monospace`;
     context.shadowColor = 'rgba(0,0,0,.72)';
     context.shadowBlur = 4;
-    const mainLabel = target.kind === 'major' ? 'HOVEDHENDELSE' : target.kind === 'duplicate' ? 'DUPLIKAT' : 'Brukerstøttesak';
+    const mainLabel = target.lucky ? '★ LYKKESAK ★' : target.kind === 'major' ? 'HOVEDHENDELSE' : target.kind === 'duplicate' ? 'DUPLIKAT' : 'Brukerstøttesak';
     context.fillText(mainLabel, 0, height * 0.06, width * 0.78);
     context.fillStyle = target.kind === 'duplicate' ? '#f1f4f6' : style.stripe;
     context.font = `800 ${clamp(fontSize * 0.48, 5.5, 8.5)}px ui-monospace, monospace`;
@@ -655,7 +655,7 @@ export class SceneRenderer {
       ? `SKJERMING ${target.health}/${target.maxHealth}`
       : target.kind === 'major'
         ? `P1 // FASE ${Math.max(1, target.maxHealth - target.health + 1)}`
-        : `${style.label} // SM-${String(target.ticket).padStart(4, '0')}`;
+        : `${(KIND_STYLE[target.kind] || KIND_STYLE.normal).label} // SM-${String(target.ticket).padStart(4, '0')}`;
     context.fillText(detail, 0, height * 0.28, width * 0.8);
     context.restore();
 

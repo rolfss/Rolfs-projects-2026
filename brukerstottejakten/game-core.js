@@ -4,6 +4,14 @@ export const LEVEL_COUNT = 10;
 export const QUIZ_TRIGGER_PROBABILITY = 0.15;
 export const FLOW_MAX = 100;
 export const QUEUE_MAX = 100;
+export const LUCKY_CASE_PROBABILITY = 0.12;
+export const LUCKY_CASE_SCORE = 400;
+export const LUCKY_CASE_RELIEF = 15;
+
+export function isLuckyCase(kind, roll = Math.random()) {
+  return ['normal', 'priority', 'legacy', 'shield', 'critical'].includes(kind)
+    && Number.isFinite(roll) && roll >= 0 && roll < LUCKY_CASE_PROBABILITY;
+}
 
 export const LEVELS = Object.freeze([
   Object.freeze({ id: 1, name: 'Pålogging', subtitle: 'Kalibrer Service Manager Mk V', mechanic: 'Grunnleggende saker', objective: 'Løs 8 saker' }),
@@ -255,6 +263,7 @@ export function recordShot(
     flowScale = 1,
     comboProtected = false,
     shieldBroken = false,
+    lucky = false,
   } = {},
 ) {
   if (state.status !== 'running') return { state, events: { ignored: true } };
@@ -292,7 +301,10 @@ export function recordShot(
   const modifiers = upgradeModifiers(state);
   const priorityScale = kind === 'priority' || kind === 'critical' ? modifiers.priorityScoreScale : 1;
   const base = resolved ? (TARGET_SCORE[kind] ?? TARGET_SCORE.normal) : 35;
-  const scoreGain = Math.round(base * multiplier * Math.max(0, scoreScale) * priorityScale);
+  // A lucky case pays once, on closure; its fixed bonus is not multiplied.
+  const luckyResolved = lucky && resolved && isLuckyCase(kind, 0);
+  const scoreGain = Math.round(base * multiplier * Math.max(0, scoreScale) * priorityScale)
+    + (luckyResolved ? LUCKY_CASE_SCORE : 0);
   const rawFlowGain = (resolved ? 16 : 9) + Math.min(streak, 10) * 1.7;
   const flowGain = Math.round(rawFlowGain * Math.max(0, flowScale) * modifiers.flowGainScale);
   const accumulatedFlow = state.flow + flowGain;
@@ -303,7 +315,8 @@ export function recordShot(
   const won = casesSolved >= TARGET_CASES;
   const levelCompleted = resolved && !won && casesSolved % CASES_PER_LEVEL === 0;
   const nextLevel = won ? LEVEL_COUNT : levelForCases(casesSolved);
-  const queuePressure = Math.max(0, state.queuePressure - (resolved ? 5 : 1));
+  const queuePressure = Math.max(0, state.queuePressure - (resolved ? 5 : 1)
+    - (luckyResolved ? LUCKY_CASE_RELIEF : 0));
 
   const nextState = {
     ...state,
@@ -346,6 +359,7 @@ export function recordShot(
       levelCompleted,
       won,
       scoreGain,
+      luckyResolved,
       multiplier,
     },
   };

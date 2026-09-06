@@ -10,6 +10,7 @@ Versjon 4.1 dobler kampanjelengden fra den forrige utgaven og gjør våpenets vi
 - Nye mekanikker introduseres gradvis: komboserier, prioritetssaker, skjerming, duplikater, legacy-bevegelse, køtrykk, kritiske saker, revisjon og hovedhendelse.
 - Etter hvert nivå velger spilleren én av tre tilfeldige oppgraderinger til Service Manager Mk V.
 - Saksflyt bygges gjennom gode treffserier og utløser midlertidig sakte film og doble arkadepoeng.
+- **Lykkesak:** Hver vanlig, prioritert, eldre, skjermet eller kritisk sak har 12 % sjanse til å få en grønn bonusdrakt og den faste teksten «★ LYKKESAK ★». Lukk den for +400 arkadepoeng og 15 mindre køtrykk i tillegg til vanlig belønning. Bonusen gis bare ved siste treff, multipliseres ikke og gir ingen ekstra løste saker. Duplikater og hovedhendelsen er aldri lykkesaker. Fart og skjerming er som før; en lykkesak som slipper unna følger de vanlige eskaleringsreglene.
 - Fem nivåmål, åtte utmerkelser, stjerner, lokal rekord, karriere-XP og prestasjonskarakter D–S.
 - Dagens utfordring er lik for alle den aktuelle dagen, slik at kolleger kan sammenligne resultat.
 
