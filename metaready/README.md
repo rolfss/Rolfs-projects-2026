@@ -32,6 +32,7 @@ MetaReady gjør disse spørsmålene til en arbeidsflyt i stedet for et dokument 
 - Enkel konsekvensanalyse.
 - Prioritert tiltakslogg med synlig formel.
 - Eksport av styringsnotat i Markdown og tiltak i CSV.
+- Styrt treminutters demoflyt og ledelsesbrief for hele informasjonsporteføljen.
 - Demoroller for leser, informasjonsforvalter, informasjonsarkitekt, godkjenner og administrator.
 - Lokal lagring og enkel nullstilling.
 - Automatiske tester av validering, poengberegning, versjonering, måltall og eksport.

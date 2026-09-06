@@ -1,7 +1,7 @@
 export const TARGET_CASES = 80;
 export const CASES_PER_LEVEL = 8;
 export const LEVEL_COUNT = 10;
-export const QUIZ_TRIGGER_PROBABILITY = 0.3;
+export const QUIZ_TRIGGER_PROBABILITY = 0.15;
 export const FLOW_MAX = 100;
 export const QUEUE_MAX = 100;
 

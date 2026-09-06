@@ -15,7 +15,7 @@ Versjon 4.1 dobler kampanjelengden fra den forrige utgaven og gjør våpenets vi
 
 ## Noark 5
 
-Hvert vellykket treff har en uavhengig 30 % sannsynlighet for å åpne et enkelt spørsmål med to svaralternativer. Riktig svar gir +1 prestasjonspoeng og sakte film. Feil svar trekker ett prestasjonspoeng, aldri under null. Quiz påvirker poengsummen, men ikke kravet om å løse 80 saker.
+Hvert vellykket treff har en uavhengig 15 % sannsynlighet for å åpne et enkelt spørsmål med to svaralternativer. Riktig svar gir +1 prestasjonspoeng og sakte film. Feil svar trekker ett prestasjonspoeng, aldri under null. Quiz påvirker poengsummen, men ikke kravet om å løse 80 saker.
 
 ## Teknologi
 
@@ -42,3 +42,9 @@ python -m http.server 8080
 npm test
 npm run check
 ```
+
+## Tilgjengelighet og lyd
+
+- Musikk og lydeffekter kan styres separat.
+- Munningsglimt, radarsveip og annen unødvendig blinkende feedback er fjernet.
+- `prefers-reduced-motion` slår av animasjoner og overganger.

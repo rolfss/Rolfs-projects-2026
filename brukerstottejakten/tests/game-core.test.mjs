@@ -80,11 +80,11 @@ test('åtti løste saker vinner kampanjen', () => {
   assert.equal(state.majorResolved, true);
 });
 
-test('quizgrensen er nøyaktig tretti prosent', () => {
-  assert.equal(QUIZ_TRIGGER_PROBABILITY, 0.3);
+test('quizgrensen er nøyaktig femten prosent', () => {
+  assert.equal(QUIZ_TRIGGER_PROBABILITY, 0.15);
   assert.equal(shouldTriggerQuiz(true, 0), true);
-  assert.equal(shouldTriggerQuiz(true, 0.299999), true);
-  assert.equal(shouldTriggerQuiz(true, 0.3), false);
+  assert.equal(shouldTriggerQuiz(true, 0.149999), true);
+  assert.equal(shouldTriggerQuiz(true, 0.15), false);
   assert.equal(shouldTriggerQuiz(false, 0.1), false);
   assert.equal(shouldTriggerQuiz(true, 0.1, true), false);
 });

@@ -158,3 +158,10 @@ footer a { margin-left: auto; }
   .export-actions .button { flex: 1 1 100%; }
   footer { padding: 18px; flex-wrap: wrap; }
 }
+
+/* Kontrollstatus – forbedringsrunde 2026-09 */
+.control-summary { min-width: min(100%, 220px); }
+.control-summary strong { max-width: 18rem; font-size: clamp(.82rem, 1.5vw, 1.05rem); line-height: 1.15; }
+.control-summary strong[data-ready="true"] { color: var(--success, #16785f); }
+.control-summary strong[data-ready="false"] { color: var(--warning, #9b6200); }
+.control-summary small { display: block; margin-top: .25rem; color: var(--muted); font-size: .7rem; }

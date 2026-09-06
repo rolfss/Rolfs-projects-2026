@@ -6,6 +6,7 @@ import {
 import { analyzeDocumentWithLocalAi, localAiAvailability } from './ai.mjs';
 import { extractTextFromFile } from './extract.mjs';
 import { createZip, safeZipPath } from './zip.mjs';
+import { buildControlReport, summarizeControl } from './control-report.mjs';
 
 const state = {
   records: [], selectedId: '', busy: false,
@@ -19,11 +20,11 @@ const elements = {
   clearButton: $('#clear-button'), applyDefaultsButton: $('#apply-defaults'),
   workspace: $('#workspace'), emptyState: $('#empty-state'), fileList: $('#file-list'),
   fileCount: $('#file-count'), averageScore: $('#average-score'), warningCount: $('#warning-count'),
-  duplicateCount: $('#duplicate-count'), editor: $('#metadata-editor'), editorEmpty: $('#editor-empty'),
+  duplicateCount: $('#duplicate-count'), controlStatus: $('#control-status'), controlStatusDetail: $('#control-status-detail'), editor: $('#metadata-editor'), editorEmpty: $('#editor-empty'),
   editorForm: $('#editor-form'), editorHeading: $('#editor-heading'), editorFilename: $('#editor-filename'),
   editorScore: $('#editor-score'), findings: $('#findings'), signalList: $('#signal-list'),
   extractionList: $('#extraction-list'), jsonButton: $('#download-json'), csvButton: $('#download-csv'),
-  zipButton: $('#download-zip'), status: $('#status'), exportNote: $('#export-note'),
+  zipButton: $('#download-zip'), reportButton: $('#download-report'), status: $('#status'), exportNote: $('#export-note'),
   aiBanner: $('#ai-banner'), aiHeading: $('#ai-heading'), aiCopy: $('#ai-copy'),
   runAllAiButton: $('#run-all-ai'), titleSuggestion: $('#title-suggestion'),
   titleReason: $('#title-reason'), titleMethod: $('#title-method'), titleConfidence: $('#title-confidence'),
@@ -130,6 +131,12 @@ function renderSummary() {
   elements.averageScore.textContent = scores.length ? `${Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)} %` : '0 %';
   elements.warningCount.textContent = String(findings.length);
   elements.duplicateCount.textContent = String(duplicateHashes(state.records).length);
+  const control = summarizeControl(state.records, controlOptions());
+  elements.controlStatus.textContent = control.status;
+  elements.controlStatus.dataset.ready = String(control.ready);
+  elements.controlStatusDetail.textContent = control.ready
+    ? `${control.averageScore} % utfylling · ${control.duplicates} duplikatgrupper`
+    : `${control.required} obligatoriske mangler · ${control.pendingTitles} titler til kontroll`;
   const titleReviews = state.records.filter(record => record.metadata.titleReviewStatus === 'Ikke gjennomgått').length;
   elements.exportNote.textContent = findings.length
     ? `${findings.length} punkt${findings.length === 1 ? '' : 'er'} bør gjennomgås før overføring. ${titleReviews ? `${titleReviews} tittelforslag mangler menneskelig kontroll.` : ''}`.trim()
@@ -290,7 +297,7 @@ function render() {
   elements.workspace.hidden = !hasFiles;
   elements.emptyState.hidden = hasFiles;
   elements.clearButton.hidden = !hasFiles;
-  [elements.jsonButton, elements.csvButton, elements.zipButton].forEach(button => { button.disabled = !hasFiles || state.busy; });
+  [elements.jsonButton, elements.csvButton, elements.zipButton, elements.reportButton].forEach(button => { button.disabled = !hasFiles || state.busy; });
   renderSummary();
   renderFileList();
   renderAiBanner();
@@ -447,6 +454,15 @@ function datedName(extension) {
   return `archive-assist-${date}.${extension}`;
 }
 
+const controlOptions = () => ({ validate: validateMetadata, score: metadataScore, duplicateGroups: duplicateHashes });
+
+function exportControlReport() {
+  if (!state.records.length) return;
+  const report = buildControlReport(state.records, controlOptions());
+  download(new Blob([report], { type: 'text/markdown;charset=utf-8' }), `archive-assist-kontrollrapport-${new Date().toISOString().slice(0, 10)}.md`);
+  setStatus('Kontrollrapporten er laget lokalt med status, mangler, tittelkontroll og SHA-256.', 'success');
+}
+
 async function exportZip() {
   if (!state.records.length) return;
   setBusy(true, 'Bygger arkivpakken lokalt …');
@@ -542,6 +558,7 @@ elements.runFileAiButton.addEventListener('click', async () => {
 elements.runAllAiButton.addEventListener('click', () => refineRecordsWithAi(state.records));
 elements.jsonButton.addEventListener('click', () => download(new Blob([manifestJson(state.records)], { type: 'application/json' }), datedName('json')));
 elements.csvButton.addEventListener('click', () => download(new Blob([manifestCsv(state.records)], { type: 'text/csv;charset=utf-8' }), datedName('csv')));
+elements.reportButton.addEventListener('click', exportControlReport);
 elements.zipButton.addEventListener('click', exportZip);
 
 render();

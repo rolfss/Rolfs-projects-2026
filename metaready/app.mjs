@@ -1,6 +1,7 @@
 import { assets as seedAssets, relationships, initialBacklog, auditSeed } from './data.mjs';
 import { applySuggestedRemediation, assessReadiness, buildBacklogFromAssessment, calculateQuality, createGovernanceBrief, priorityScore, validateAsset } from './engine.mjs';
 import { audit, backlog, catalog, lineage, overview, readiness } from './views.mjs';
+import { buildPortfolioBrief } from './portfolio-brief.mjs';
 
 const KEY='metaready-demo-v2';
 const permissions={viewer:[],steward:['register','remediate'],information_architect:['register','remediate'],approver:['workflow'],admin:['register','remediate','workflow']};
@@ -10,6 +11,7 @@ const main=document.querySelector('#main-content');
 const role=document.querySelector('#role-select');
 const dialog=document.querySelector('#asset-dialog');
 const form=document.querySelector('#asset-form');
+const guide=document.querySelector('#demo-guide');
 role.value=state.role;
 
 function load(){try{return {...defaults(),...JSON.parse(localStorage.getItem(KEY))};}catch{return defaults();}}
@@ -36,6 +38,16 @@ function brief(id){const asset=state.assets.find(a=>a.id===id)||state.assets[0];
 function download(name,content,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=Object.assign(document.createElement('a'),{href:url,download:name});a.click();setTimeout(()=>URL.revokeObjectURL(url),500);}
 function csvCell(value){let s=String(value??'');if(/^[=+\-@]/.test(s))s=`'${s}`;return `"${s.replaceAll('"','""')}"`;}
 function exportBacklog(){const rows=[['Prioritet','Tiltak','Ressurser','Ansvarlig rolle','Status','Begrunnelse'],...state.backlog.map(x=>[priorityScore(x),x.title,x.assetIds.join('; '),x.ownerRole,statusName(x.status),x.reason])];download('metaready-tiltakslogg.csv',rows.map(r=>r.map(csvCell).join(',')).join('\n'),'text/csv;charset=utf-8');toast('Tiltaksloggen er eksportert.');}
+function exportPortfolioBrief(){download('metaready-ledelsesbrief.md',buildPortfolioBrief(state,relationships),'text/markdown;charset=utf-8');addAudit('Eksporterte ledelsesbrief','Informasjonsporteføljen','Porteføljestatus, styringsgap og prioriterte tiltak ble sammenstilt lokalt.');save();toast('Ledelsesbriefen er eksportert.');}
+const demoSteps={
+  1:{activeView:'overview',message:'1/6: Start med porteføljebildet og styringsgapene.'},
+  2:{activeView:'catalog',selectedAssetId:'CW-DOC-002',detailOpen:true,message:'2/6: Åpne Eldre prosedyrearkiv og se manglene med bevis.'},
+  3:{activeView:'readiness',readinessAssetId:'CW-DOC-002',useCaseId:'rag_assistant',message:'3/6: Vurder samme ressurs som kilde for en RAG-assistent.'},
+  4:{activeView:'lineage',lineageAssetId:'CW-DOC-001',message:'4/6: Følg relasjoner og se hva en endring kan påvirke.'},
+  5:{activeView:'backlog',message:'5/6: Se hvordan funn blir prioritert som konkrete tiltak.'},
+  6:{activeView:'audit',message:'6/6: Avslutt i styringssporet og se hva som er dokumentert.'}
+};
+function runDemoStep(step){const config=demoSteps[Number(step)]||demoSteps[1];const {message,...changes}=config;Object.assign(state,changes);save();render();guide.hidden=false;guide.querySelectorAll('[data-step]').forEach(button=>button.classList.toggle('is-current',Number(button.dataset.step)===Number(step)));document.querySelector('#demo-guide-status').textContent=message;toast(message);}
 function remediate(id,ruleId){if(!require('remediate'))return;const index=state.assets.findIndex(a=>a.id===id);const before=state.assets[index];state.assets[index]=applySuggestedRemediation(before,ruleId);addAudit('Brukte foreslått utbedring',before.title,`${ruleId} ble oppdatert; versjon ${before.version} → ${state.assets[index].version}.`);save();render();toast(`${ruleId} er utbedret i demoen.`);}
 function workflow(id,next){if(!require('workflow'))return;const asset=state.assets.find(a=>a.id===id);const before=asset.status;asset.status=next;asset.version=asset.version.replace(/\d+$/,String(Number(asset.version.split('.').at(-1)||0)+1));addAudit(`Endret arbeidsflyt: ${statusName(before)} → ${statusName(next)}`,asset.title,`Status ble endret av ${roleName(state.role)}.`);save();render();toast(`Status endret til ${statusName(next)}.`);}
 function addAssessmentActions(id){if(!require('remediate'))return;const asset=state.assets.find(a=>a.id===id);const assessment=assessReadiness(asset,state.useCaseId);const existing=new Set(state.backlog.map(b=>`${b.assetIds[0]}:${b.title}`));const additions=buildBacklogFromAssessment(asset,assessment).filter(b=>!existing.has(`${asset.id}:${b.title}`));state.backlog.push(...additions);addAudit('Opprettet tiltak fra AI-vurdering',asset.title,`${additions.length} nye tiltak for ${assessment.useCase.label}.`);state.activeView='backlog';save();render();toast(`${additions.length} nye tiltak opprettet.`);}
@@ -59,6 +71,10 @@ document.addEventListener('click',event=>{
   if(action==='lineage-select'){state.lineageAssetId=el.dataset.id;save();render();}
   if(action==='record-impact'){const asset=state.assets.find(a=>a.id===el.dataset.id);addAudit('Registrerte konsekvensbeslutning',asset.title,'Berørte eiere skal konsulteres før en vesentlig endring publiseres.');save();toast('Beslutningen er registrert i styringssporet.');}
   if(action==='export-backlog')exportBacklog();
+  if(action==='portfolio-brief')exportPortfolioBrief();
+  if(action==='guided-demo'){guide.hidden=false;runDemoStep(1);}
+  if(action==='close-guide')guide.hidden=true;
+  if(action==='demo-step')runDemoStep(el.dataset.step);
   if(action==='reset-demo'&&confirm('Nullstille lokale endringer og gå tilbake til de syntetiske eksempeldataene?')){state=defaults();localStorage.removeItem(KEY);role.value=state.role;render();toast('Demoen er nullstilt.');}
 });
 document.addEventListener('change',event=>{
