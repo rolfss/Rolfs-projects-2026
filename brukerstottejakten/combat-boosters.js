@@ -86,7 +86,7 @@ export function weaponTargets(renderer, targets, x, y, mode, hitboxScale = 1) {
   const chosen = new Set(primary ? [primary] : []);
   const geometry = weaponGeometry(mode, x, y, renderer.width);
   if (mode === 'scatter') {
-    for (const point of geometry.points) {
+    for (const point of geometry.points.slice(primary ? 1 : 0)) {
       const hit = renderer.hitTest(live.filter(target => !chosen.has(target)), point.x, point.y, hitboxScale);
       if (hit) chosen.add(hit);
     }
