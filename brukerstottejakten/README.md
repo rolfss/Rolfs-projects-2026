@@ -36,6 +36,14 @@ python -m http.server 8080
 - Piltaster eller WASD: flytt siktet.
 - Mellomrom eller Enter: skyt.
 - P: pause.
+- Høyreklikk eller Shift + skyt: **Pulsskudd**, 3 skade på ett mål og 5 sekunders lading. Q eller puls-knappen velger puls for neste skudd, også på berøring. Vanlige skudd kan brukes under lading. Oppgraderinger virker fortsatt; duplikater skal fortsatt unngås.
+
+## Fruktpause og fri sikt
+
+- Frukt ruller inn på gulvet etter 2,5 sekunder, deretter med 5–9 sekunders mellomrom og maksimalt to hele frukter samtidig. Skyt dem for fargerike fruktbiter og bonus: appelsin gir +250 arkadepoeng / −12 køtrykk, vannmelon +150 / +30 Saksflyt, ananas +200 / fulladet pulsskudd.
+- Frukt teller ikke som løste saker, quiztreff eller kombotreff. Frukt som ruller ut gir ingen straff. Bonusen gis én gang. Frukt og pulslading stopper under pause, quiz og nivåbytte; ny vakt nullstiller begge.
+- Spilleflaten utnytter vindusbredden opptil 2400 piksler. Et kompakt instrumentpanel ligger over en egen flysone. Tegning og treffområder følger samme sone også ved vindusendring. Frukt ruller under flysonen og over våpenet. Bruk Fullskjerm for enda større spilleflate.
+- Fruktbiter falmer uten lysglimt; redusert bevegelse slår av fruktrotasjon og spredning. Doble sakshastigheter, lykkesaker, ti lydspor og eksisterende vern mot blinking er beholdt.
 
 ## Tester
 

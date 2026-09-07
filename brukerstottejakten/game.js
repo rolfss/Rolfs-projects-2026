@@ -34,12 +34,14 @@ import {
   upgradeModifiers,
 } from './game-core.js';
 import { SceneRenderer } from './renderer.js';
+import { FRUIT, PULSE_DAMAGE, PULSE_RECHARGE_MS, recordFruit, hitFruit } from './arcade-extras.js';
 
 const board = document.querySelector('#gameBoard');
 const canvas = document.querySelector('#gameCanvas');
 if (!board || !canvas) throw new Error('Spillflaten kunne ikke initialiseres.');
 
 const ui = {
+  pulseButton: document.querySelector('#pulseButton'),
   appShell: document.querySelector('#appShell'),
   connectionPill: document.querySelector('#connectionPill'),
   dutyStatus: document.querySelector('#dutyStatus'),
@@ -386,6 +388,10 @@ const sound = new SoundEngine();
 const daily = createDailyChallenge();
 let state = createGameState();
 let targets = [];
+let fruits = [];
+let fruitClock = 2.5;
+let pulseReadyAt = 0;
+let pulseArmed = false;
 let targetId = 1;
 let spawnClock = 0;
 let lastFrame = performance.now();
@@ -631,6 +637,10 @@ function updateHud(now = performance.now()) {
 
   ui.powerupCard.classList.toggle('is-active', flowActive);
   ui.powerupTimer.textContent = `${Math.max(0, (flowUntil - now) / 1000).toFixed(1).replace('.', ',')} s`;
+  const pulseRemaining = Math.max(0, pulseReadyAt - activeElapsedMs);
+  ui.pulseButton.disabled = !active || pulseRemaining > 0;
+  ui.pulseButton.setAttribute('aria-pressed', String(pulseArmed));
+  ui.pulseButton.textContent = pulseRemaining > 0 ? `Puls · ${(pulseRemaining / 1000).toFixed(1)} s` : pulseArmed ? 'Puls valgt · sikt og skyt' : 'Pulsskudd klart · Q';
   board.classList.toggle('is-flow', flowActive);
   board.classList.toggle('is-overload', overloadActive);
   renderer.setSlowMode(flowActive);
@@ -684,6 +694,13 @@ function showBossBanner() {
 
 function resize() {
   renderer.resize();
+  board.style.setProperty('--weapon-scale', String(Math.min(.8, renderer.height * .17 / 285)));
+  const canvasRect = canvas.getBoundingClientRect();
+  const topPanels = [...board.querySelectorAll('.top-hud, .mission-panel, .radar-panel')];
+  renderer.flightTop = Math.max(...topPanels.map(panel => {
+    const rect = panel.getBoundingClientRect();
+    return rect.height ? rect.bottom - canvasRect.top + 14 : 0;
+  }));
   if (!aim.x && !aim.y) {
     aim.x = renderer.width / 2;
     aim.y = renderer.height * .43;
@@ -714,10 +731,11 @@ function updateReticle() {
   const active = state.status === 'running' && !paused && !quizActive && !quizPending && !intermissionActive && !intermissionPending && !pendingWin;
   ui.reticle.classList.toggle('is-visible', aim.visible && active);
   if (!active) return;
+  const fruit = hitFruit(fruits, aim.x, aim.y, renderer.width, renderer.height);
   const target = renderer.hitTest(targets, aim.x, aim.y, upgradeModifiers(state).hitboxScale);
-  ui.reticle.classList.toggle('is-locked', Boolean(target && target.kind !== 'duplicate'));
+  ui.reticle.classList.toggle('is-locked', Boolean(fruit || target && target.kind !== 'duplicate'));
   ui.reticle.classList.toggle('is-danger', target?.kind === 'duplicate');
-  ui.reticleLabel.textContent = !target ? 'SØK' : target.kind === 'duplicate' ? 'IKKE SKYT' : target.kind === 'major' ? 'P1 LÅST' : 'MÅL LÅST';
+  ui.reticleLabel.textContent = fruit ? FRUIT[fruit.kind].label : !target ? (pulseArmed ? 'PULSSKUDD' : 'SØK') : target.kind === 'duplicate' ? 'IKKE SKYT' : target.kind === 'major' ? 'P1 LÅST' : 'MÅL LÅST';
 }
 
 function pointerPosition(event) {
@@ -915,7 +933,7 @@ function maybeScheduleQuiz(hit, roll = Math.random()) {
   return true;
 }
 
-function handleTargetHit(target, x, y, quizRoll = Math.random()) {
+function handleTargetHit(target, x, y, quizRoll = Math.random(), pulse = false) {
   if (!target || target.dead || target.resolving) return false;
   const flowActive = performance.now() < flowUntil;
   const pan = clamp((x / Math.max(renderer.width, 1) - .5) * 2, -1, 1);
@@ -935,7 +953,7 @@ function handleTargetHit(target, x, y, quizRoll = Math.random()) {
   }
 
   const modifiers = upgradeModifiers(state);
-  const damage = 1 + (target.kind === 'major' ? modifiers.bossDamageBonus : 0);
+  const damage = (pulse ? PULSE_DAMAGE : 1) + (target.kind === 'major' ? modifiers.bossDamageBonus : 0);
   target.health = Math.max(0, target.health - damage);
   target.flash = 1;
   const resolved = target.health <= 0;
@@ -1001,12 +1019,43 @@ function handleTargetHit(target, x, y, quizRoll = Math.random()) {
   return true;
 }
 
-function shoot(x, y) {
+function togglePulse() {
+  if (state.status !== 'running' || paused || quizActive || quizPending || intermissionActive || intermissionPending || pendingWin || activeElapsedMs < pulseReadyAt) return;
+  pulseArmed = !pulseArmed;
+  updateHud();
+  updateReticle();
+  canvas.focus({ preventScroll: true });
+}
+
+function shoot(x, y, pulse = pulseArmed) {
   if (state.status !== 'running' || paused || quizActive || quizPending || intermissionActive || intermissionPending || pendingWin) return false;
+  if (pulse && activeElapsedMs < pulseReadyAt) {
+    showMessage('Pulsskuddet lader. Vanlige skudd er klare.');
+    return false;
+  }
+  if (pulse) {
+    pulseReadyAt = activeElapsedMs + PULSE_RECHARGE_MS;
+    pulseArmed = false;
+    sound.tone(130, .2, { type: 'triangle', gain: .025, endFrequency: 420 });
+  }
   triggerWeaponFire();
   sound.shot();
+  const fruit = hitFruit(fruits, x, y, renderer.width, renderer.height);
+  if (fruit) {
+    const result = recordFruit(state, fruit.kind);
+    state = result.state;
+    fruit.resolving = true;
+    fruit.resolveAge = 0;
+    if (result.rechargePulse) pulseReadyAt = activeElapsedMs;
+    if (result.flowActivated) activateFlow();
+    showMessage(result.message);
+    showScorePop(`+${FRUIT[fruit.kind].score} · ${FRUIT[fruit.kind].label}`, x, y);
+    sound.tone(560, .16, { type: 'sine', gain: .025, endFrequency: 980 });
+    updateHud();
+    return true;
+  }
   const target = renderer.hitTest(targets, x, y, upgradeModifiers(state).hitboxScale);
-  if (target) return handleTargetHit(target, x, y);
+  if (target) return handleTargetHit(target, x, y, Math.random(), pulse);
 
   const result = recordShot(state, { hit: false });
   state = result.state;
@@ -1149,6 +1198,9 @@ function continueAfterIntermission() {
   if (!intermissionActive || (upgradeChoices.length && !selectedUpgrade)) return false;
   if (selectedUpgrade) state = applyUpgrade(state, selectedUpgrade);
   state = beginLevel(state, state.level, Date.now());
+  fruits = [];
+  fruitClock = 2.5;
+  pulseArmed = false;
   levelKindSpawns = {};
   levelActiveStartMs = activeElapsedMs;
   intermissionActive = false;
@@ -1187,6 +1239,10 @@ function startRound() {
   window.clearTimeout(winTimer);
   state = startGame(state, Date.now());
   targets = [];
+  fruits = [];
+  fruitClock = 2.5;
+  pulseReadyAt = 0;
+  pulseArmed = false;
   targetId = 1;
   spawnClock = testMode ? 0 : .25;
   lastFrame = performance.now();
@@ -1319,6 +1375,24 @@ function updateGame(delta, now) {
 
   if (active) {
     spawnClock -= gameDelta;
+    fruitClock -= gameDelta;
+    if (fruitClock <= 0 && fruits.filter(fruit => !fruit.resolving).length < 2) {
+      const kinds = Object.keys(FRUIT);
+      const direction = Math.random() < .5 ? 1 : -1;
+      fruits.push({ kind: kinds[Math.floor(Math.random() * kinds.length)], x: direction > 0 ? -.06 : 1.06, direction, lane: Math.random(), rotation: 0, speed: randomBetween(.10, .15) });
+      fruitClock = randomBetween(5, 9);
+    }
+    for (const fruit of fruits) {
+      if (fruit.resolving) {
+        fruit.resolveAge += gameDelta;
+        fruit.dead = fruit.resolveAge > .55;
+      } else {
+        fruit.x += fruit.direction * fruit.speed * gameDelta;
+        fruit.rotation += fruit.direction * gameDelta * 5;
+        fruit.dead = fruit.x < -.12 || fruit.x > 1.12;
+      }
+    }
+    fruits = fruits.filter(fruit => !fruit.dead);
     const config = levelConfig();
     const live = targets.filter((target) => !target.dead && !target.resolving).length;
     const maxTargets = config.maxTargets + (overloadActive ? 1 : 0) + (daily.name === 'Høy trafikk' && state.level >= 4 ? 1 : 0);
@@ -1335,7 +1409,7 @@ function updateGame(delta, now) {
     }
   }
 
-  renderer.render({ time: sceneTime, delta, level: state.level, targets, overload: overloadActive });
+  renderer.render({ time: sceneTime, delta, level: state.level, targets, fruits, overload: overloadActive });
   updateRadar();
   updateReticle();
   updateHud(now);
@@ -1379,12 +1453,12 @@ canvas.addEventListener('pointermove', (event) => {
   setAim(point.x, point.y, event.pointerType || 'mouse');
 });
 canvas.addEventListener('pointerdown', (event) => {
-  if (event.button !== undefined && event.button !== 0) return;
+  if (event.button !== undefined && ![0, 2].includes(event.button)) return;
   event.preventDefault();
   const point = pointerPosition(event);
   setAim(point.x, point.y, event.pointerType || 'mouse');
   sound.ensure();
-  shoot(point.x, point.y);
+  shoot(point.x, point.y, event.button === 2 || event.shiftKey || pulseArmed);
 });
 canvas.addEventListener('contextmenu', (event) => event.preventDefault());
 
@@ -1396,6 +1470,11 @@ window.addEventListener('keydown', (event) => {
     return;
   }
   if (state.status !== 'running' || paused || quizActive || quizPending || intermissionActive || intermissionPending || pendingWin) return;
+  if (key === 'q') {
+    event.preventDefault();
+    if (!event.repeat) togglePulse();
+    return;
+  }
   const step = event.shiftKey ? 36 : 21;
   let moved = true;
   if (key === 'arrowleft' || key === 'a') aim.x -= step;
@@ -1413,11 +1492,12 @@ window.addEventListener('keydown', (event) => {
     sound.ensure();
     aim.visible = true;
     setAim(aim.x, aim.y, 'keyboard');
-    shoot(aim.x, aim.y);
+    shoot(aim.x, aim.y, event.shiftKey || pulseArmed);
   }
 });
 
 ui.startButton.addEventListener('click', startRound);
+ui.pulseButton.addEventListener('click', togglePulse);
 ui.restartButton.addEventListener('click', startRound);
 ui.resumeButton.addEventListener('click', () => togglePause(false));
 ui.pauseButton.addEventListener('click', () => togglePause());
@@ -1451,6 +1531,9 @@ if (testMode) {
     start: startRound,
     resolve: (kind = 'normal') => debugResolve(kind, 1),
     resolveLucky: (kind = 'normal') => debugResolve(kind, 1, true),
+    spawnTarget: (kind = 'shield') => { const created = debugTarget(kind); return created ? { id: created.target.id, ...created.center } : null; },
+    spawnFruit: (kind = 'orange') => { if (!FRUIT[kind]) return false; fruits.push({ kind, x: .5, lane: .5, direction: 1, speed: 0, rotation: 0 }); return true; },
+    shoot: (x, y, pulse = false) => shoot(x, y, pulse),
     resolveWithQuiz: (kind = 'normal') => debugResolve(kind, 0),
     miss: () => shoot(4, 4),
     answerCorrect: () => currentQuestion ? answerQuiz(currentQuestion.correct) : false,
@@ -1472,6 +1555,10 @@ if (testMode) {
       pendingWin,
       activeElapsedMs,
       targetCount: targets.length,
+      fruits: fruits.map(fruit => ({ ...fruit })),
+      targets: targets.map(target => ({ id: target.id, kind: target.kind, health: target.health, speed: target.speed, bounds: target.screen?.bounds })),
+      pulseArmed,
+      pulseRemaining: Math.max(0, pulseReadyAt - activeElapsedMs),
       daily,
     }),
   };

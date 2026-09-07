@@ -36,7 +36,8 @@
     </header>
 
     <main class="game-board" id="gameBoard">
-      <canvas id="gameCanvas" tabindex="0" aria-label="Spillområde. Sikt og skyt de flyvende brukerstøttesakene. Duplikater skal ikke skytes."></canvas>
+      <canvas id="gameCanvas" tabindex="0" aria-label="Spillområde. Sikt og skyt saker og rullende frukt. Unngå duplikater. Høyreklikk eller Shift og skyt for pulsskudd. Q velger puls for neste skudd."></canvas>
+      <button class="pulse-button" id="pulseButton" type="button" aria-pressed="false" title="Tre skade. Fem sekunders lading. Høyreklikk, Shift + skyt, eller velg her og trykk på et mål." disabled>Pulsskudd klart · Q</button>
       <div class="screen-grain" aria-hidden="true"></div>
       <div class="edge-frame" aria-hidden="true"></div>
 
@@ -199,6 +200,8 @@
                 <li><i>02</i><span>Ikke skyt saker merket <b>Duplikat</b>.</span></li>
                 <li><i>03</i><span>Hold komboserien og fyll <b>Saksflyt</b>. Grønne <b>★ lykkesaker</b> gir +400 bonuspoeng og −15 køtrykk når de lukkes.</span></li>
                 <li><i>04</i><span>Velg én ny systemmodul etter hvert nivå.</span></li>
+                <li><i>05</i><span>Skyt rullende <b>frukt</b>: appelsin senker køtrykk, melon gir Saksflyt, ananas lader pulsskuddet. Alle gir bonuspoeng.</span></li>
+                <li><i>06</i><span><b>Pulsskudd</b> gjør 3 skade på ett mål, med 5 sekunders lading. Høyreklikk eller hold Shift når du skyter. På berøring: velg puls-knappen, sikt og skyt.</span></li>
               </ul>
             </div>
             <div class="career-box">
@@ -221,6 +224,7 @@
             <span><kbd>Mus / trykk</kbd> Sikt og skyt</span>
             <span><kbd>WASD / piler</kbd> Flytt siktet</span>
             <span><kbd>Mellomrom</kbd> Skyt</span>
+            <span><kbd>Q</kbd> Velg pulsskudd</span>
             <span><kbd>P</kbd> Pause</span>
           </div>
 

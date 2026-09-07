@@ -1,4 +1,5 @@
 import { clamp } from './game-core.js';
+import { FRUIT, fruitScreen } from './arcade-extras.js';
 
 const TAU = Math.PI * 2;
 
@@ -534,9 +535,15 @@ export class SceneRenderer {
 
   computeTargetScreen(target) {
     const projection = this.project(target.x, target.y, target.z);
-    const width = Math.max(36, target.width * projection.scale);
-    const height = Math.max(20, target.height * projection.scale);
-    const depth = Math.max(7, target.depth * projection.scale);
+    // Reserve a full-width flight band below the measured HUD, above the floor.
+    // Drawing and hit detection share this projection, including after resize.
+    const top = this.flightTop ?? this.height * .24;
+    const bottom = Math.max(top + 48, this.height * .60);
+    const fit = Math.min(1, this.width * .72 / (target.width * projection.scale), (bottom - top) * .68 / (target.height * projection.scale));
+    const width = Math.max(32, target.width * projection.scale * fit);
+    const height = Math.max(16, target.height * projection.scale * fit);
+    const depth = Math.max(5, target.depth * projection.scale * fit);
+    projection.y = clamp(bottom - (target.y / 7) * (bottom - top), top + height * .6 + depth, bottom - height * .6);
     const bank = target.bank || 0;
     const tiltX = Math.sin(bank) * height * 0.24;
     const tiltY = Math.cos(bank) * width * 0.035;
@@ -780,7 +787,81 @@ export class SceneRenderer {
     context.restore();
   }
 
-  render({ time = 0, delta = 0, level = 1, targets = [], overload = false } = {}) {
+  drawFruit(fruit) {
+    const context = this.context;
+    const style = FRUIT[fruit.kind];
+    const { x, y, radius } = fruitScreen(fruit, this.width, this.height);
+    context.save();
+    context.translate(x, y);
+    if (!fruit.resolving) {
+      context.fillStyle = 'rgba(0,12,18,.4)';
+      context.beginPath();
+      context.ellipse(0, radius + 4, radius * 1.2, radius * .25, 0, 0, TAU);
+      context.fill();
+    }
+    const pieces = fruit.resolving ? 5 : 1;
+    const age = fruit.resolveAge || 0;
+    context.globalAlpha = fruit.resolving ? Math.max(0, 1 - age / .55) : 1;
+    for (let part = 0; part < pieces; part += 1) {
+      context.save();
+      if (fruit.resolving && !this.reducedMotion) context.translate(Math.cos(part * TAU / pieces) * age * 90, Math.sin(part * TAU / pieces) * age * 65 - age * 25);
+      context.rotate(this.reducedMotion ? 0 : fruit.rotation + part);
+      context.fillStyle = style.color;
+      context.strokeStyle = '#173c32';
+      context.lineWidth = 2;
+      context.beginPath();
+      context.arc(0, 0, radius, fruit.resolving ? part * TAU / pieces : 0, fruit.resolving ? (part + 1) * TAU / pieces : TAU);
+      if (fruit.resolving) context.lineTo(0, 0);
+      context.closePath();
+      context.fill(); context.stroke();
+      if (!fruit.resolving) {
+        context.strokeStyle = fruit.kind === 'melon' ? '#1c7551' : style.flesh;
+        context.lineWidth = 3;
+        if (fruit.kind === 'orange') {
+          context.fillStyle = '#ffd881';
+          context.beginPath();
+          context.ellipse(-radius * .32, -radius * .32, radius * .19, radius * .32, .5, 0, TAU);
+          context.fill();
+          for (const [dx, dy] of [[.3,.3], [-.2,.5], [.55,-.1]]) {
+            context.beginPath(); context.arc(dx * radius, dy * radius, 1.5, 0, TAU); context.fill();
+          }
+        } else if (fruit.kind === 'pineapple') {
+          context.save();
+          context.beginPath(); context.arc(0, 0, radius - 2, 0, TAU); context.clip();
+          context.lineWidth = 1.5;
+          context.strokeStyle = '#8c752b';
+          for (let line = -radius * 2; line <= radius * 2; line += 9) {
+            context.beginPath(); context.moveTo(line - radius, -radius); context.lineTo(line + radius, radius); context.stroke();
+            context.beginPath(); context.moveTo(line + radius, -radius); context.lineTo(line - radius, radius); context.stroke();
+          }
+          context.restore();
+        } else {
+          for (const offset of [-.4, .4]) {
+            context.beginPath();
+            context.ellipse(offset * radius, 0, radius * .23, radius * .82, 0, 0, TAU);
+            context.stroke();
+          }
+        }
+        context.fillStyle = '#9cf6a8';
+        context.beginPath();
+        context.ellipse(4, -radius, 8, 4, -.5, 0, TAU);
+        context.fill();
+        if (fruit.kind === 'pineapple') {
+          context.beginPath(); context.moveTo(-8, -radius); context.lineTo(-6, -radius - 12); context.lineTo(0, -radius - 5); context.lineTo(5, -radius - 15); context.lineTo(9, -radius); context.fill();
+        }
+      }
+      context.restore();
+    }
+    if (!fruit.resolving) {
+      context.font = '800 9px ui-monospace, monospace';
+      context.textAlign = 'center';
+      context.fillStyle = '#f0ffe8';
+      context.fillText(style.label, 0, radius + 19);
+    }
+    context.restore();
+  }
+
+  render({ time = 0, delta = 0, level = 1, targets = [], fruits = [], overload = false } = {}) {
     this.updateEffects(delta);
     this.setOverload(overload);
     const theme = THEMES[clamp(level - 1, 0, THEMES.length - 1)];
@@ -795,6 +876,7 @@ export class SceneRenderer {
     this.drawCity(theme, time, level);
     this.drawGround(theme, time, level);
     this.drawWeather(time, level, theme);
+    for (const fruit of fruits) if (!fruit.dead) this.drawFruit(fruit);
 
     const ordered = [...targets].filter((target) => !target.dead).sort((a, b) => a.z - b.z);
     for (const target of ordered) this.drawTarget(target, time);
