@@ -1,4 +1,4 @@
-import { answerQuestion, searchRecords, findIntent, tokenize } from './engine.mjs';
+import { answerQuestion, searchRecords, findIntent, tokenize, getRecord, getSource, sourceUrl } from './engine.mjs';
 
 export const MODEL_ID = 'gpt-5.6-luna';
 export const MODEL_LABEL = 'GPT-5.6 Luna';
@@ -34,8 +34,20 @@ export function retrieveConversation(question, history = [], limit = 12) {
   for (const result of direct) {
     if (!map.has(result.record.id) && map.size < limit) map.set(result.record.id, result);
   }
-  return [...map.values()].sort((a, b) => b.relevance - a.relevance || b.score - a.score)
-    .slice(0, limit).map((r, i) => ({ ...r, rank: i + 1 }));
+  let selected = [...map.values()].sort((a, b) => b.relevance - a.relevance || b.score - a.score).slice(0, limit);
+  if (selected.some((r) => r.record.source === 'na-formats') && limit >= 3) {
+    // Keep the conditions with individual format rows. They are context, not fabricated high-score hits.
+    const required = ['guide-format-agreement', 'guide-format-conversion'];
+    const ranked = new Map(searchRecords(query, { limit: 50 }).map((r) => [r.record.id, r]));
+    const context = required.map((id) => {
+      const record = getRecord(id);
+      return ranked.get(id) ?? { record, source: getSource(record.source), url: sourceUrl(record), score: 0,
+        relevance: 0, relevanceMethod: 'lexical', relevanceReason: 'Avtalevilkår som kontekst til formatoppføringen.' };
+    });
+    selected = [...selected.filter((r) => !required.includes(r.record.id)).slice(0, limit - context.length), ...context];
+  }
+  return selected.sort((a, b) => b.relevance - a.relevance || b.score - a.score)
+    .map((r, i) => ({ ...r, rank: i + 1 }));
 }
 
 export function fallbackAnswer(question, history = [], note = '') {

@@ -55,8 +55,8 @@
         <div>
           <p class="prototype-notice-kicker">Modell og begrensninger</p>
           <h2 id="prototype-notice-title">GPT-5.6 Luna · kildebasert resonnering</h2>
-          <p>Klargjort for <strong>GPT-5.6 Luna</strong>, OpenAIs kostnadseffektive resonneringsmodell i nano-klassen, med <strong>medium resonnering</strong>. Modellen skal gi korte svar med kildehenvisninger og håndtere oppfølgingsspørsmål – ikke skrive essays.</p>
-          <p>KI kan ta feil. Grunnlaget er kuraterte sammendrag, ikke fulltekst eller løpende nettsøk. Kontroller originalkildene; dette er fagstøtte, ikke en juridisk fasit.</p>
+          <p>Tilkobling til <strong>GPT-5.6 Luna</strong>, OpenAIs kostnadseffektive resonneringsmodell i nano-klassen, med <strong>medium resonnering</strong>. Modellen skal gi korte svar med kildehenvisninger og håndtere oppfølgingsspørsmål – ikke skrive essays.</p>
+          <p>KI kan ta feil. Grunnlaget er kuraterte sammendrag og kontrollerte formatoppføringer, ikke fulltekst eller løpende nettsøk. Nye veiledere har kontrolltidspunkt og avgrenset virkeområde. Kontroller originalkildene; dette er fagstøtte, ikke en juridisk fasit.</p>
           <p id="model-status" role="status">Luna er ikke aktivert ennå. Lokalt kildesøk fungerer uansett.</p>
         </div>
       </aside>
@@ -64,7 +64,7 @@
       <div class="suggestions" aria-labelledby="suggestions-title">
         <div class="section-heading compact">
           <div><p class="eyebrow">Prøv et spørsmål</p><h2 id="suggestions-title">Beslutningsspørsmål og vanlige problemstillinger</h2></div>
-          <button class="quiet-button" id="clear-chat" type="button">Nullstill samtalen</button>
+          <button class="quiet-button" id="clear-chat">Nullstill samtalen</button>
         </div>
         <div class="suggestion-list" id="suggestion-list"></div>
       </div>
@@ -92,6 +92,13 @@
             <div class="luna-controls">
               <label class="luna-switch"><input type="checkbox" id="use-luna" disabled> Bruk Luna til korte svar og oppfølging</label>
               <p class="message-note">Med Luna sendes spørsmålet, opptil fire tidligere meldinger og relevante kildeposter til OpenAI via en beskyttet backend. Ikke skriv personopplysninger, pasientinformasjon eller taushetsbelagt innhold. Nylige spørsmål lagres lokalt og kan slettes nedenfor.</p>
+              <p class="message-note" id="quality-status" role="status">Kontrollerer om forbedringsloggen er aktiv.</p>
+              <label class="luna-switch"><input type="checkbox" id="quality-consent" disabled> Jeg samtykker til at en redigert kopi av spørsmålet lagres i opptil 30 dager for å forbedre kildesøket.</label>
+              <details class="relevance-help" id="review-privacy"><summary>Personvern og forbedring av kildesøket</summary>
+                <p>Samtykket er frivillig og gjelder nye spørsmål sendt med Luna. Det påvirker ikke tilgangen til svar. Uten samtykke registreres bare diagnostikk for godkjente backendforespørsler, ikke spørsmålstekst. Rene lokale søk forlater fortsatt ikke nettleseren.</p>
+                <p>Med samtykke forsøker systemet å fjerne e-postadresser, numre, lenker og mulige navn; enkelte sensitive mønstre fører til at hele teksten utelates. Dette er ikke garantert anonymisering. Ikke skriv personopplysninger eller taushetsbelagt informasjon.</p>
+                <p>Loggen brukes av appens eier, Rolf Selås, til manuell gjennomgang av manglende kilder, søkeord og tester. Den er ikke offentlig og brukes ikke til automatisk trening eller som faglig kilde for Luna. Aktiv lagring utløper etter 30 dager; leverandørens gjenopprettingskopier kan ha egen levetid. Fjern avkrysningen for å stoppe tekstlagring av nye spørsmål. Sletting av nettleserhistorikk sletter ikke serverloggen.</p>
+              </details>
               <div id="bot-check" hidden><div id="bot-widget"></div><p class="message-note">Cloudflare Turnstile beskytter det felles prøvebudsjettet mot automatisk misbruk.</p></div>
             </div>
             <div class="form-row">

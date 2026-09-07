@@ -14,13 +14,13 @@
 
 [Prøv arkivassistenten](https://rolfss.github.io/Rolfs-projects-2026/noark-assistent/) · [Kildekode og dokumentasjon](./noark-assistent/)
 
-- 71 kontrollerte kildeposter fra ti offisielle kilder.
+- 154 kildeposter fra 17 offisielle kilder, inkludert 65 avleveringsformater med PRONOM-identifikatorer og versjoner.
+- Praktisk veiledning om internkontroll, dokumentasjonskartlegging, bevaring, mediekonvertering og Arkade.
 - Lokalt, BM25-lignende søk med arkivfaglige synonymer og kravnummergjenkjenning.
-- Korte svar med kilde, seksjon, side og kravnummer.
-- Synlig kildedekning og kopierbart beslutningsnotat med svar, forbehold og originalkilder.
-- Kravbibliotek for Noark-krav, metadataelementer og veiledning til arkivforskrifta § 5.
-- Virker uten API-nøkkel, server, konto eller opplastning.
-- 15 automatiske domenetester, inkludert beslutningsnotatet.
+- Valgfri GPT-5.6 Luna med korte, kildebaserte svar, oppfølgingsspørsmål og begrunnede relevansanslag.
+- Kildelenker, seksjoner, sider og kravnummer; kopierbart beslutningsnotat med forbehold.
+- Lokalt søk virker uten API-nøkkel, konto eller dokumentopplasting. KI-kall bruker beskyttet bakende og avgrenset prøvebudsjett.
+- 79 automatiske tester. [Status for Worker-utrulling og privat kvalitetslogg](./noark-api/GUIDANCE_AND_REVIEW.md).
 
 ## Archive Assist
 
