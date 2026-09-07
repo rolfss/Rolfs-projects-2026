@@ -39,15 +39,18 @@ test('origins, method, content type and missing configuration fail closed', asyn
   assert.equal((await worker.fetch(new Request('https://test/api/chat', { method: 'POST', headers, body: '{}' }), env)).status, 415);
   assert.equal((await worker.fetch(new Request('https://test/api/chat', { method: 'POST', headers, body: '{}' }), { ALLOWED_ORIGINS: env.ALLOWED_ORIGINS })).status, 503);
 });
-test('health never leaks credentials', async () => {
+test('health never leaks credentials and reports the active daily budget', async () => {
   const res = await worker.fetch(new Request('https://test/api/health'), env);
-  const text = await res.text(); assert.doesNotMatch(text, /dummy|OPENAI_API_KEY|SECRET/); assert.match(text, /gpt-5.6-luna/);
+  const body = await res.json();
+  const text = JSON.stringify(body);
+  assert.doesNotMatch(text, /dummy|OPENAI_API_KEY|SECRET/); assert.match(text, /gpt-5.6-luna/);
+  assert.equal(body.dailyBudgetUsd, 2);
 });
-test('concurrent reservations cannot cross budget even on separate gate instances', async () => {
+test('concurrent reservations cannot cross the $2 daily budget even on separate gate instances', async () => {
   const { gate, storage } = makeGate(); const another = new LunaGate({ storage }, {});
-  const outcomes = await Promise.all(Array.from({ length: 12 }, (_, i) => (i % 2 ? gate : another).reserve(`request-${i}`, `ip-${i}`, 200000)));
+  const outcomes = await Promise.all(Array.from({ length: 12 }, (_, i) => (i % 2 ? gate : another).reserve(`request-${i}`, `ip-${i}`, 900000)));
   assert.equal(outcomes.filter((r) => r.ok).length, 2);
-  assert.equal((await storage.get('ledger')).daily, 400000);
+  assert.equal((await storage.get('ledger')).daily, 1800000);
 });
 test('trial and monthly caps persist across restart and day boundary', async () => {
   const { gate, storage } = makeGate();
