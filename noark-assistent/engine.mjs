@@ -5,7 +5,7 @@ const STOP_WORDS = new Set([
   "har", "hva", "hvilke", "hvordan", "i", "ikke", "kan", "med", "må", "naar",
   "noe", "og", "om", "pa", "paa", "på", "skal", "som", "til", "ved", "vi", "vil",
   "være", "eller", "etter", "gjør", "gjore", "seg", "sin", "sine", "dette",
-  "hvor", "mange", "hvem", "hvilken", "hvilket", "bor",
+  "hvor", "mange", "hvem", "hvilken", "hvilket", "bor", "fortsatt", "krever",
 ]);
 
 const SYNONYM_GROUPS = [
@@ -200,14 +200,33 @@ export function searchRecords(query, options = {}) {
   }
 
   scored.sort((a, b) => b.score - a.score || a.record.title.localeCompare(b.record.title, "nb"));
-  const topScore = scored[0]?.score ?? 1;
-  return scored.slice(0, limit).map((item, index) => ({
+  return scored.map((item) => ({
     ...item,
-    rank: index + 1,
-    relevance: Math.max(1, Math.min(100, Math.round((item.score / topScore) * 100))),
+    relevance: estimateRelevance(item, rawTokens),
+    relevanceMethod: "lexical",
+    relevanceReason: "Anslag fra orddekning, synonymer og konkrete kravtreff i kildeposten.",
     source: getSource(item.record.source),
     url: sourceUrl(item.record),
-  }));
+  })).sort((a, b) => b.relevance - a.relevance || b.score - a.score)
+    .slice(0, limit).map((item, index) => ({ ...item, rank: index + 1 }));
+}
+
+// Query-specific heuristic, not a probability or normalization to the top hit.
+function estimateRelevance(result, rawTokens) {
+  const indexed = INDEX.find(({ record }) => record.id === result.record.id);
+  const terms = [...new Set(rawTokens)];
+  if (!indexed || !terms.length) return 0;
+  let covered = 0;
+  let total = 0;
+  for (const token of terms) {
+    const weight = Math.log(1 + INDEX.length / (1 + (DOCUMENT_FREQUENCY.get(token) ?? 0)));
+    total += weight;
+    if (indexed.frequencies.has(token) || requirementNumberSet(result.record.requirement).has(token)) covered += weight;
+    else if ((SYNONYM_MAP.get(token) ?? []).some((term) => indexed.frequencies.has(term))) covered += 0.55 * weight;
+  }
+  const coverage = covered / Math.max(total, 1);
+  const strength = 1 - Math.exp(-Math.max(0, result.score) / 14);
+  return Math.max(0, Math.min(99, Math.round(100 * coverage * (0.7 + 0.3 * strength))));
 }
 
 function intentScore(intent, normalizedQuery) {
@@ -233,45 +252,38 @@ export function findIntent(query) {
 }
 
 function intentResults(intent, query, options) {
+  const rankQuery = intent.id === "requirement-types" ? `${query} obligatorisk betinget valgfritt kravtyper` : query;
+  const ranked = searchRecords(rankQuery, { ...options, limit: 50 });
+  const byId = new Map(ranked.map((result) => [result.record.id, result]));
   const selected = [];
   const seen = new Set();
-  let artificialScore = 100;
-
+  // Curated intents widen candidate recall; they never manufacture a percentage.
   for (const id of intent.recordIds) {
     const record = RECORD_BY_ID.get(id);
     if (!record || !matchesFilters(record, options)) continue;
-    seen.add(id);
-    selected.push({
-      record,
-      score: artificialScore,
-      directTerms: tokenize(query).filter((token) => tokenize([record.title, ...record.tags].join(" "), { keepStopWords: true }).includes(token)),
-      source: getSource(record.source),
-      url: sourceUrl(record),
-    });
-    artificialScore -= 6;
-  }
-
-  for (const result of searchRecords(query, { ...options, limit: 12 })) {
-    if (seen.has(result.record.id)) continue;
-    seen.add(result.record.id);
+    const result = byId.get(id) ?? {
+      record, score: 0, directTerms: [], relevance: 0,
+      relevanceMethod: "lexical", relevanceReason: "Tematisk kandidat uten direkte ordtreff.",
+      source: getSource(record.source), url: sourceUrl(record),
+    };
     selected.push(result);
+    seen.add(id);
   }
-
-  return selected.slice(0, Number(options.limit) || 8).map((result, index) => ({
-    ...result,
-    rank: index + 1,
-    relevance: Math.max(62, 100 - index * 7),
-  }));
+  for (const result of ranked) {
+    if (!seen.has(result.record.id)) selected.push(result);
+    seen.add(result.record.id);
+    if (selected.length >= (Number(options.limit) || 8)) break;
+  }
+  return selected.slice(0, Number(options.limit) || 8)
+    .sort((a, b) => b.relevance - a.relevance || b.score - a.score)
+    .map((result, index) => ({ ...result, rank: index + 1 }));
 }
 
-function confidenceFor(results, intent) {
-  if (!results.length) return { level: "lav", label: "Lav dekning", score: 0 };
-  if (intent && results.length >= 2) return { level: "høy", label: "Høy kildedekning", score: 94 };
-  const top = results[0].score;
-  const directMatches = results[0].directTerms?.length ?? 0;
-  if (top >= 8 || directMatches >= 2) return { level: "høy", label: "Høy kildedekning", score: 86 };
-  if (top >= 3.2) return { level: "middels", label: "Middels kildedekning", score: 67 };
-  return { level: "lav", label: "Lav kildedekning", score: 39 };
+function confidenceFor(results) {
+  const score = results[0]?.relevance ?? 0;
+  if (score >= 75) return { level: "høy", label: "Godt søketreff", score };
+  if (score >= 40) return { level: "middels", label: "Delvis kildedekning", score };
+  return { level: "lav", label: "Svakt søketreff", score };
 }
 
 function uniquePoints(results, lead, count = 3) {
@@ -325,7 +337,7 @@ export function answerQuestion(query, options = {}) {
     status: "ok",
     query: cleanQuery,
     lead,
-    leadCitation: 1,
+    leadCitation: intent ? (results.find((r) => r.record.id === intent.recordIds[0])?.rank ?? 1) : 1,
     points: uniquePoints(results, lead, options.pointCount ?? 3),
     results,
     confidence,

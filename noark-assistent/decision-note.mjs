@@ -26,12 +26,12 @@ export function buildDecisionNote(answer, { generatedAt = new Date() } = {}) {
     `**Generert:** ${formatDate(generatedAt)}`,
     '',
     '## Kort svar',
-    answer.lead || 'Det foreligger ikke tilstrekkelig grunnlag for et kort svar.',
+    `${answer.lead || 'Det foreligger ikke tilstrekkelig grunnlag for et kort svar.'} ${(answer.leadCitations ?? (answer.leadCitation ? [answer.leadCitation] : [])).map((n) => `[${n}]`).join(' ')}`,
   ];
 
   if (answer.points?.length) {
     lines.push('', '## Viktige punkter');
-    for (const point of answer.points) lines.push(`- ${point.text} [${point.citation}]`);
+    for (const point of answer.points) lines.push(`- ${point.text} ${(point.citations ?? [point.citation]).map((n) => `[${n}]`).join(' ')}`);
   }
 
   if (answer.guidance) lines.push('', '## Forbehold og neste kontroll', answer.guidance);
@@ -53,7 +53,7 @@ export function buildDecisionNote(answer, { generatedAt = new Date() } = {}) {
     '## Beslutningsregel',
     'Dette notatet er fagstøtte. Kontroller ordlyden i originalkildene før juridiske, tekniske, anskaffelsesmessige eller operative beslutninger.',
     '',
-    'Generert lokalt i Noark 5-arkivassistenten.',
+    answer.mode === 'luna' ? 'Svar fra GPT-5.6 Luna (medium); notatet er satt sammen lokalt.' : 'Generert lokalt i Noark 5-arkivassistenten.',
   );
 
   return lines.join('\n');

@@ -1,6 +1,6 @@
 export const BUILD_INFO = Object.freeze({
   title: "Noark 5-arkivassistent",
-  version: "1.0.0",
+  version: "1.1.0",
   corpusVersion: "2026-09-02",
   standardVersion: "Noark 5 versjon 6.0",
   legalBasis: "Arkivregelverket fra 1. januar 2026",

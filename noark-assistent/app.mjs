@@ -15,6 +15,8 @@ import {
   sourceUrl,
 } from "./engine.mjs";
 import { buildDecisionNote } from "./decision-note.mjs";
+import { fallbackAnswer, retrieveConversation, MAX_HISTORY as CHAT_HISTORY } from "./rag-shared.mjs";
+import { askLuna, loadLunaStatus, mountBotCheck, resetBotCheck } from "./luna-client.mjs";
 
 const HISTORY_KEY = "noark-assistent-history-v1";
 const MAX_HISTORY = 8;
@@ -25,6 +27,8 @@ const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 
 const state = {
   latestAnswer: null,
+  turns: [], busy: false, runId: 0, controller: null,
+  luna: { configured: false }, botToken: "", botWidget: null,
   libraryLimit: LIBRARY_PAGE_SIZE,
   libraryResults: [],
 };
@@ -114,6 +118,7 @@ function userMessage(question) {
 
 function assistantMessage(answer) {
   const article = element("article", { className: "message assistant-message answer-message" });
+  article.answer = answer;
   const role = element("div", { className: "message-role", text: "Assistent" });
   const content = element("div", { className: "message-content" });
 
@@ -122,17 +127,17 @@ function assistantMessage(answer) {
     element("span", {
       className: `confidence confidence-${answer.confidence.level}`,
       text: `${answer.confidence.label} · ${answer.confidence.score}/100`,
-      attrs: { title: "Kildedekning beregnet fra treffstyrke og direkte termtreff. Ikke en sannsynlighet for at svaret er juridisk riktig." },
+      attrs: { title: "Anslått kilderelevans, ikke sannsynlighet for at svaret er riktig. Kontroller originalkildene." },
     }),
-    element("span", { className: "answer-mode", text: "Lokal kildesyntese" }),
+    element("span", { className: "answer-mode", text: answer.mode === "luna" ? "GPT-5.6 Luna · medium" : "Lokalt kildesøk" }),
   );
   content.append(answerHeader);
 
   const lead = element("p", { className: "answer-lead" });
   appendText(lead, answer.lead);
-  if (answer.leadCitation && answer.results.length) {
+  for (const rank of answer.leadCitations ?? (answer.leadCitation ? [answer.leadCitation] : [])) {
     appendText(lead, " ");
-    lead.append(citationButton(answer.leadCitation));
+    lead.append(citationButton(rank));
   }
   content.append(lead);
 
@@ -142,7 +147,7 @@ function assistantMessage(answer) {
       const item = element("li");
       appendText(item, point.text);
       appendText(item, " ");
-      item.append(citationButton(point.citation));
+      for (const rank of point.citations ?? [point.citation]) item.append(citationButton(rank));
       list.append(item);
     }
     content.append(list);
@@ -163,18 +168,11 @@ function assistantMessage(answer) {
 }
 
 function insufficientMessage(answer) {
-  const article = element("article", { className: "message assistant-message answer-message" });
-  const content = element("div", { className: "message-content" });
-  content.append(
-    element("span", { className: "confidence confidence-lav", text: answer.confidence.label }),
-    element("p", { className: "answer-lead", text: answer.lead }),
-    element("p", { className: "message-note", text: answer.guidance }),
-  );
-  article.append(element("div", { className: "message-role", text: "Assistent" }), content);
-  return article;
+  return assistantMessage({ ...answer, points: answer.points ?? [], results: answer.results ?? [] });
 }
 
-function renderEvidence(results) {
+function renderEvidence(results, query = "") {
+  $("#evidence-query").textContent = query ? `Relevans for: ${query}` : "";
   const container = $("#evidence-list");
   const empty = $("#evidence-empty");
   const count = $("#result-count");
@@ -199,7 +197,9 @@ function renderEvidence(results) {
     top.append(
       element("span", { className: "source-number", text: String(rank) }),
       element("span", { className: "source-kind", text: source.type }),
-      element("span", { className: "relevance", text: `${relevance}% treff` }),
+      element("span", { className: "relevance", text: `${relevance}% treff`, attrs: {
+        title: `${result.relevanceMethod === "luna" ? "Luna-vurdert" : "Søkebasert"} relevansanslag for denne kildeposten. Ikke en sannsynlighet for at svaret er riktig.`,
+      } }),
     );
 
     const heading = element("h3", { text: record.title });
@@ -217,7 +217,9 @@ function renderEvidence(results) {
       attrs: { href: url, target: "_blank", rel: "noreferrer" },
     });
     footer.append(bar, link);
-    card.append(top, heading, location, summary, sourceLine, footer);
+    const explanation = element("p", { className: "relevance-explanation", text:
+      `${result.relevanceMethod === "luna" ? "Luna-vurdering" : "Søkebasert anslag"}: ${result.relevanceReason ?? "Ord- og kravtreff."}` });
+    card.append(top, heading, location, summary, explanation, sourceLine, footer);
     container.append(card);
   }
 }
@@ -226,9 +228,9 @@ function plainTextAnswer(answer) {
   const lines = [
     `Spørsmål: ${answer.query}`,
     "",
-    `${answer.lead}${answer.leadCitation ? ` [${answer.leadCitation}]` : ""}`,
+    `${answer.lead} ${(answer.leadCitations ?? (answer.leadCitation ? [answer.leadCitation] : [])).map((n) => `[${n}]`).join(" ")}`,
   ];
-  for (const point of answer.points) lines.push(`- ${point.text} [${point.citation}]`);
+  for (const point of answer.points) lines.push(`- ${point.text} ${(point.citations ?? [point.citation]).map((n) => `[${n}]`).join(" ")}`);
   lines.push("", "Kilder:");
   for (const result of answer.results) {
     lines.push(`[${result.rank}] ${result.source.title} — ${formatLocation(result.record) || result.record.topic}`);
@@ -273,7 +275,7 @@ function readHistory() {
 function saveHistory(question) {
   const normalized = question.trim();
   const history = [normalized, ...readHistory().filter((item) => item.toLowerCase() !== normalized.toLowerCase())].slice(0, MAX_HISTORY);
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+  try { localStorage.setItem(HISTORY_KEY, JSON.stringify(history)); } catch { /* Private-mode storage may be unavailable. */ }
   renderHistory();
 }
 
@@ -289,37 +291,64 @@ function renderHistory() {
   })));
 }
 
-async function runQuestion(question, { save = true, updateUrl = true } = {}) {
-  const clean = String(question ?? "").trim();
-  if (!clean) return;
+async function runQuestion(question, { save = true, updateUrl = true, allowAI = true, newTopic = false } = {}) {
+  const clean = String(question ?? "").trim().slice(0, 1000);
+  if (clean.length < 2) return;
+  if (state.busy) { showToast("Et spørsmål behandles allerede."); return; }
+  const useAI = allowAI && state.luna.configured && $("#use-luna").checked;
+  if (useAI && !state.botToken) { showToast("Fullfør sikkerhetskontrollen, eller slå av Luna for lokalt søk."); return; }
+  if (newTopic) state.turns = [];
+  const previous = state.turns.slice(-CHAT_HISTORY);
+  const runId = ++state.runId;
   const conversation = $("#conversation");
+  state.busy = true;
+  state.controller = new AbortController();
+  $("#question-form button[type=submit]").disabled = true;
   conversation.append(userMessage(clean));
-  setStatus("Søker", true);
   $("#question").value = "";
-  await new Promise((resolve) => setTimeout(resolve, 55));
-
-  const answer = answerQuestion(clean, { limit: 8, pointCount: 3 });
+  setStatus(useAI ? "Luna vurderer kildene" : "Søker lokalt", true);
+  let answer = fallbackAnswer(clean, previous);
+  renderEvidence(useAI ? retrieveConversation(clean, previous) : answer.results, clean);
+  try {
+    if (useAI) answer = await askLuna(clean, previous, state.botToken, state.controller.signal);
+  } catch (error) {
+    answer = fallbackAnswer(clean, previous, error.name === "AbortError" ? "Luna-forespørselen ble avbrutt." : error.message);
+  } finally {
+    if (useAI) { state.botToken = ""; resetBotCheck(state.botWidget); }
+  }
+  if (runId !== state.runId) return;
   state.latestAnswer = answer;
   conversation.append(answer.status === "ok" ? assistantMessage(answer) : insufficientMessage(answer));
-  renderEvidence(answer.results);
+  renderEvidence(answer.results, clean);
+  state.turns.push({ role: "user", content: clean }, { role: "assistant", content: [answer.lead, ...answer.points.map((p) => p.text)].join(" ").slice(0, 1500) });
+  state.turns = state.turns.slice(-CHAT_HISTORY);
+  state.busy = false;
+  $("#question-form button[type=submit]").disabled = false;
   setStatus("Klar", false);
   if (save) saveHistory(clean);
   if (updateUrl) {
     const url = new URL(window.location.href);
-    url.searchParams.set("q", clean);
+    url.searchParams.delete("q"); // Do not put new potentially personal questions into URL/history.
     history.replaceState(null, "", url);
   }
   conversation.lastElementChild?.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
 function resetConversation() {
+  state.controller?.abort();
+  state.runId++;
+  state.busy = false;
+  state.turns = [];
+  $("#question-form button[type=submit]").disabled = false;
+  $("#evidence-query").textContent = "";
+  setStatus("Klar");
   const conversation = $("#conversation");
   conversation.replaceChildren();
   const welcome = element("article", { className: "message assistant-message" });
   const content = element("div", { className: "message-content" });
   content.append(
     element("p", { text: "Samtalen er nullstilt. Still et nytt spørsmål, eller velg en av problemstillingene over." }),
-    element("p", { className: "message-note", text: "All behandling skjer lokalt i nettleseren." }),
+    element("p", { className: "message-note", text: "Lokalt søk sender ikke spørsmålet ut. Med Luna sendes spørsmålet, begrenset samtalehistorikk og kildeposter til OpenAI via backend." }),
   );
   welcome.append(element("div", { className: "message-role", text: "Assistent" }), content);
   conversation.append(welcome);
@@ -429,31 +458,36 @@ function bindEvents() {
   });
   document.addEventListener("click", (event) => {
     const citation = event.target.closest("[data-citation]");
-    if (citation) activateCitation(Number(citation.dataset.citation));
+    if (citation) {
+      const answer = citation.closest(".answer-message")?.answer;
+      if (answer) renderEvidence(answer.results, answer.query);
+      activateCitation(Number(citation.dataset.citation));
+    }
 
     const question = event.target.closest("[data-question]");
     if (question) {
       setActiveTab("chat");
-      runQuestion(question.dataset.question);
+      runQuestion(question.dataset.question, { newTopic: true });
     }
 
     const tab = event.target.closest("[data-tab]");
     if (tab) setActiveTab(tab.dataset.tab);
 
     const action = event.target.closest("[data-action]");
-    if (action?.dataset.action === "copy-answer" && state.latestAnswer) {
-      copyText(plainTextAnswer(state.latestAnswer), "Svaret er kopiert");
+    const selectedAnswer = action?.closest(".answer-message")?.answer ?? state.latestAnswer;
+    if (action?.dataset.action === "copy-answer" && selectedAnswer) {
+      copyText(plainTextAnswer(selectedAnswer), "Svaret er kopiert");
     }
-    if (action?.dataset.action === "copy-decision-note" && state.latestAnswer) {
-      copyText(buildDecisionNote(state.latestAnswer), "Beslutningsnotatet er kopiert");
+    if (action?.dataset.action === "copy-decision-note" && selectedAnswer) {
+      copyText(buildDecisionNote(selectedAnswer), "Beslutningsnotatet er kopiert");
     }
-    if (action?.dataset.action === "copy-link" && state.latestAnswer) {
-      copyText(shareUrl(state.latestAnswer.query), "Delingslenken er kopiert");
+    if (action?.dataset.action === "copy-link" && selectedAnswer) {
+      copyText(shareUrl(selectedAnswer.query), "Delingslenken er kopiert");
     }
   });
   $("#clear-chat").addEventListener("click", resetConversation);
   $("#clear-history").addEventListener("click", () => {
-    localStorage.removeItem(HISTORY_KEY);
+    try { localStorage.removeItem(HISTORY_KEY); } catch { /* Storage may be blocked. */ }
     renderHistory();
     showToast("Historikken er slettet");
   });
@@ -470,6 +504,28 @@ function bindEvents() {
   });
 }
 
+async function initializeLuna() {
+  state.luna = await loadLunaStatus();
+  $("#model-status").textContent = state.luna.message;
+  $("#use-luna").disabled = !state.luna.configured;
+  $("#model-badge").textContent = state.luna.configured ? "Luna-backend klar" : "Lokalt søk · Luna ikke aktivert";
+  $("#use-luna").addEventListener("change", async () => {
+    const active = $("#use-luna").checked;
+    $("#bot-check").hidden = !active;
+    $("#model-badge").textContent = active ? "GPT-5.6 Luna · medium" : "Lokalt kildesøk";
+    if (active && state.botWidget === null) {
+      try {
+        state.botWidget = await mountBotCheck(state.luna.siteKey, $("#bot-widget"), (token) => { state.botToken = token; });
+      } catch {
+        $("#use-luna").checked = false;
+        $("#bot-check").hidden = true;
+        $("#model-badge").textContent = "Lokalt kildesøk";
+        showToast("Sikkerhetskontrollen kunne ikke lastes. Lokalt søk er fortsatt tilgjengelig.");
+      }
+    }
+  });
+}
+
 function initialize() {
   renderStats();
   renderSuggestions();
@@ -477,13 +533,14 @@ function initialize() {
   renderSources();
   populateLibraryTopics();
   bindEvents();
+  initializeLuna();
 
   const initialTab = ["library", "sources"].includes(window.location.hash.slice(1)) ? window.location.hash.slice(1) : "chat";
   setActiveTab(initialTab, { updateHash: false });
-  const query = new URL(window.location.href).searchParams.get("q")?.slice(0, 600).trim();
+  const query = new URL(window.location.href).searchParams.get("q")?.slice(0, 1000).trim();
   if (query) {
     setActiveTab("chat", { updateHash: false });
-    setTimeout(() => runQuestion(query, { save: false, updateUrl: false }), 120);
+    setTimeout(() => runQuestion(query, { save: false, updateUrl: false, allowAI: false }), 120);
   }
 }
 
