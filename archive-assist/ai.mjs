@@ -191,9 +191,9 @@ function resetBotCheck() {
 
 export async function localAiAvailability() {
   try {
-    const status = await loadLunaStatus();
-    await ensureBotCheck(status);
-    return 'available';
+    await loadLunaStatus();
+    // Keep Luna opt-in. The existing app only auto-runs when availability is "available".
+    return 'downloadable';
   } catch {
     return 'unavailable';
   }
