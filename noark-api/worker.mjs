@@ -2,7 +2,7 @@ import { BUILD_INFO } from '../noark-assistent/data.mjs';
 import { MODEL_ID, cleanConversation, retrieveConversation, fallbackAnswer, responseSchema, finalizeAnswer } from '../noark-assistent/rag-shared.mjs';
 
 export const LIMITS = Object.freeze({ bodyBytes: 12000, promptBytes: 48000, outputTokens: 4096,
-  monthlyMicroUsd: 6_000_000, trialMicroUsd: 6_000_000, dailyMicroUsd: 500_000,
+  monthlyMicroUsd: 6_000_000, trialMicroUsd: 6_000_000, dailyMicroUsd: 2_000_000,
   perMinute: 5, perDay: 60, globalPerDay: 250, concurrent: 4 });
 // Verified 2026-09-07. Use the higher cache-write input rate even for uncached input.
 // Integer microdollars; round up. This ledger is conservative, not an OpenAI invoice.
@@ -75,7 +75,7 @@ export default {
     if (path === '/api/health' && request.method === 'GET') {
       return json({ configured: configured(env), model: MODEL_ID, reasoning: 'medium',
         siteKey: env.TURNSTILE_SITE_KEY ?? '', corpusVersion: BUILD_INFO.corpusVersion,
-        monthlyBudgetUsd: 6, trialBudgetUsd: 6 }, 200, allowed ? origin : '');
+        monthlyBudgetUsd: 6, trialBudgetUsd: 6, dailyBudgetUsd: 2 }, 200, allowed ? origin : '');
     }
     if (path !== '/api/chat') return failure('not_found', 'Ukjent endepunkt.', 404);
     if (!allowed) return failure('origin', 'Denne nettsiden har ikke tilgang.', 403);
