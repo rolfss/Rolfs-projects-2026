@@ -4,29 +4,51 @@ Bakenden bruker **GPT-5.6 Luna**, `reasoning.effort: medium`, via OpenAI Respons
 
 **Status:** implementert og enhetstestet med simulerte API-kall. Ingen nøkkel følger med, og ingen betalte API-kall eller live Cloudflare-utrulling er utført som del av implementeringen. Helseendepunktet kontrollerer konfigurasjon, ikke om API-kontoen faktisk har tilgang til modellen.
 
-## Privat aktivering
+## Privat aktivering – anbefalt, enklest og sikkert
 
-Krever Cloudflare-konto, Node.js 22+, tilgang til dette repositoryet og en OpenAI-prosjektnøkkel. Ikke lim nøkkelen inn i en samtale, kildekoden, GitHub Secrets som bygges inn i klientkode, eller en nettleserinnstilling.
+Krever Cloudflare-konto, Node.js 22+, tilgang til dette repositoryet og en OpenAI-prosjektnøkkel. **Ikke lim OpenAI-nøkkelen inn i en samtale, kildekoden, GitHub Pages, en nettleserinnstilling eller en vanlig tekstvariabel.**
 
-1. Opprett en Cloudflare Turnstile-widget med tillatt vertsnavn **`rolfss.github.io`**. Sett den offentlige site key i `TURNSTILE_SITE_KEY` i `noark-api/wrangler.toml`. Behold `ALLOWED_ORIGINS = "https://rolfss.github.io"` for denne GitHub Pages-siden. Turnstile secret key skal ikke inn i filen.
+Den enkleste sikre løsningen er å deploye Worker-koden først og deretter legge nøklene inn direkte i Cloudflare Dashboard. Koden har `keep_vars = true`, så dashboard-variabler bevares ved senere Wrangler-deploy. Worker-hemmeligheter bevares uansett og blir ikke skrevet tilbake til kildekoden.
+
+1. Opprett en Cloudflare Turnstile-widget med tillatt vertsnavn **`rolfss.github.io`**. Ta vare på:
+   - **Site key** – offentlig, ikke hemmelig.
+   - **Secret key** – hemmelig.
 2. Åpne en terminal i `noark-api` og kjør:
 
    ```sh
    npx wrangler@4 login
    npx wrangler@4 deploy
-   npx wrangler@4 secret put OPENAI_API_KEY
-   npx wrangler@4 secret put TURNSTILE_SECRET_KEY
    ```
 
-   Lim hver nøkkel inn i det private, interaktive feltet fra den aktuelle kommandoen. Første utrulling er deaktivert inntil hemmelighetene finnes. Ingen hemmeligheter skal committes.
-3. Kopier Worker-adressen fra utrullingen. Fra repository-roten kjører du, med din faktiske adresse:
+   Første utrulling kan være ukonfigurert; det er tilsiktet. Kopier Worker-adressen som slutter på `.workers.dev`.
+3. I **Cloudflare Dashboard → Workers & Pages → noark-luna-api → Settings → Variables and Secrets → Add** legger du inn tre verdier:
+
+   | Navn | Type | Verdi |
+   |---|---|---|
+   | `OPENAI_API_KEY` | **Secret** | OpenAI-prosjektnøkkelen din |
+   | `TURNSTILE_SECRET_KEY` | **Secret** | Turnstile secret key |
+   | `TURNSTILE_SITE_KEY` | Text / vanlig variabel | Turnstile site key |
+
+   Velg **Deploy**. Secret-verdiene skjules etter lagring og er bare tilgjengelige for Worker-koden.
+4. Fra repository-roten kjører du, med din faktiske Worker-adresse:
 
    ```sh
    node noark-api/configure.mjs https://DIN-WORKER.workers.dev
    ```
 
-   Dette setter bare offentlig bakendeadresse og den tilhørende `connect-src`-regelen. Commit og push `noark-assistent/api-config.mjs`, `noark-assistent/index.html` og den offentlige konfigurasjonen i `noark-api/wrangler.toml`. Den eksisterende GitHub Pages-jobben publiserer klientendringen.
-4. Kontroller Worker-adressen med `/api/health`: `configured` skal være `true`. Åpne appen, slå på Luna, fullfør sikkerhetskontrollen og still ett testspørsmål. Bekreft at svarmerket viser **GPT-5.6 Luna**, og kontroller både ordlyd, kilder og faktisk API-forbruk.
+   Dette setter bare offentlig bakendeadresse og den tilhørende `connect-src`-regelen. Commit og push `noark-assistent/api-config.mjs` og `noark-assistent/index.html`. Den eksisterende GitHub Pages-jobben publiserer klientendringen.
+5. Kontroller `https://DIN-WORKER.workers.dev/api/health`: `configured` skal være `true`, `model` skal være `gpt-5.6-luna`, og `dailyBudgetUsd` skal være `2`. Åpne appen, slå på Luna, fullfør sikkerhetskontrollen og still ett testspørsmål. Kontroller svar, kilder, relevansprosenter og faktisk API-forbruk.
+
+### Alternativ: legg hemmelighetene inn fra terminal
+
+Hvis du heller vil bruke Wrangler enn Cloudflare Dashboard:
+
+```sh
+npx wrangler@4 secret put OPENAI_API_KEY
+npx wrangler@4 secret put TURNSTILE_SECRET_KEY
+```
+
+Wrangler ber deg lime inn hver verdi interaktivt. Nøkkelen skal ikke skrives inn i kommandoen, lagres i repoet eller legges i `wrangler.toml`.
 
 Luna slås på eksplisitt i nettleseren. En delt spørsmålslenke eller en sidevisning utløser ikke automatisk et betalt modellkall. Standardklienten fungerer fortsatt med lokalt søk når bakenden er deaktivert.
 
@@ -38,7 +60,7 @@ Standardgrenser i `worker.mjs`:
 |---|---:|
 | Samlet prøvebudsjett, uten automatisk nullstilling | USD 6 |
 | Kalender­måned, UTC | USD 6 |
-| Kalenderdag, UTC | USD 0,50 |
+| Kalenderdag, UTC | **USD 2,00** |
 | Forespørsler per IP-identitet | 5/minutt og 60/dag |
 | Forespørsler for hele appen | 250/dag |
 | Samtidige modellkall | 4 |
@@ -72,5 +94,6 @@ Enhetstestene bruker simulerte API-kall. De dokumenterer programatferd, ikke mod
 - [OpenAI API-nøkler: sikker bruk](https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety)
 - [OpenAI: datakontroller](https://developers.openai.com/api/docs/guides/your-data)
 - [Cloudflare Worker-hemmeligheter](https://developers.cloudflare.com/workers/configuration/secrets/)
+- [Cloudflare Wrangler-konfigurasjon og `keep_vars`](https://developers.cloudflare.com/workers/wrangler/configuration/)
 - [Durable Objects: priser og gratisgrenser](https://developers.cloudflare.com/durable-objects/platform/pricing/)
 - [Turnstile: servervalidering](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/)
