@@ -4,7 +4,7 @@
 
 [Åpne den publiserte demoen](https://rolfss.github.io/Rolfs-projects-2026/archive-assist/)
 
-Archive Assist er en statisk nettleserapp som leser dokumentinnhold, foreslår saksdokumenttittel og øvrige metadata, og lar saksbehandler eller arkivar kontrollere resultatet før videre overføring eller registrering.
+Archive Assist leser dokumentinnhold lokalt, foreslår saksdokumenttittel og øvrige metadata, og lar saksbehandler eller arkivar kontrollere resultatet før videre overføring eller registrering. Brukeren kan i tillegg velge forbedring med **GPT-5.6 Luna** og **reasoning effort `medium`** via den samme sikre API-bakenden som Noark-assistenten.
 
 ## Saksdokumenttittel
 
@@ -17,9 +17,9 @@ Tittelen kommer ikke lenger bare fra filnavnet. Ved innlasting prioriterer motor
 5. første meningsbærende setning;
 6. filnavnet som reserve.
 
-Forslaget settes direkte i det redigerbare tittelfeltet. Brukeren ser metode, begrunnelse, sikkerhet og kontrollstatus, og kan godkjenne forslaget eller skrive en annen tittel. En menneskeredigert tittel blir ikke overskrevet av en senere AI-analyse.
+Forslaget settes direkte i det redigerbare tittelfeltet. Brukeren ser metode, begrunnelse, sikkerhet og kontrollstatus, og kan godkjenne forslaget eller skrive en annen tittel. En menneskeredigert tittel blir ikke overskrevet av en senere Luna-analyse.
 
-Når nettleseren støtter en lokal språkmodell gjennom Prompt API, kan appen forbedre tittel, dokumenttype, emne, beskrivelse og andre uttrykkelige metadata på enheten. Funksjonen bruker ingen API-nøkkel og sender ikke dokumentinnhold til Archive Assist. Den deterministiske innholdsanalysen virker også uten denne nettleserfunksjonen.
+Den deterministiske innholdsanalysen virker uten API. Luna er valgfri og bruker OpenAI Responses API gjennom Cloudflare Worker-backenden. Modellen er fastsatt til `gpt-5.6-luna`, `reasoning.effort` er `medium`, `store` er `false`, og svaret må følge et strengt JSON-skjema. Bare et begrenset tekstutdrag (maks 12 000 tegn), filnavn og en tillatt delmengde metadata sendes når brukeren eksplisitt velger Luna. Selve binærfilen sendes ikke.
 
 Se den versjonerte [prompten for saksdokumenttittel](./TITTELPROMPT.md).
 
@@ -27,8 +27,8 @@ Se den versjonerte [prompten for saksdokumenttittel](./TITTELPROMPT.md).
 
 - Dra inn inntil 50 filer.
 - Lokal tekstuttrekking fra tekst, Markdown, CSV, JSON, XML, HTML, EML, PDF, DOCX, PPTX, XLSX, ODT, ODS og ODP.
-- Automatisk innholdsbasert forslag til saksdokumenttittel ved innlasting.
-- Valgfri forbedring med lokal nettleser-AI der dette støttes.
+- Automatisk lokalt, innholdsbasert forslag til saksdokumenttittel ved innlasting.
+- Valgfri forbedring av metadata med GPT-5.6 Luna og medium reasoning.
 - Forslag til dokumentdato, dokumenttype, språk, beskrivelse, emne, forfatter, organisasjonsenhet og nøkkelord når grunnlaget finnes.
 - Felles metadata for forfatter, organisasjonsenhet, sak, klassifikasjon, tilgang og livsløp.
 - Kontroll av obligatoriske felt, betingede krav og menneskelig tittelgjennomgang.
@@ -38,15 +38,15 @@ Se den versjonerte [prompten for saksdokumenttittel](./TITTELPROMPT.md).
 - Eksport av JSON-manifest, CSV-manifest og ZIP-pakke med dokumenter og JSON-sidecars.
 - Kontrollrapport i Markdown med overføringsstatus, tittelgjennomgang, obligatoriske mangler, duplikater og SHA-256.
 - Tre syntetiske eksempelfiler for rask testing.
-- 27 automatiske tester av tittelregler, promptformat, innholdsuttrekk, metadata og ZIP-bygger.
+- Automatiske tester av tittelregler, promptformat, innholdsuttrekk, metadata, ZIP-bygger og Luna-kontrakten.
 
 ## Personvern og sikkerhet
 
-Filene behandles lokalt i nettleseren. Appen har ingen backend, innlogging, analyse-API eller sporingskode. Binærfilene endres ikke. Metadata bindes til dokumentene i en eksportpakke.
+Filinnlasting, tekstuttrekk, hashing og de første metadataforslagene skjer lokalt i nettleseren. Luna kjøres ikke automatisk når en fil legges til. Når brukeren velger Luna, sendes et avgrenset tekstutdrag og relevante metadata via `noark-luna-api`-Workeren til OpenAI. API-nøkkelen finnes bare som Worker-hemmelighet og eksponeres ikke i nettleseren.
 
-Dokumentinnhold behandles som ubetrodd data i AI-prompten. Instruksjoner som ligger inne i en fil, skal ikke få endre rollen eller reglene til metadataassistenten.
+Luna-kallet er beskyttet med Cloudflare Turnstile, bruker den eksisterende felles kostnads- og rate-limit-ledgeren, lagrer ikke OpenAI-responsen (`store: false`) og sender ikke tilgangshjemmel, klassifikasjon eller bevarings-/kassasjonsvedtak som AI skal finne på. Dokumentinnhold behandles som ubetrodd data i prompten.
 
-Bruk likevel ikke demoen som eneste kontroll for reelle personopplysninger, tilgangsvurdering, journalføring, arkivverdi eller bevaring og kassasjon. Skannede PDF-er krever OCR og kan derfor gi et tittelforslag basert på filnavn og tilgjengelige metadata.
+Bruk likevel ikke demoen som eneste kontroll for reelle personopplysninger, tilgangsvurdering, journalføring, arkivverdi eller bevaring og kassasjon. Skannede PDF-er krever OCR og kan derfor gi et lokalt tittelforslag basert på filnavn og tilgjengelige metadata.
 
 ## Kjør lokalt
 
@@ -64,11 +64,11 @@ npm test
 npm run check
 ```
 
-Node.js 20 eller nyere er tilstrekkelig.
+Node.js 22 anbefales.
 
 ## Avgrensning
 
-Archive Assist er Noark-inspirert, men hevder ikke Noark-samsvar og er ikke et sak-/arkivsystem. En produksjonsversjon måtte ha virksomhetsspesifikk metadataprofil, autentisering, serverbasert autorisasjon, uforanderlig hendelseslogg, godkjent AI-behandlingsgrunnlag og konkrete import-/API-integrasjoner.
+Archive Assist er Noark-inspirert, men hevder ikke Noark-samsvar og er ikke et sak-/arkivsystem. En produksjonsversjon måtte i tillegg ha virksomhetsspesifikk metadataprofil, autentisering, serverbasert autorisasjon, uforanderlig hendelseslogg, godkjent behandlingsgrunnlag for dokumenter som sendes til en ekstern modell og konkrete import-/API-integrasjoner.
 
 Se [ARKITEKTUR.md](./ARKITEKTUR.md), [PROSJEKTGRUNNLAG.md](./PROSJEKTGRUNNLAG.md), [TITTELPROMPT.md](./TITTELPROMPT.md) og [SECURITY.md](./SECURITY.md).
 
