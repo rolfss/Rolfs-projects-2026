@@ -16,7 +16,7 @@ import {
 } from "./engine.mjs";
 import { buildDecisionNote } from "./decision-note.mjs";
 import { fallbackAnswer, retrieveConversation, MAX_HISTORY as CHAT_HISTORY } from "./rag-shared.mjs";
-import { askLuna, loadLunaStatus, mountBotCheck, resetBotCheck } from "./luna-client.mjs";
+import { askLuna, loadLunaStatus, mountBotCheck, resetBotCheck, needsUpdatedCorpus } from "./luna-client.mjs";
 
 const HISTORY_KEY = "noark-assistent-history-v1";
 const MAX_HISTORY = 8;
@@ -295,10 +295,11 @@ async function runQuestion(question, { save = true, updateUrl = true, allowAI = 
   const clean = String(question ?? "").trim().slice(0, 1000);
   if (clean.length < 2) return;
   if (state.busy) { showToast("Et spørsmål behandles allerede."); return; }
-  const useAI = allowAI && state.luna.configured && $("#use-luna").checked;
-  if (useAI && !state.botToken) { showToast("Fullfør sikkerhetskontrollen, eller slå av Luna for lokalt søk."); return; }
   if (newTopic) state.turns = [];
   const previous = state.turns.slice(-CHAT_HISTORY);
+  const needsNewSources = state.luna.configured && !state.luna.currentCorpus && needsUpdatedCorpus(clean, previous);
+  const useAI = allowAI && state.luna.configured && $("#use-luna").checked && !needsNewSources;
+  if (useAI && !state.botToken) { showToast("Fullfør sikkerhetskontrollen, eller slå av Luna for lokalt søk."); return; }
   const runId = ++state.runId;
   const conversation = $("#conversation");
   state.busy = true;
@@ -307,10 +308,13 @@ async function runQuestion(question, { save = true, updateUrl = true, allowAI = 
   conversation.append(userMessage(clean));
   $("#question").value = "";
   setStatus(useAI ? "Luna vurderer kildene" : "Søker lokalt", true);
-  let answer = fallbackAnswer(clean, previous);
+  let answer = fallbackAnswer(clean, previous, needsNewSources ? 'Nye veiledere brukes lokalt. Luna-bakenden må oppdateres før den kan svare fra dette grunnlaget.' : '');
   renderEvidence(useAI ? retrieveConversation(clean, previous) : answer.results, clean);
   try {
-    if (useAI) answer = await askLuna(clean, previous, state.botToken, state.controller.signal);
+    if (useAI) answer = await askLuna(clean, previous, state.botToken, state.controller.signal, {
+      corpusVersion: state.luna.corpusVersion,
+      qualityConsent: state.luna.questionLogging?.enabled === true && $("#quality-consent").checked,
+    });
   } catch (error) {
     answer = fallbackAnswer(clean, previous, error.name === "AbortError" ? "Luna-forespørselen ble avbrutt." : error.message);
   } finally {
@@ -409,7 +413,9 @@ function libraryCard(result) {
     text: "Se originalkilden ↗",
     attrs: { href: url, target: "_blank", rel: "noreferrer" },
   });
-  card.append(meta, title, summary, detail, location, link);
+  card.append(meta, title, summary, detail, location);
+  if (source.scope) card.append(element("p", { className: "message-note", text: `${source.scope} · Kontrollert ${source.verifiedAt}` }));
+  card.append(link);
   return card;
 }
 
@@ -438,7 +444,7 @@ function renderSources() {
       element("span", { className: "source-kind", text: source.type }),
       element("h2", { text: source.title }),
       element("p", { text: source.note }),
-      element("p", { className: "source-publisher", text: `${source.publisher} · ${source.published}` }),
+      element("p", { className: "source-publisher", text: `${source.publisher} · ${source.verifiedAt ? `Kontrollert ${source.verifiedAt}` : source.published}` }),
       element("a", { className: "source-link", text: "Åpne kilden ↗", attrs: { href: source.url, target: "_blank", rel: "noreferrer" } }),
     );
     return card;
@@ -508,6 +514,10 @@ async function initializeLuna() {
   state.luna = await loadLunaStatus();
   $("#model-status").textContent = state.luna.message;
   $("#use-luna").disabled = !state.luna.configured;
+  $("#quality-consent").disabled = state.luna.questionLogging?.enabled !== true;
+  $("#quality-status").textContent = state.luna.questionLogging?.enabled === true
+    ? "For godkjente Luna-forespørsler registreres dato, kilde-ID-er, treffskårer og utfall. Spørsmålstekst lagres bare med ditt separate samtykke nedenfor."
+    : "Spørsmålsloggen er ikke aktiv på den tilkoblede bakenden. Lokale søk blir ikke sendt inn til forbedringsloggen.";
   $("#model-badge").textContent = state.luna.configured ? "Luna-backend klar" : "Lokalt søk · Luna ikke aktivert";
   $("#use-luna").addEventListener("change", async () => {
     const active = $("#use-luna").checked;

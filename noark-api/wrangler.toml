@@ -2,21 +2,31 @@ name = "noark-luna-api"
 main = "worker.mjs"
 compatibility_date = "2026-09-01"
 workers_dev = true
-# Preserve dashboard-managed public variables. Secrets are always preserved separately.
+# Preserve dashboard-managed public variables. Secrets remain server-side.
 keep_vars = true
 
 [vars]
 ALLOWED_ORIGINS = "https://rolfss.github.io"
-# TURNSTILE_SITE_KEY is intentionally configured in the Cloudflare dashboard,
-# so activation requires no source-code edit and future deploys preserve it.
+QUESTION_LOG_ENABLED = "true"
+# TURNSTILE_SITE_KEY stays in the dashboard; never put secrets here.
+# QUESTION_REVIEW_KEY is a separate, strong owner-only Worker secret for private exports.
 
+# Preserve this binding, class and v1 migration: never reset the spending ledger.
 [[durable_objects.bindings]]
 name = "LUNA_GATE"
 class_name = "LunaGate"
 
+[[durable_objects.bindings]]
+name = "QUESTION_LOG"
+class_name = "QuestionLog"
+
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["LunaGate"]
+
+[[migrations]]
+tag = "v2-question-review"
+new_sqlite_classes = ["QuestionLog"]
 
 [observability]
 enabled = false

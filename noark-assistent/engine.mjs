@@ -9,6 +9,13 @@ const STOP_WORDS = new Set([
 ]);
 
 const SYNONYM_GROUPS = [
+  ["avlevering", "avlevere", "avleveres", "levering", "deponering", "deponere", "uttrekk", "eksport", "avleveringsuttrekk", "datauttrekk"],
+  ["filformat", "filformater", "arkivformat", "arkivformater", "format", "formater"],
+  ["akseptert", "aksepterte", "godkjent", "godkjente", "tillatt", "tillatte", "godtar"],
+  ["konvertering", "konvertere", "konverteres", "migrering", "systembytte", "overføring", "overfoering"],
+  ["internkontroll", "kvalitetssystem", "styringssystem"],
+  ["dokumentasjonsplan", "arkivplan", "systemkartlegging", "systemoversikt"],
+  ["skanning", "skanne", "skannet", "mediekonvertering", "papiroriginaler"],
   ["obligatorisk", "paabudt", "påbudt", "krav", "pliktig", "maa", "må"],
   ["frivillig", "valgfri", "valgfritt"],
   ["kassasjon", "sletting", "slette", "destruksjon", "rydde"],
@@ -36,6 +43,8 @@ const RECORD_BY_ID = new Map(RECORDS.map((record) => [record.id, record]));
 
 export function normalize(value = "") {
   return String(value)
+    .replace(/\bpdf\s*\/\s*a(?:\s*-?\s*([1-4])([abu])?)?/gi,
+      (_, version = '', variant = '') => `pdfa${version}${variant}`)
     .replaceAll("§", " paragraf ")
     .replaceAll("æ", "ae")
     .replaceAll("Æ", "Ae")
@@ -62,7 +71,8 @@ const SYNONYM_MAP = (() => {
   const map = new Map();
   for (const rawGroup of SYNONYM_GROUPS) {
     const group = [...new Set(rawGroup.flatMap((term) => tokenize(term, { keepStopWords: true })))];
-    for (const term of group) map.set(term, group);
+    const merged = [...new Set(group.flatMap((term) => [term, ...(map.get(term) ?? [])]))];
+    for (const term of merged) map.set(term, merged);
   }
   return map;
 })();
@@ -165,7 +175,9 @@ function exactBoost(item, normalizedQuery, rawTokens) {
   if (normalizedQuery.length >= 5 && item.normalizedText.includes(normalizedQuery)) boost += 7;
   const requirement = normalize(item.record.requirement ?? "");
   if (requirement && normalizedQuery.includes(requirement)) boost += 9;
-  const queryRequirementNumbers = new Set(normalizedQuery.match(/\d+\.\d+/g) ?? []);
+  // Do not mistake SIARD 2.2 or a PDF version for Noark requirement 2.2.
+  const requirementQuery = /\bkrav(?:et|nummer)?\b/.test(normalizedQuery) || /^\d+\.\d+$/.test(normalizedQuery);
+  const queryRequirementNumbers = new Set(requirementQuery ? normalizedQuery.match(/\d+\.\d+/g) ?? [] : []);
   if ([...queryRequirementNumbers].some((number) => requirementNumberSet(item.record.requirement).has(number))) boost += 24;
   const title = normalize(item.record.title);
   if (title && normalizedQuery.includes(title)) boost += 5;
@@ -272,9 +284,12 @@ function intentResults(intent, query, options) {
   for (const result of ranked) {
     if (!seen.has(result.record.id)) selected.push(result);
     seen.add(result.record.id);
-    if (selected.length >= (Number(options.limit) || 8)) break;
   }
-  return selected.slice(0, Number(options.limit) || 8)
+  const rankedSelection = selected.sort((a, b) => b.relevance - a.relevance || b.score - a.score);
+  // A question about the whole of § 5 needs every functional requirement, not only shared keywords.
+  const required = intent.id === "section-five" ? rankedSelection.filter((r) => intent.recordIds.includes(r.record.id)) : [];
+  return [...required, ...rankedSelection.filter((r) => !required.includes(r))]
+    .slice(0, Number(options.limit) || 8)
     .sort((a, b) => b.relevance - a.relevance || b.score - a.score)
     .map((result, index) => ({ ...result, rank: index + 1 }));
 }
@@ -332,12 +347,14 @@ export function answerQuestion(query, options = {}) {
     };
   }
 
-  const lead = intent?.lead ?? results[0].record.summary;
+  const intentLead = intent && results.find((r) => r.record.id === intent.recordIds[0]);
+  // Never attach an intent's claim to an unrelated first result after reranking.
+  const lead = intentLead ? intent.lead : results[0].record.summary;
   return {
     status: "ok",
     query: cleanQuery,
     lead,
-    leadCitation: intent ? (results.find((r) => r.record.id === intent.recordIds[0])?.rank ?? 1) : 1,
+    leadCitation: intentLead?.rank ?? 1,
     points: uniquePoints(results, lead, options.pointCount ?? 3),
     results,
     confidence,
