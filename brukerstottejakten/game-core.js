@@ -264,12 +264,16 @@ export function recordShot(
     comboProtected = false,
     shieldBroken = false,
     lucky = false,
+    countShot = true,
   } = {},
 ) {
   if (state.status !== 'running') return { state, events: { ignored: true } };
 
-  const shots = state.shots + 1;
-  const levelShots = state.levelShots + 1;
+  // Scatter/area contacts after the first share the same trigger and combo step.
+  if (!countShot && !hit) return { state, events: { ignored: true } };
+  const shotIncrement = countShot ? 1 : 0;
+  const shots = state.shots + shotIncrement;
+  const levelShots = state.levelShots + shotIncrement;
 
   if (!hit) {
     const shieldAvailable = comboProtected || state.comboShieldCharges > 0;
@@ -296,7 +300,7 @@ export function recordShot(
     };
   }
 
-  const streak = state.streak + 1;
+  const streak = state.streak + shotIncrement;
   const multiplier = multiplierForStreak(streak);
   const modifiers = upgradeModifiers(state);
   const priorityScale = kind === 'priority' || kind === 'critical' ? modifiers.priorityScoreScale : 1;
@@ -325,7 +329,7 @@ export function recordShot(
     points: state.points + (resolved ? 1 : 0),
     score: state.score + scoreGain,
     shots,
-    hits: state.hits + 1,
+    hits: state.hits + shotIncrement,
     streak,
     bestStreak: Math.max(state.bestStreak, streak),
     multiplier,
@@ -336,7 +340,7 @@ export function recordShot(
     level: nextLevel,
     levelCases,
     levelShots,
-    levelHits: state.levelHits + 1,
+    levelHits: state.levelHits + shotIncrement,
     priorityHits: state.priorityHits + (resolved && kind === 'priority' ? 1 : 0),
     legacyHits: state.legacyHits + (resolved && kind === 'legacy' ? 1 : 0),
     shieldBreaks: state.shieldBreaks + (shieldBroken ? 1 : 0),

@@ -35,6 +35,7 @@ import {
 } from './game-core.js';
 import { SceneRenderer } from './renderer.js';
 import { FRUIT, PULSE_DAMAGE, PULSE_RECHARGE_MS, recordFruit, hitFruit } from './arcade-extras.js';
+import { PICKUPS, CASE_VARIANTS, createBoostState, collectBoost, boostStatus, chooseVariant, variantHealth, hitPickup, pickupScreen, weaponTargets, mountBoostHud } from './combat-boosters.js';
 
 const board = document.querySelector('#gameBoard');
 const canvas = document.querySelector('#gameCanvas');
@@ -386,6 +387,11 @@ function armorTone(armored) { return armored ? 510 : 820; }
 
 const sound = new SoundEngine();
 const daily = createDailyChallenge();
+const updateBoostHud = mountBoostHud(board);
+let boosts = createBoostState();
+let pickups = [];
+let pickupClock = 3.5;
+let pickupBag = ['coffee', 'phone', 'email'];
 let state = createGameState();
 let targets = [];
 let fruits = [];
@@ -652,7 +658,11 @@ function updateHud(now = performance.now()) {
   ui.weaponRig.classList.add(`module-${Math.min(9, state.upgrades.length)}`);
   ui.gunMode.textContent = flowActive ? 'SAKSFLYT // 2X' : overloadActive ? 'OVERLAST // KJØL' : quizActive || quizPending ? 'FAGTEST // LÅST' : active ? 'SØKEMODUS' : 'SYSTEM HVILER';
   ui.gunLevel.textContent = `L${String(state.level).padStart(2, '0')}`;
-  ui.weaponStatus.textContent = active ? 'Klar' : state.status === 'won' ? 'Fullført' : quizActive || quizPending ? 'Låst' : paused ? 'Pause' : intermissionActive || intermissionPending ? 'Oppgradering' : 'Klar';
+  const boost = boostStatus(boosts, activeElapsedMs);
+  updateBoostHud(boost);
+  ui.weaponRig.dataset.pickupWeapon = boost.weapon;
+  if (active && boost.weapon !== 'single') ui.gunMode.textContent = boost.weapon === 'scatter' ? 'TREFFSPREDNING' : 'OMRÅDETREFF';
+  ui.weaponStatus.textContent = active ? (boost.weapon === 'scatter' ? 'Spredning' : boost.weapon === 'area' ? 'Område' : 'Klar') : state.status === 'won' ? 'Fullført' : quizActive || quizPending ? 'Låst' : paused ? 'Pause' : intermissionActive || intermissionPending ? 'Oppgradering' : 'Klar';
 }
 
 function updateRadar() {
@@ -696,7 +706,7 @@ function resize() {
   renderer.resize();
   board.style.setProperty('--weapon-scale', String(Math.min(.8, renderer.height * .17 / 285)));
   const canvasRect = canvas.getBoundingClientRect();
-  const topPanels = [...board.querySelectorAll('.top-hud, .mission-panel, .radar-panel')];
+  const topPanels = [...board.querySelectorAll('.top-hud, .mission-panel, .radar-panel, .boost-hud')];
   renderer.flightTop = Math.max(...topPanels.map(panel => {
     const rect = panel.getBoundingClientRect();
     return rect.height ? rect.bottom - canvasRect.top + 14 : 0;
@@ -731,11 +741,12 @@ function updateReticle() {
   const active = state.status === 'running' && !paused && !quizActive && !quizPending && !intermissionActive && !intermissionPending && !pendingWin;
   ui.reticle.classList.toggle('is-visible', aim.visible && active);
   if (!active) return;
+  const pickup = hitPickup(pickups, aim.x, aim.y, renderer.width, renderer.height);
   const fruit = hitFruit(fruits, aim.x, aim.y, renderer.width, renderer.height);
   const target = renderer.hitTest(targets, aim.x, aim.y, upgradeModifiers(state).hitboxScale);
-  ui.reticle.classList.toggle('is-locked', Boolean(fruit || target && target.kind !== 'duplicate'));
+  ui.reticle.classList.toggle('is-locked', Boolean(pickup || fruit || target && target.kind !== 'duplicate'));
   ui.reticle.classList.toggle('is-danger', target?.kind === 'duplicate');
-  ui.reticleLabel.textContent = fruit ? FRUIT[fruit.kind].label : !target ? (pulseArmed ? 'PULSSKUDD' : 'SØK') : target.kind === 'duplicate' ? 'IKKE SKYT' : target.kind === 'major' ? 'P1 LÅST' : 'MÅL LÅST';
+  ui.reticleLabel.textContent = pickup ? PICKUPS[pickup.kind].label : fruit ? FRUIT[fruit.kind].label : !target ? (pulseArmed ? 'PULSSKUDD' : 'SØK') : target.kind === 'duplicate' ? 'IKKE SKYT' : target.kind === 'major' ? 'P1 LÅST' : 'MÅL LÅST';
 }
 
 function pointerPosition(event) {
@@ -813,7 +824,8 @@ function spawnTarget(overrides = {}) {
   const depthFactor = clamp((Math.abs(z) - 6) / 9, 0, 1);
   const width = overrides.width ?? (kind === 'major' ? 5.4 : kind === 'critical' ? 2.35 : 2.15 + depthFactor * .2);
   const height = overrides.height ?? (kind === 'major' ? 2.25 : .86 + (kind === 'shield' ? .1 : 0));
-  const health = overrides.health ?? targetHealth(kind);
+  const variant = Object.hasOwn(overrides, 'variant') ? overrides.variant : chooseVariant(kind, state.level);
+  const health = overrides.health ?? variantHealth(variant, upgradeModifiers(state).shieldDamageBonus) ?? targetHealth(kind);
   const speedScale = upgradeModifiers(state).targetSpeedScale * daily.speedScale * (performance.now() < overloadUntil ? 1.09 : 1);
   const kindScale = kind === 'priority' ? 1.12 : kind === 'critical' ? 1.24 : kind === 'legacy' ? .9 : kind === 'major' ? .58 : kind === 'duplicate' ? 1.04 : 1;
   const speed = overrides.speed ?? config.speed * speedScale * kindScale * randomBetween(.9, 1.08);
@@ -821,6 +833,8 @@ function spawnTarget(overrides = {}) {
     id: targetId,
     ticket: 4700 + targetId,
     kind,
+    variant,
+    coffeeScale: kind === 'duplicate' ? 1 : boostStatus(boosts, activeElapsedMs).scale,
     lucky: overrides.lucky ?? isLuckyCase(kind),
     direction,
     x: overrides.x ?? (direction > 0 ? -xLimit - width : xLimit + width),
@@ -878,7 +892,7 @@ function updateTargets(delta) {
       target.x += Math.sin(target.age * 5.2 + target.phase) * delta * .48;
     } else if (target.kind === 'duplicate') {
       target.y = target.baseY + Math.sin(target.age * 2.7 + target.phase) * target.amplitude * .7;
-      target.alpha = .72 + Math.sin(target.age * 7) * .14;
+      target.alpha = .78; // Steady duplicate opacity; no blinking.
     } else if (target.kind === 'major') {
       target.y = target.baseY + Math.sin(target.age * .9) * .34;
       target.x += Math.sin(target.age * 1.25) * delta * 1.1;
@@ -933,7 +947,7 @@ function maybeScheduleQuiz(hit, roll = Math.random()) {
   return true;
 }
 
-function handleTargetHit(target, x, y, quizRoll = Math.random(), pulse = false) {
+function handleTargetHit(target, x, y, quizRoll = Math.random(), pulse = false, secondary = false) {
   if (!target || target.dead || target.resolving) return false;
   const flowActive = performance.now() < flowUntil;
   const pan = clamp((x / Math.max(renderer.width, 1) - .5) * 2, -1, 1);
@@ -963,7 +977,8 @@ function handleTargetHit(target, x, y, quizRoll = Math.random(), pulse = false) 
     hit: true,
     resolved,
     kind: target.kind,
-    scoreScale,
+    scoreScale: scoreScale * (CASE_VARIANTS[target.variant]?.scoreScale || 1),
+    countShot: !secondary,
     flowScale: daily.flowScale || 1,
     shieldBroken,
     lucky: target.lucky,
@@ -982,11 +997,11 @@ function handleTargetHit(target, x, y, quizRoll = Math.random(), pulse = false) 
       ? `Lykkesak! +${LUCKY_CASE_SCORE} bonuspoeng og −${LUCKY_CASE_RELIEF} køtrykk.`
       : POSITIVE_MESSAGES[Math.floor(Math.random() * POSITIVE_MESSAGES.length)]);
   } else {
-    showScorePop(`SKJERMING ${target.health}/${target.maxHealth}`, x, y);
-    showMessage(target.kind === 'major' ? `Hovedhendelsen: ${target.health} skjermingslag gjenstår.` : 'Skjermingen er svekket. Treff igjen.');
+    showScorePop(`${CASE_VARIANTS[target.variant]?.label || 'SKJERMING'} ${target.health}/${target.maxHealth}`, x, y);
+    showMessage(target.kind === 'major' ? `Hovedhendelsen: ${target.health} skjermingslag gjenstår.` : `${CASE_VARIANTS[target.variant]?.name || 'Saken'}: ${target.health} treff gjenstår.`);
   }
 
-  if (state.streak >= 3 && [3, 5, 9, 14, 20].includes(state.streak)) {
+  if (!secondary && state.streak >= 3 && [3, 5, 9, 14, 20].includes(state.streak)) {
     ui.comboCell.classList.remove('is-hot');
     void ui.comboCell.offsetWidth;
     ui.comboCell.classList.add('is-hot');
@@ -1040,6 +1055,16 @@ function shoot(x, y, pulse = pulseArmed) {
   }
   triggerWeaponFire();
   sound.shot();
+  const pickup = hitPickup(pickups, x, y, renderer.width, renderer.height);
+  if (pickup) {
+    pickup.dead = true;
+    boosts = collectBoost(boosts, pickup.kind, activeElapsedMs);
+    refreshTargetGeometry();
+    showMessage(pickup.kind === 'coffee' ? 'Kaffe! Større saker og treffområder i fem sekunder.' : pickup.kind === 'phone' ? 'Telefon! Treffspredning i tolv sekunder.' : 'E-post! Områdetreff i tolv sekunder.');
+    sound.upgrade();
+    updateHud();
+    return true;
+  }
   const fruit = hitFruit(fruits, x, y, renderer.width, renderer.height);
   if (fruit) {
     const result = recordFruit(state, fruit.kind);
@@ -1054,8 +1079,22 @@ function shoot(x, y, pulse = pulseArmed) {
     updateHud();
     return true;
   }
-  const target = renderer.hitTest(targets, x, y, upgradeModifiers(state).hitboxScale);
-  if (target) return handleTargetHit(target, x, y, Math.random(), pulse);
+  refreshTargetGeometry();
+  const mode = pulse ? 'single' : boostStatus(boosts, activeElapsedMs).weapon;
+  const hits = weaponTargets(renderer, targets, x, y, mode, upgradeModifiers(state).hitboxScale);
+  if (hits.length) {
+    // One trigger, one accuracy/combo increment and at most one quiz roll.
+    // A level boundary stops the batch; collateral cannot skip the final boss.
+    let handled = false;
+    for (const target of hits) {
+      if (state.status !== 'running' || intermissionPending || pendingWin) break;
+      if (state.level === LEVEL_COUNT && state.levelCases >= CASES_PER_LEVEL - 1 && target.kind !== 'major') break;
+      const point = target.screen.center;
+      handled = handleTargetHit(target, point.x, point.y, 1, pulse, handled) || handled;
+    }
+    if (handled && hits[0].kind !== 'duplicate') maybeScheduleQuiz(true);
+    return handled;
+  }
 
   const result = recordShot(state, { hit: false });
   state = result.state;
@@ -1199,6 +1238,8 @@ function continueAfterIntermission() {
   if (selectedUpgrade) state = applyUpgrade(state, selectedUpgrade);
   state = beginLevel(state, state.level, Date.now());
   fruits = [];
+  pickups = [];
+  pickupClock = 3.5;
   fruitClock = 2.5;
   pulseArmed = false;
   levelKindSpawns = {};
@@ -1238,8 +1279,12 @@ function startRound() {
   window.clearTimeout(intermissionTimer);
   window.clearTimeout(winTimer);
   state = startGame(state, Date.now());
+  boosts = createBoostState();
+  pickupBag = ['coffee', 'phone', 'email'];
   targets = [];
   fruits = [];
+  pickups = [];
+  pickupClock = 3.5;
   fruitClock = 2.5;
   pulseReadyAt = 0;
   pulseArmed = false;
@@ -1364,6 +1409,22 @@ async function shareResult() {
   }
 }
 
+function spawnPickup(kind, x = null) {
+  if (!Object.hasOwn(PICKUPS, kind)) return null;
+  const direction = Math.random() < .5 ? 1 : -1;
+  const pickup = { kind, x: x ?? (direction > 0 ? -.10 : 1.10), direction, speed: x === null ? randomBetween(.12, .16) : 0, dead: false };
+  pickups.push(pickup);
+  return pickup;
+}
+
+function refreshTargetGeometry() {
+  const scale = boostStatus(boosts, activeElapsedMs).scale;
+  for (const target of targets) {
+    target.coffeeScale = target.kind === 'duplicate' ? 1 : scale;
+    target.screen = renderer.computeTargetScreen(target);
+  }
+}
+
 function updateGame(delta, now) {
   const flowActive = now < flowUntil;
   const overloadActive = now < overloadUntil;
@@ -1374,6 +1435,17 @@ function updateGame(delta, now) {
   if (active) activeElapsedMs += delta * 1000;
 
   if (active) {
+    pickupClock -= delta;
+    if (pickupClock <= 0 && !pickups.some(pickup => !pickup.dead)) {
+      if (!pickupBag.length) pickupBag = shuffle(Object.keys(PICKUPS));
+      spawnPickup(pickupBag.shift());
+      pickupClock = randomBetween(5, 8);
+    }
+    for (const pickup of pickups) {
+      pickup.x += pickup.direction * pickup.speed * gameDelta;
+      if (pickup.x < -.12 || pickup.x > 1.12) pickup.dead = true;
+    }
+    pickups = pickups.filter(pickup => !pickup.dead);
     spawnClock -= gameDelta;
     fruitClock -= gameDelta;
     if (fruitClock <= 0 && fruits.filter(fruit => !fruit.resolving).length < 2) {
@@ -1402,6 +1474,9 @@ function updateGame(delta, now) {
       spawnClock = randomBetween(min, max) * daily.spawnScale * (overloadActive ? .76 : 1);
     }
     updateTargets(gameDelta);
+    if (state.level === LEVEL_COUNT && state.levelCases >= CASES_PER_LEVEL - 1) {
+      targets = targets.filter(target => target.kind === 'major' || target.resolving);
+    }
     if (aim.hideAt && now > aim.hideAt) {
       aim.visible = false;
       aim.hideAt = 0;
@@ -1409,7 +1484,8 @@ function updateGame(delta, now) {
     }
   }
 
-  renderer.render({ time: sceneTime, delta, level: state.level, targets, fruits, overload: overloadActive });
+  refreshTargetGeometry();
+  renderer.render({ time: sceneTime, delta, level: state.level, targets, fruits, pickups, weapon: pulseArmed ? 'single' : boostStatus(boosts, activeElapsedMs).weapon, aim: { ...aim, visible: aim.visible && active }, overload: overloadActive });
   updateRadar();
   updateReticle();
   updateHud(now);
@@ -1425,6 +1501,7 @@ function gameLoop(now) {
 function debugTarget(kind = 'normal', lucky = false) {
   const target = spawnTarget({
     kind,
+    variant: null,
     lucky,
     direction: 1,
     x: 0,
@@ -1532,6 +1609,16 @@ if (testMode) {
     resolve: (kind = 'normal') => debugResolve(kind, 1),
     resolveLucky: (kind = 'normal') => debugResolve(kind, 1, true),
     spawnTarget: (kind = 'shield') => { const created = debugTarget(kind); return created ? { id: created.target.id, ...created.center } : null; },
+    spawnPickup: (kind = 'coffee', x = .5) => { const pickup = spawnPickup(kind, x); return pickup ? pickupScreen(pickup, renderer.width, renderer.height) : null; },
+    spawnVariant: (variant, x = 0, y = 2.6) => {
+      const spec = CASE_VARIANTS[variant];
+      if (!spec) return null;
+      const target = spawnTarget({ kind: spec.kind, variant, x, y, z: -6.5, speed: 0, lucky: false });
+      refreshTargetGeometry();
+      return target ? { id: target.id, ...target.screen.center } : null;
+    },
+    clearTargets: () => { targets = []; },
+    advance: (seconds) => { if (Number.isFinite(seconds) && seconds > 0 && seconds <= 60) updateGame(seconds, performance.now()); },
     spawnFruit: (kind = 'orange') => { if (!FRUIT[kind]) return false; fruits.push({ kind, x: .5, lane: .5, direction: 1, speed: 0, rotation: 0 }); return true; },
     shoot: (x, y, pulse = false) => shoot(x, y, pulse),
     resolveWithQuiz: (kind = 'normal') => debugResolve(kind, 0),
@@ -1555,8 +1642,10 @@ if (testMode) {
       pendingWin,
       activeElapsedMs,
       targetCount: targets.length,
+      boosts: boostStatus(boosts, activeElapsedMs),
+      pickups: pickups.map(pickup => ({ ...pickup, screen: pickupScreen(pickup, renderer.width, renderer.height) })),
       fruits: fruits.map(fruit => ({ ...fruit })),
-      targets: targets.map(target => ({ id: target.id, kind: target.kind, health: target.health, speed: target.speed, bounds: target.screen?.bounds })),
+      targets: targets.map(target => ({ id: target.id, kind: target.kind, variant: target.variant, coffeeScale: target.coffeeScale, maxHealth: target.maxHealth, resolving: target.resolving, center: target.screen?.center, health: target.health, speed: target.speed, bounds: target.screen?.bounds })),
       pulseArmed,
       pulseRemaining: Math.max(0, pulseReadyAt - activeElapsedMs),
       daily,

@@ -1,4 +1,5 @@
 import { SceneRenderer as BaseSceneRenderer } from './renderer-base.js';
+import { coffeeScreen, drawPickup, drawVariantBadge, drawWeaponGuide } from './combat-boosters.js';
 
 const VISUAL_SAFETY_STYLE_ID = 'brukerstottejakten-no-blink';
 const VISUAL_SAFETY_CSS = `
@@ -473,6 +474,19 @@ export class SceneRenderer extends BaseSceneRenderer {
     // Keep target glows steady instead of oscillating in brightness.
     if (target) target.flash = 0;
     super.drawTarget(target, 0);
+    drawVariantBadge(this.context, target);
+  }
+
+  computeTargetScreen(target) {
+    const screen = super.computeTargetScreen(target);
+    const top = this.flightTop ?? this.height * .24;
+    return coffeeScreen(screen, target.coffeeScale || 1, this.width, top, Math.max(top + 48, this.height * .60));
+  }
+
+  drawEffects() {
+    super.drawEffects();
+    for (const pickup of this.pickups || []) drawPickup(this.context, pickup, this.width, this.height);
+    drawWeaponGuide(this.context, this.pickupWeapon || 'single', this.pickupAim, this.width);
   }
 
   drawPost(theme) {
@@ -483,6 +497,9 @@ export class SceneRenderer extends BaseSceneRenderer {
   }
 
   render(frame = {}) {
+    this.pickups = frame.pickups || [];
+    this.pickupWeapon = frame.weapon || 'single';
+    this.pickupAim = frame.aim;
     this.levelPulse = 0;
     this.impactFlash = 0;
     this.soundtrack.setLevel(frame.level || 1);
