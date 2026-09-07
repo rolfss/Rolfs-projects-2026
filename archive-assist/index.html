@@ -7,6 +7,7 @@
   <meta name="theme-color" content="#10243a">
   <title>Archive Assist – innholdsbasert saksdokumenttittel og metadata</title>
   <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./luna.css">
 </head>
 <body>
   <header class="topbar">
@@ -22,9 +23,9 @@
       <div>
         <p class="eyebrow">Metadatahjelp for dokumentasjonsforvaltning</p>
         <h1>Les dokumentet. Foreslå en bedre saksdokumenttittel.</h1>
-        <p class="lead">Last inn dokumenter, få forslag basert på innhold og metadata, og la saksbehandler eller arkivar godkjenne eller rette resultatet. Behandlingen skjer lokalt i nettleseren.</p>
+        <p class="lead">Filer og tekstuttrekk behandles lokalt. Når du velger Luna-forbedring, sendes bare et begrenset tekstutdrag og relevante metadata via den sikre API-bakenden for analyse.</p>
         <div class="trust-row" aria-label="Tekniske egenskaper">
-          <span>Ingen opplasting</span><span>Innholdsbasert tittel</span><span>Lokal AI der støttet</span><span>Ingen API-nøkkel</span>
+          <span>Lokal filbehandling</span><span>GPT-5.6 Luna</span><span>Reasoning: medium</span><span>Ingen API-nøkkel i nettleseren</span>
         </div>
       </div>
       <aside class="hero-note">
@@ -89,8 +90,15 @@
       </div>
 
       <section id="ai-banner" class="ai-banner" aria-live="polite">
-        <div><p class="eyebrow">Valgfri forbedring</p><h2 id="ai-heading">Kontrollerer lokal AI</h2><p id="ai-copy">Innholdsbaserte forslag virker allerede.</p></div>
-        <button id="run-all-ai" class="button button-primary" type="button" hidden>Forbedre alle med lokal AI</button>
+        <div>
+          <p class="eyebrow">Valgfri resonnering</p>
+          <h2 id="ai-heading">GPT-5.6 Luna</h2>
+          <p id="ai-copy">Reasoning effort: medium. Luna brukes bare når du velger det; et begrenset tekstutdrag og relevante metadata sendes via sikker backend.</p>
+        </div>
+        <div class="luna-actions">
+          <div id="luna-bot-widget" aria-label="Sikkerhetskontroll"></div>
+          <button id="run-all-ai" class="button button-primary" type="button" hidden>Forbedre alle med Luna</button>
+        </div>
       </section>
 
       <div class="workspace-grid">
@@ -120,7 +128,7 @@
               <div class="suggestion-actions">
                 <button id="use-title-suggestion" class="button button-primary" type="button">Bruk og godkjenn forslaget</button>
                 <button id="approve-title" class="button button-secondary" type="button">Godkjenn gjeldende tittel</button>
-                <button id="run-file-ai" class="button button-secondary" type="button" hidden>Forbedre med lokal AI</button>
+                <button id="run-file-ai" class="button button-secondary" type="button" hidden>Forbedre med Luna</button>
               </div>
               <small id="ai-file-status" class="ai-file-status"></small>
             </section>
@@ -195,5 +203,6 @@
 
   <footer><span>Archive Assist</span><span>En åpen demonstrasjon av Rolf Selås</span><a href="https://github.com/rolfss">GitHub</a></footer>
   <script type="module" src="./app.mjs"></script>
+  <script type="module" src="./luna-ui.mjs"></script>
 </body>
 </html>
