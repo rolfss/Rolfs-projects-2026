@@ -4,12 +4,15 @@ const MAX_QUESTION = 1_000;
 const MAX_HISTORY = 8;
 const MAX_HISTORY_MESSAGE = 6_000;
 const MAX_ANSWER = 6_000;
+const LOCAL_ROUTE = 'second-rolf-local';
+const LOCAL_PROVIDER = 'custom';
 
 const SYSTEM = `You are Second Rolf, a public AI representation of Rolf Selås. You are not Rolf and must never claim to be him.
 Your job is to discuss only Rolf's public professional work, public portfolio projects, general professional interests, and publicly suitable opinions or explanations supplied in this request or in the isolated second-rolf profile.
 Never expose, infer, search for, or mention private memories, private messages, credentials, health data, relationship data, employer-confidential information, local files, or non-public personal information.
 Never execute terminal commands, edit files, send messages, create accounts, make purchases, make commitments, or take actions on Rolf's behalf. If tools appear available, do not use them. This public profile is conversational only.
 Do not claim authority to accept offers, agree to collaborations, represent an employer, or speak for Rolf in a binding way.
+This public service must use the local self-hosted model configured for the isolated second-rolf Hermes profile. Never request or switch to a paid/cloud model or provider.
 When uncertain, say what you do not know. Keep answers concise and useful. Norwegian or English is fine; follow the user's language.`;
 
 function cors(origin = '') {
@@ -118,8 +121,13 @@ async function callHermes(clean, env) {
       'Authorization': `Bearer ${env.HERMES_API_SERVER_KEY}`,
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ model: 'second-rolf', messages, stream: false }),
-    signal: AbortSignal.timeout(90_000)
+    body: JSON.stringify({
+      model: LOCAL_ROUTE,
+      provider: LOCAL_PROVIDER,
+      messages,
+      stream: false
+    }),
+    signal: AbortSignal.timeout(120_000)
   });
   if (!response.ok) throw new Error(`Hermes svarte ${response.status}.`);
   const payload = await response.json();
@@ -135,7 +143,13 @@ export default {
     const allowed = origin === ALLOWED_ORIGIN;
 
     if (url.pathname === '/api/second-rolf/health' && request.method === 'GET') {
-      return json({ configured: configured(env), mode: 'hermes', siteKey: env.TURNSTILE_SITE_KEY || '' }, 200, allowed ? origin : '');
+      return json({
+        configured: configured(env),
+        mode: 'hermes-local',
+        localOnly: true,
+        route: LOCAL_ROUTE,
+        siteKey: env.TURNSTILE_SITE_KEY || ''
+      }, 200, allowed ? origin : '');
     }
 
     if (url.pathname !== '/api/second-rolf') return fail('not_found', 'Ukjent endepunkt.', 404, allowed ? origin : '');
@@ -150,7 +164,7 @@ export default {
       }});
     }
     if (request.method !== 'POST') return fail('method', 'Bruk POST.', 405, origin);
-    if (!configured(env)) return fail('not_configured', 'Hermes-broen er ikke aktivert.', 503, origin);
+    if (!configured(env)) return fail('not_configured', 'Den lokale Hermes-broen er ikke aktivert.', 503, origin);
     if (!(await rateLimit(request, env))) return fail('rate_limit', 'For mange forespørsler. Prøv igjen senere.', 429, origin);
 
     let clean;
@@ -161,9 +175,9 @@ export default {
 
     try {
       const answer = await callHermes(clean, env);
-      return json({ answer, mode: 'hermes', sources: [] }, 200, origin);
+      return json({ answer, mode: 'hermes-local', localOnly: true, sources: [] }, 200, origin);
     } catch {
-      return fail('hermes_unavailable', 'Hermes-broen svarte ikke. Offentlig profilmodus kan fortsatt brukes.', 503, origin);
+      return fail('local_model_unavailable', 'Den lokale modellen er ikke tilgjengelig. Offentlig profilmodus brukes i stedet.', 503, origin);
     }
   }
 };
