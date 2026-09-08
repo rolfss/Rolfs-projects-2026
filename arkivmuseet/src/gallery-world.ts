@@ -1,8 +1,9 @@
+import {buildBenefit} from './benefits-world';
 import {RoomStoryWorld} from './room-world';
 import * as T from 'three';
 import {galleryRooms,itemsForCase,panelCanvas} from './gallery';
 import type {GalleryItem} from './gallery';
-import {wallPlacement,worldPoint,viewAngles} from './gallery-layout';
+import {wallPlacement,worldPoint,viewAngles,benefitView} from './gallery-layout';
 import type {MuseumCase} from './types';
 
 export class GalleryWorld{
@@ -16,7 +17,7 @@ export class GalleryWorld{
   private caption(item:GalleryItem,accent:string){const c=document.createElement('canvas');c.width=1536;c.height=270;const ctx=c.getContext('2d')!;ctx.fillStyle='#f6eedc';ctx.fillRect(0,0,c.width,c.height);ctx.fillStyle=accent;ctx.fillRect(0,0,16,c.height);ctx.fillStyle='#172932';ctx.font='bold 42px Arial';ctx.fillText(item.kicker,54,68,1428);ctx.font='37px Georgia';ctx.fillText(item.title,54,127,1428);ctx.font='28px Arial';ctx.fillText(item.credit+' · Åpne for bildetekst og originalkilde',54,205,1428);const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;return t;}
   buildRoom(c:MuseumCase){
     if(this.groups.has(c.id))return;this.chapters.build(c.id);
-    const theme=galleryRooms.find(r=>r.caseId===c.id)!;const room=new T.Group();room.position.set(c.position[0],0,c.position[1]);room.rotation.y=Math.sign(c.position[0])>0?-Math.PI/2:Math.PI/2;this.scene.add(room);this.groups.set(c.id,room);
+    const theme=galleryRooms.find(r=>r.caseId===c.id)!;const room=new T.Group();room.position.set(c.position[0],0,c.position[1]);room.rotation.y=Math.sign(c.position[0])>0?-Math.PI/2:Math.PI/2;this.scene.add(room);this.groups.set(c.id,room);buildBenefit(room,this,c,theme.accent);
     for(const item of itemsForCase(c)){
       this.items.set(item.id,item);const p=wallPlacement(item.slot,item.kind==='document');const frame=new T.Group();frame.position.fromArray(p.position);frame.rotation.y=p.yaw;room.add(frame);
       // Real exhibit frames and mat boards; images keep their original proportions.
@@ -33,6 +34,7 @@ export class GalleryWorld{
     }
   }
   buildHall(){
+    const welcome=new T.Group();welcome.position.set(0,0,8);welcome.rotation.y=Math.PI;this.scene.add(welcome);buildBenefit(welcome,this);
     // Suspended colour fields mark the five galleries without obscuring the nave.
     for(const [i,c] of this.cases.entries()){
       const theme=galleryRooms.find(r=>r.caseId===c.id)!;const side=Math.sign(c.position[0]);
@@ -50,7 +52,7 @@ export class GalleryWorld{
       this.items.set(c.id+'-hall',{id:c.id+'-hall',caseId:c.id,kind:photo.kind==='photo'?'photo':'document',title:c.title,kicker:c.organization,text:c.shortNarrative.text,caption:photo.caption,credit:photo.credit,url:photo.sourceUrl,image:photo.src,imageWidth:photo.width,imageHeight:photo.height,license:photo.license,licenseUrl:photo.licenseUrl,slot:'back-left'});
     }
   }
-  focus(itemId:string){const item=this.items.get(itemId);if(!item)return null;const c=this.cases.find(c=>c.id===item.caseId)!;const p=wallPlacement(item.slot,item.kind==='document');const from=worldPoint(p.view,c.position),to=worldPoint(p.target,c.position);return {from,...viewAngles(from,to),width:p.width,height:p.height,distance:Math.hypot(...from.map((v,i)=>v-to[i]))};}
+  focus(itemId:string){const item=this.items.get(itemId);if(!item)return null;const c=this.cases.find(c=>c.id===item.caseId);if(!c)return null;if(item.kind==='benefit')return benefitView(c.position);const p=wallPlacement(item.slot,item.kind==='document');const from=worldPoint(p.view,c.position),to=worldPoint(p.target,c.position);return {from,...viewAngles(from,to),width:p.width,height:p.height,distance:Math.hypot(...from.map((v,i)=>v-to[i]))};}
   pick(ray:T.Raycaster){const visible=(object:T.Object3D)=>{let node:T.Object3D|null=object;while(node){if(!node.visible)return false;node=node.parent;}return true;};const hit=ray.intersectObjects(this.targets,false).find(h=>h.distance<15&&visible(h.object));if(!hit)return;const blocker=ray.intersectObjects(this.scene.children,true).find(h=>visible(h.object)&&h.object instanceof T.Mesh&&!(Array.isArray(h.object.material)?h.object.material.every(m=>m.transparent):h.object.material.transparent));return !blocker||blocker.distance>=hit.distance-.02?hit.object.userData.galleryId as string:undefined;}
   update(x:number,z:number){for(const [id,group] of this.groups){const c=this.cases.find(c=>c.id===id)!;group.visible=Math.hypot(x-c.position[0],z-c.position[1])<38;}}
 }

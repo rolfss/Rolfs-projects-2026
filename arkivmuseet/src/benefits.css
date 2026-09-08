@@ -1,0 +1,17 @@
+/* The leader's gain is the first piece of interpretation, before the case unfolds. */
+.leader-benefit{position:relative;margin:1.1rem 0 1.4rem;padding:1.35rem 1.45rem;background:linear-gradient(130deg,#17425c,#102a43 65%,#0b2033);border:1px solid #c9a96c80;border-top:3px solid var(--gallery-accent,#e5c68c);box-shadow:0 8px 25px #06121c22;color:#f8eed6;text-align:left;overflow-wrap:anywhere}
+.leader-benefit .benefit-label,.benefit-label{font:500 .875rem/1.5 'Segoe UI',Arial,sans-serif;letter-spacing:.06em;color:#efcf92;margin:0 0 .8rem}
+.leader-benefit h3,#story .leader-benefit h3{font:1.75rem/1.2 Georgia;margin:0 0 .8rem;color:#fff2d2;text-wrap:balance}
+.leader-benefit>p:last-child{font-size:1rem;line-height:1.65;color:#e5edf2;margin:0}
+.gallery-plaque .leader-benefit{margin:.7rem 0 .9rem;padding:.9rem 1.05rem}.gallery-plaque .leader-benefit h3{font-size:1.5rem}.gallery-plaque .leader-benefit>p:last-child{line-height:1.55}.gallery-plaque .leader-benefit .benefit-label{font-size:.875rem;margin-bottom:.45rem}
+.gallery-flat-benefit{width:100%;border:1px solid #efcf9277;padding:1rem;background:#112c4480;box-shadow:0 16px 60px #0004}.gallery-flat-benefit .leader-benefit{border:0;margin:0;padding:2rem 1.5rem;text-align:center;box-shadow:none}.gallery-flat-benefit .leader-benefit h3{font-size:clamp(1.8rem,3vw,2.6rem)}
+.benefits-intro{padding:1.6rem;background:linear-gradient(135deg,#153a55,#0a2036);border-top:4px solid #d8b478;color:#eff3f4}.benefits-intro .benefits-statement{font:clamp(1.9rem,4vw,2.6rem)/1.2 Georgia;color:#fff0cd;margin:.6rem 0 1rem;text-wrap:balance}.benefits-intro>p:last-child{margin-bottom:0}
+.benefits-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.3rem 0 1.7rem}.benefits-grid article{padding:1.25rem;border:1px solid #72848e55;background:#e5ebeb}.benefit-number{font:1rem Georgia;color:#506879}.benefits-grid h3{font:1.5rem/1.25 Georgia;margin:.65rem 0 .7rem}.benefits-grid p{margin:0;line-height:1.65}
+.benefits-basis{padding-top:1rem;border-top:1px solid #6f84975c;color:#3c5461;font-size:.9375rem}.benefits-sources p{font-size:.9375rem;line-height:1.7}.benefits-sources q{font-family:Georgia}
+.benefits-index-link{display:block;width:100%;padding:1.3rem;margin-bottom:1.5rem;text-align:left;background:#12344e;color:#ffedc5;border:1px solid #bc995d;font:1.5rem/1.3 Georgia}.benefits-index-link span{display:block;margin-top:.65rem;color:#e1e9ef;font:1rem/1.5 'Segoe UI',Arial,sans-serif}dialog .benefits-index-link:hover{background:#1a455f}
+@media(max-width:700px){.leader-benefit{padding:1rem}.leader-benefit h3,#story .leader-benefit h3{font-size:1.5rem}.benefits-grid{grid-template-columns:1fr}.benefits-intro{padding:1.2rem}.gallery-flat-benefit{padding:.35rem;max-height:100%;overflow-y:auto}.gallery-flat-benefit .leader-benefit{padding:.9rem}.gallery-flat-benefit .leader-benefit h3{font-size:1.55rem}.gallery-flat-benefit .leader-benefit>p:last-child{font-size:1rem}.gallery-plaque .leader-benefit{padding:.8rem}.gallery-plaque .leader-benefit h3{font-size:1.35rem}}
+@media print{.leader-benefit,.benefits-intro,.benefits-grid article{background:white;color:#14232e;border:1px solid #888;box-shadow:none}.leader-benefit h3,.leader-benefit p,.benefits-intro p{color:#14232e!important}}
+
+.flat-mode .gallery-plaque .leader-benefit{display:none}
+
+.benefit-overview>.gallery-caption,.benefit-overview .gallery-invitation{display:none}.benefit-overview .gallery-navigation{position:sticky;bottom:0;z-index:1;background:#12202d;padding-top:.55rem;box-shadow:0 -8px 12px #12202d}

@@ -31,3 +31,9 @@ Kjør `pnpm test` og `pnpm build`. Kjør deretter `pnpm exec playwright install 
 Nettlesertesten spiller hele reisen i 2D, med både svake og beskyttende valg, gale og riktige quizsvar, tastaturaktivering, lagring, sluttrom, kilder og handlingsplan. Den prøver skjermbredder ned til 320 piksler med større tekst. Den undersøker deretter alle fem 3D-installasjoner med fremdriften fra den faktiske gjennomspillingen som visuell testdata. Resultater og skjermbilder skrives til `experience-artifacts/` og publiseres som et kortvarig GitHub Actions-artefakt, ikke til produksjon.
 
 Se `VALIDATION.md` for metode, verifikasjonsstatus og avgrensninger. Teknisk gjennomspilling erstatter ikke observasjon av målgruppen. Påstander om læringseffekt eller opplevd moro krever brukertesting.
+
+## What the leader gains
+
+The entrance hall now has a gold-framed, illuminated centrepiece: “God dokumentasjon. Tryggere ledelse.” Each gallery has a low foreground display with a concrete benefit and a practical leadership action. The first guided viewpoint frames that display. Benefits also appear before the historical opening, beside the earned badge, and in the no-JavaScript version. The chapter illustrations and quiz gates are unchanged.
+
+`cases/benefits.json` contains the shared copy and short attributed excerpts from the purposes of arkivlova and offentleglova. Benefits are curatorial interpretations, not guarantees. Source purposes were checked directly in Lovdata on 8 September 2026.

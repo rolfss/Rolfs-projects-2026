@@ -4,6 +4,7 @@ import {Sky} from 'three/addons/objects/Sky.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import type {MuseumCase} from './types';
+import {benefitPlacement} from './gallery-layout';
 import {galleryFraming} from './gallery-layout';
 import {GalleryWorld} from './gallery-world';
 import {galleryRooms} from './gallery';
@@ -52,7 +53,7 @@ export class MuseumWorld {
   this.sun=new T.DirectionalLight(0xffe3ab,3.1);this.sun.position.set(-27,39,8);this.sun.target.position.set(0,0,24);this.scene.add(this.sun,this.sun.target);
   this.sun.castShadow=true;this.sun.shadow.mapSize.set(2048,2048);Object.assign(this.sun.shadow.camera,{left:-42,right:42,top:44,bottom:-44,near:1,far:105});this.sun.shadow.bias=-.0003;this.sun.shadow.normalBias=.035;
   const pmrem=new T.PMREMGenerator(this.renderer);const env=new RoomEnvironment();this.scene.environment=pmrem.fromScene(env,.05).texture;env.dispose();pmrem.dispose();this.scene.environmentIntensity=.32;
-  this.addMaterialDetail();this.buildExterior();this.buildHall();this.buildRoomShells();this.mergeStatic(this.scene);this.gallery.buildHall();this.loadRoom(this.cases[0]);
+  this.addMaterialDetail();this.buildExterior();this.buildHall();this.buildRoomShells();this.mergeStatic(this.scene);this.gallery.buildHall();this.solids.push({x:0,z:8,w:6.15,d:.85});this.loadRoom(this.cases[0]);
   await this.renderer.compileAsync(this.scene,this.camera);this.tick();
  }
  addMaterialDetail(){
@@ -157,7 +158,7 @@ export class MuseumWorld {
   }
   this.label('Visuell rekonstruksjon','Ingen dokumenter i installasjonen er originaler.',0,.42,1.43,3.8,0,'#e4d6b7',group);
   this.mergeStatic(group);
-  this.gallery.buildRoom(c);
+  this.gallery.buildRoom(c);this.solids.push({x:x-side*benefitPlacement.z,z,w:benefitPlacement.depth+.6,d:benefitPlacement.width+.55});
   // Simple glazing, no costly screen-space refraction.
   const glass=new T.Mesh(new T.BoxGeometry(4.9,3.6,3),new T.MeshPhysicalMaterial({color:0xc4dfd6,transparent:true,opacity:.055,roughness:.15,metalness:.2,depthWrite:false}));glass.position.y=2.02;group.add(glass);
  }
@@ -171,6 +172,7 @@ export class MuseumWorld {
  look(){this.camera.rotation.set(this.pitch,this.yaw,0,'YXZ');}
  valid(x:number,z:number){const hall=Math.abs(x)<9.65&&z> -10&&z<53.3;const wing=Math.abs(x)<27.4&&Math.abs(x)>9&&[9,27,45].some(v=>Math.abs(z-v)<7.4);if(!(hall||wing))return false;return !this.solids.some(b=>Math.abs(x-b.x)<b.w/2&&Math.abs(z-b.z)<b.d/2);}
  setOutcome(id:string,safe:boolean|null){this.lightTargets.set(id,safe===false?24:safe===true?105:85);const g=this.artifacts.get(id);g?.traverse(o=>{if(o.userData.signal&&o instanceof T.Mesh)(o.material as T.MeshBasicMaterial).color.setHex(safe===false?0x1a2e2d:0x84babe);});}
+ presentBenefit(id:string){const old=this.settings.reduced;this.settings.reduced=true;this.focusGallery('benefit-'+id);this.settings.reduced=old;}
  frameGallery(active:boolean){if(!active){this.frameReading(false);return;}const p=this.galleryItem?this.gallery.focus(this.galleryItem):null;const framing=p?galleryFraming(this.camera.aspect,p.width,p.height,p.distance):{fov:65,offsetX:0,offsetY:.08};this.camera.fov=framing.fov;this.camera.setViewOffset(innerWidth,innerHeight,innerWidth*framing.offsetX,innerHeight*framing.offsetY,innerWidth,innerHeight);this.camera.updateProjectionMatrix();}
  focusGallery(itemId:string){const pose=this.gallery.focus(itemId);if(!pose)return;this.galleryItem=itemId;this.fly(new T.Vector3(...pose.from),pose.yaw,pose.pitch);this.frameGallery(true);}
 

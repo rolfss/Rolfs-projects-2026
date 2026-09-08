@@ -2,7 +2,7 @@
 
 ## Automated checks
 
-`pnpm test` runs 24 source, content and logic tests. `pnpm build` validates the historical case references, regenerates the complete no-JavaScript text version, checks TypeScript and produces the static Vite build.
+`pnpm test` runs 26 source, content and logic tests. `pnpm build` validates the historical case references, regenerates the complete no-JavaScript text version, checks TypeScript and produces the static Vite build.
 
 `pnpm test:browser` starts its own preview server and runs Chromium through the actual UI. The current suite contains 130 checks:
 
@@ -34,3 +34,7 @@ These checks verify functionality, source structure and selected layouts, not me
 Historical sources, fictional exercises and pedagogical interpretations are labelled separately. Tokke is not represented as proven permanent data loss, missing documentation is not presented as the sole cause of the Hanekleiv collapse, and NPE's metadata finding is not presented as evidence of incorrect compensation decisions.
 
 Changes remain in the existing draft pull request. A passing review workflow does not publish the app to GitHub Pages.
+
+## Leader benefits centrepieces
+
+The 26 checks and production build pass locally for this addition. New geometry checks cover the low foreground stands, clear sightlines to chapter screens, existing wall viewpoints and framing on phones, tablets and desktop. Shared benefit copy covers all five cases; the two short law-purpose excerpts have explicit attribution. This addition was not manually reviewed in a browser; the existing automated experience workflow remains the regression gate.

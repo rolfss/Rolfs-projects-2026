@@ -21,3 +21,9 @@ export function galleryFraming(aspect:number,width:number,height:number,distance
   const verticalSize=Math.max(height/usableHeight,width/(aspect*usableWidth));
   return {fov:Math.max(60,2*Math.atan(verticalSize/(2*distance))*180/Math.PI),offsetX:narrow?0:-.15,offsetY:.2};
 }
+
+export const benefitPlacement={width:3.5,height:1.5,depth:.24,y:1,z:2.5};
+export function benefitView(room:[number,number]){
+  const p=benefitPlacement,from=worldPoint([0,2.1,6.2],room),to=worldPoint([0,p.y,p.z+.17],room);
+  return {from,to,...viewAngles(from,to),width:p.width+.18,height:p.height+.18,distance:Math.hypot(...from.map((v,i)=>v-to[i]))};
+}

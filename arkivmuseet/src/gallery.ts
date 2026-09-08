@@ -1,7 +1,7 @@
 import data from '../cases/gallery.json' with {type:'json'};
 import type {MuseumCase} from './types';
 import type {WallSlot} from './gallery-layout';
-export type GalleryItem={id:string;caseId:string;kind:'photo'|'document'|'press'|'finding';title:string;kicker:string;text:string;caption:string;credit:string;url:string;image?:string;imageWidth?:number;imageHeight?:number;license?:string;licenseUrl?:string;slot:WallSlot};
+export type GalleryItem={id:string;caseId:string;kind:'photo'|'document'|'press'|'finding'|'benefit';title:string;kicker:string;text:string;caption:string;credit:string;url:string;image?:string;imageWidth?:number;imageHeight?:number;license?:string;licenseUrl?:string;slot:WallSlot};
 export const galleryRooms=data.rooms;
 export function itemsForCase(c:MuseumCase):GalleryItem[]{
   const result:GalleryItem[]=[];

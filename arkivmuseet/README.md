@@ -8,6 +8,8 @@ Fem kildebelagte utstillinger: Osen kommune, Tokke kommune, Sivilombudsmannens s
 
 ## Besøket
 
+- **Dette kan du vinne som leder:** en belyst, gullinnrammet installasjon står midt foran i hovedhallen. Fire gevinster åpnes ved klikk: begrunnede valg, tillit, rettigheter og kunnskap som blir igjen. Hvert rom har en egen gevinst på en lav monter foran kapittelutstillingen. Omvisningen retter kameraet mot den først; samme tekst følger romhistorien, læringsmerket og tekstversjonen.
+
 - **Opplev utstillingen:** en omvisning i eget tempo begynner med rommet og veggverkene. Velg deretter lederoppdraget: fem oppdrag med 20 undersøkbare sporkort og 15 ulike handlingsforløp. Konsekvensene er tydelig merket som tenkte; historiske funn og forbehold finnes ved siden av.
 - **Prøv valgene:** hvert forløp har tre tidspunkt. Spol frem, sammenlign med et alternativ og gå tilbake. Ingen tidsfrist eller poeng for fart.
 - **Reisepass:** fremdrift og valg lagres bare i denne nettleseren. Skadet eller utilgjengelig lagring blokkerer ikke besøket. Reisen kan nullstilles etter bekreftelse.
@@ -43,7 +45,7 @@ Legg til data etter samme skjema, velg en installasjonstype og angi romposisjon.
 
 Én motor: Three.js, TypeScript og Vite. Modulære Blender-modeller eksporteres med `blender --background --factory-startup --python scripts/make-assets.py`. Ferdig GLB er inkludert; Blender trengs ikke i Pages-byggingen.
 
-Modellpakken er ca. 582 kB ukomprimert. 3D-koden lastes som separat modul; samlet komprimert JavaScript er ca. 199 kB. Kolonner og gulv er instansierte; statisk geometri slås sammen per materiale. Rominstallasjoner bygges ved nærhet og skjules på avstand. Bildeoppløsning begrenses; skygger kan slås av med lavere bildekvalitet. Materialdetaljer og lyd genereres lokalt. De åtte bildefilene er lokale WebP-filer på til sammen omtrent 1,34 MB. Ingen bilde-CDN eller ekstern forespørsel trengs under besøket. Hovedhallens fire bilder lastes ved åpning; øvrige veggverk lastes ved rombesøk.
+Modellpakken er ca. 582 kB ukomprimert. 3D-koden lastes som separat modul; samlet komprimert JavaScript er ca. 199 kB. Kolonner og gulv er instansierte; statisk geometri slås sammen per materiale. Rominstallasjoner bygges ved nærhet og skjules på avstand. Bildeoppløsning begrenses; skygger kan slås av med lavere bildekvalitet. Materialdetaljer og lyd genereres lokalt. De åtte bildefilene er lokale WebP-filer på til sammen omtrent 1,24 MB. Ingen bilde-CDN eller ekstern forespørsel trengs under besøket. Hovedhallens fire bilder lastes ved åpning; øvrige veggverk lastes ved rombesøk.
 
 Automatisk maskinvaremåling er ikke en garanti for alle telefoner. Første utgave ble testet i berøringsemulering; den nye oppdrags- og galleriutgaven er ikke nettlesertestet i denne endringen; fysisk iOS/Safari er ikke sertifisert. Full tekst gir et varig alternativ ved manglende grafikkstøtte.
 
