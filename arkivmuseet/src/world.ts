@@ -23,22 +23,22 @@ export class MuseumWorld {
  startTime=performance.now(); lastTime=performance.now(); sun!:T.DirectionalLight; nearest:string|null=null; doors:T.Group[]=[];
  target:T.Vector3|null=null; targetYaw=0; targetPitch=0; flight=0; from=new T.Vector3(); fromYaw=0; fromPitch=0;
  pointer:{id:number;x:number;y:number}|null=null; onNear:(id:string|null)=>void; onActivate:(id:string)=>void; onStep:()=>void; onMenu:()=>void;
- disposed=false; stepAt=0; frameCount=0; fps=60;
+ dragDistance=0; disposed=false; stepAt=0; frameCount=0; fps=60;
  constructor(canvas:HTMLCanvasElement,cases:MuseumCase[],callbacks:{near:(id:string|null)=>void;activate:(id:string)=>void;step:()=>void;menu:()=>void}){
   this.onNear=callbacks.near;this.onActivate=callbacks.activate;this.onStep=callbacks.step;this.onMenu=callbacks.menu;this.cases=cases;
   this.renderer=new T.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});this.renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));this.renderer.setSize(innerWidth,innerHeight);
   this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=T.PCFSoftShadowMap;this.renderer.toneMapping=T.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.13;
   this.scene.fog=new T.Fog(0xb5b6ab,65,210);this.scene.background=new T.Color(0xaab9bb);
   this.camera.position.set(0,2.15,-9);this.camera.rotation.order='YXZ';this.look();
-  canvas.addEventListener('pointerdown',e=>{if(!this.active||this.paused||this.guided)return;this.pointer={id:e.pointerId,x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);});
-  canvas.addEventListener('pointermove',e=>{if(!this.active||this.paused||this.guided)return;if(document.pointerLockElement===canvas){this.turn(e.movementX,e.movementY);}else if(this.pointer?.id===e.pointerId){this.turn(e.clientX-this.pointer.x,e.clientY-this.pointer.y);this.pointer={id:e.pointerId,x:e.clientX,y:e.clientY};}});
+  canvas.addEventListener('pointerdown',e=>{if(!this.active||this.paused||this.guided)return;this.dragDistance=0;this.pointer={id:e.pointerId,x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);});
+  canvas.addEventListener('pointermove',e=>{if(!this.active||this.paused||this.guided)return;if(document.pointerLockElement===canvas){this.dragDistance+=Math.abs(e.movementX)+Math.abs(e.movementY);this.turn(e.movementX,e.movementY);}else if(this.pointer?.id===e.pointerId){this.dragDistance+=Math.abs(e.clientX-this.pointer.x)+Math.abs(e.clientY-this.pointer.y);this.turn(e.clientX-this.pointer.x,e.clientY-this.pointer.y);this.pointer={id:e.pointerId,x:e.clientX,y:e.clientY};}});
   canvas.addEventListener('pointerup',()=>{this.pointer=null;});canvas.addEventListener('pointercancel',()=>{this.pointer=null;});
   canvas.addEventListener('dblclick',()=>{if(this.active&&!this.guided&&!this.paused)canvas.requestPointerLock()?.catch(()=>{});});
-  canvas.addEventListener('click',e=>{if(this.active&&!this.paused&&this.nearest){const ray=new T.Raycaster();ray.setFromCamera(new T.Vector2(e.clientX/innerWidth*2-1,1-e.clientY/innerHeight*2),this.camera);const g=this.artifacts.get(this.nearest);if(g&&ray.intersectObject(g,true).length)this.onActivate(this.nearest);}});
+  canvas.addEventListener('click',e=>{if(this.dragDistance>6)return;if(this.active&&!this.paused&&this.nearest){const ray=new T.Raycaster();ray.setFromCamera(new T.Vector2(e.clientX/innerWidth*2-1,1-e.clientY/innerHeight*2),this.camera);const g=this.artifacts.get(this.nearest);if(g&&ray.intersectObject(g,true).length)this.onActivate(this.nearest);}});
   window.addEventListener('keydown',e=>{if((e.target as HTMLElement).matches('input,textarea,select,button')||this.paused)return;if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyE'].includes(e.code)){e.preventDefault();this.keys.add(e.code);if(e.code==='KeyE'&&this.nearest)this.onActivate(this.nearest);}});
   window.addEventListener('keyup',e=>this.keys.delete(e.code));window.addEventListener('blur',()=>{this.keys.clear();this.pointer=null;});
   document.addEventListener('visibilitychange',()=>{this.keys.clear();this.lastTime=performance.now();});
-  window.addEventListener('resize',()=>{this.camera.aspect=innerWidth/innerHeight;this.camera.updateProjectionMatrix();this.renderer.setSize(innerWidth,innerHeight);});
+  window.addEventListener('resize',()=>{this.camera.aspect=innerWidth/innerHeight;this.camera.updateProjectionMatrix();this.frameReading(document.body.classList.contains('reading'));this.renderer.setSize(innerWidth,innerHeight);});
   canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();this.paused=true;document.dispatchEvent(new CustomEvent('museum-render-error'));});
  }
  cases:MuseumCase[];
