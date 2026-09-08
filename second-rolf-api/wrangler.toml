@@ -10,13 +10,13 @@ keep_vars = true
 # HERMES_API_URL can be a dashboard variable or secret; it must be HTTPS and end in /v1/chat/completions.
 # TURNSTILE_SITE_KEY is a public dashboard variable.
 
-[[durable_objects.bindings]]
-name = "SECOND_ROLF_GATE"
-class_name = "SecondRolfGate"
+[[ratelimits]]
+name = "SECOND_ROLF_RATE"
+namespace_id = "26090807"
 
-[[migrations]]
-tag = "v1"
-new_sqlite_classes = ["SecondRolfGate"]
+  [ratelimits.simple]
+  limit = 10
+  period = 60
 
 [observability]
 enabled = false
