@@ -1,82 +1,26 @@
 <!doctype html>
 <html lang="nb">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Second Rolf er en offentlig, avgrenset AI-representasjon av Rolf Selås basert på offentlig prosjektinformasjon.">
-  <meta name="theme-color" content="#0b2531">
-  <title>Second Rolf — Rolf Selås</title>
-  <link rel="stylesheet" href="./style.css">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Second Rolf: kildebasert samtale om Rolfs offentlige arbeid og tekster, med lokal KI og tydelige grenser.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://challenges.cloudflare.com; style-src 'self'; connect-src 'self' https://second-rolf-api.rolfsselas.workers.dev https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; img-src 'self' data:; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta name="referrer" content="no-referrer"><meta name="theme-color" content="#0b2531">
+<title>Second Rolf — lokal KI, offentlige kilder</title><link rel="stylesheet" href="./style.css">
 </head>
 <body>
-  <a class="skip-link" href="#chat">Hopp til chat</a>
-  <header class="topbar">
-    <a class="brand" href="../"><span>RS</span><strong>Rolf Selås</strong></a>
-    <nav aria-label="Navigasjon">
-      <a href="../">Prosjekter</a>
-      <a href="https://github.com/rolfss/Rolfs-projects-2026/tree/main/site/second-rolf" rel="noreferrer">Kildekode</a>
-    </nav>
-  </header>
-
-  <main>
-    <section class="intro">
-      <p class="eyebrow">Eksperiment · offentlig AI-representasjon</p>
-      <h1>Second Rolf</h1>
-      <p class="lede">Spør om Rolfs offentlige prosjekter, faglige arbeid og hvordan han angriper problemer. Systemet er tydelig merket som AI og skal ikke late som det faktisk er Rolf.</p>
-      <div class="status-row">
-        <span class="status" id="status"><i></i><b>Offentlig profilmodus</b></span>
-        <span class="privacy">Live AI bruker bare Rolfs lokalt kjørende modell.</span>
-      </div>
-    </section>
-
-    <section class="shell" id="chat" aria-label="Second Rolf chat">
-      <aside class="side">
-        <h2>Hva den kjenner</h2>
-        <ul>
-          <li>Prosjektene på denne GitHub-siden</li>
-          <li>Offentlig profesjonell profil</li>
-          <li>Arbeidsmåte og prosjektprinsipper</li>
-        </ul>
-        <div class="boundary">
-          <strong>Bevisst avgrenset</strong>
-          <p>Ingen private meldinger, helseopplysninger, arbeidsdata, passord eller direkte tilgang til Rolfs PC. Ingen betalt sky-AI som fallback.</p>
-        </div>
-        <button class="clear" id="clear" type="button">Ny samtale</button>
-      </aside>
-
-      <div class="chat-panel">
-        <div class="messages" id="messages" aria-live="polite" aria-label="Samtale">
-          <article class="message assistant">
-            <div class="avatar">R2</div>
-            <div>
-              <span class="speaker">Second Rolf</span>
-              <p>Hei. Jeg er en AI-representasjon av Rolf, ikke Rolf selv. Spør meg om prosjektene hans, dokumentasjonsforvaltning, AI-verktøy eller hvordan han bygger digitale produkter.</p>
-            </div>
-          </article>
-        </div>
-
-        <div class="suggestions" aria-label="Forslag">
-          <button type="button" data-prompt="Hva jobber Rolf med?">Hva jobber Rolf med?</button>
-          <button type="button" data-prompt="Hvilket prosjekt viser best hvordan Rolf bruker AI?">AI-prosjekter</button>
-          <button type="button" data-prompt="Hva er Arkivmuseet?">Arkivmuseet</button>
-          <button type="button" data-prompt="Hvordan tenker Rolf om gode digitale verktøy?">Arbeidsmåte</button>
-        </div>
-
-        <form class="composer" id="composer">
-          <label class="sr-only" for="question">Spør Second Rolf</label>
-          <textarea id="question" name="question" rows="2" maxlength="1000" placeholder="Spør Second Rolf …" required></textarea>
-          <button type="submit" id="send">Send</button>
-        </form>
-        <div id="turnstile" class="turnstile" hidden></div>
-        <p class="fineprint">Når den lokale Hermes-broen er aktiv, viser statusen «Hermes live · lokal GPU». Hvis PC-en eller modellen er utilgjengelig, brukes den lille innebygde offentlige kunnskapsbasen i stedet. Ingen betalt sky-modell kobles inn automatisk.</p>
-      </div>
-    </section>
-  </main>
-
-  <footer>
-    <span>Second Rolf · offentlig beta</span>
-    <span>AI-representasjon — ikke personen selv</span>
-  </footer>
-  <script type="module" src="./app.js"></script>
-</body>
-</html>
+<a class="skip-link" href="#chat">Hopp til samtalen</a>
+<header class="topbar"><a class="brand" href="../"><span>RS</span><strong>Rolf Selås</strong></a><nav aria-label="Navigasjon"><a href="../">Prosjekter</a><a href="https://github.com/rolfss/Rolfs-projects-2026/tree/main/second-rolf-local" rel="noreferrer">Kode og sikkerhet</a></nav></header>
+<main>
+<section class="intro"><p class="eyebrow">Offentlig kunnskapsassistent · under oppsett</p><h1>Second Rolf</h1>
+<p class="lede">En samtale om Rolfs arbeid og tekster — ikke en erstatning for Rolf selv. KI-svar krever en tilkoblet lokal modell og godkjente kilder.</p>
+<div class="status-row"><span class="status" id="status" role="status"><i></i><b>Statisk profil · KI ikke tilkoblet</b></span><button type="button" id="connect">Koble til lokal KI</button></div>
+<p class="privacy">Ved tilkobling går forespørsler via Cloudflare til den avgrensede tjenesten på Rolfs PC. Ikke skriv sensitiv informasjon. Samtalen lagres bare midlertidig i denne fanens minne.</p></section>
+<section class="shell" id="chat" aria-label="Samtale med Second Rolf">
+<aside class="side"><div><h2>Offentlige kilder</h2><p>Prosjekter, oppgaver og utvalgt yrkeserfaring. Delte innlegg er ikke bevis på enighet.</p></div><div class="boundary"><strong>Ingen handlingsverktøy</strong><p>Besøkende får ikke tilgang til private Hermes, filer, terminal, meldinger eller kontoer.</p></div><button class="clear" id="clear" type="button">Ny samtale</button></aside>
+<div class="chat-panel"><div class="messages" id="messages" role="log" aria-live="polite" aria-label="Samtalen"><article class="message assistant"><div class="avatar">R2</div><div><span class="speaker">Statisk introduksjon — ikke KI</span><p>Her kan du utforske offentlig prosjektinformasjon. Samtaler med lokal KI blir tilgjengelige når modellforbindelsen og kildeimporten er ferdig verifisert.</p></div></article></div>
+<div class="suggestions"><button type="button" data-prompt="Hva er Arkivmuseet?">Arkivmuseet</button><button type="button" data-prompt="Hvordan brukes metadata i prosjektene?">Metadata</button><button type="button" data-prompt="Hva argumenterer masteroppgaven for?">Masteroppgaven</button></div>
+<form class="composer" id="composer"><label class="sr-only" for="question">Spørsmål</label><textarea id="question" rows="2" minlength="2" maxlength="1200" required placeholder="Spør om offentlige tekster og prosjekter …"></textarea><button id="send" type="submit">Send</button></form>
+<div id="turnstile" class="turnstile" hidden></div><p class="fineprint" id="notice" role="status"></p><p class="fineprint">Når lokal KI ikke svarer, får du en tydelig feilmelding eller statisk prosjektinformasjon. Ingen automatisk sky-KI. Kildehenvisninger kan kontrolleres, men garanterer ikke at modellens tolkning er riktig.</p></div></section>
+<section aria-labelledby="sources-title"><h2 id="sources-title">Hva er faktisk lastet inn?</h2><p id="source-status">Portefølje: utvalgte offentlige utdrag. Masteroppgave: PDF lokalisert, fulltekst ikke importert. Bacheloroppgave: venter på dokumenttilgang. CV og innlegg fra @rolfsselas: venter på gjennomgått kildegrunnlag.</p></section>
+</main><footer><span>Second Rolf · kildebasert offentlig profil</span><span>Full Hermes-funksjonalitet er privat og eierstyrt.</span></footer>
+<script type="module" src="./app.js"></script></body></html>

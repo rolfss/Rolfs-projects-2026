@@ -1,0 +1,88 @@
+# Run from this directory with an owner-reviewed .env and .local inputs.
+# No public/host ports; model and app have no external Docker network.
+name: second-rolf-public
+services:
+  model:
+    image: ${OLLAMA_IMAGE:?Set a reviewed ollama/ollama image@sha256 digest}
+    pull_policy: never
+    user: "1000:1000"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 256
+    mem_limit: 24g
+    environment:
+      OLLAMA_HOST: 0.0.0.0:11434
+      OLLAMA_MODELS: /models
+      OLLAMA_NO_CLOUD: "1"
+      OLLAMA_NUM_PARALLEL: "1"
+      OLLAMA_MAX_LOADED_MODELS: "1"
+      HOME: /tmp
+    volumes:
+      - type: bind
+        source: ${LOCAL_MODEL_DIR:?Set existing Ollama model directory only}
+        target: /models
+        read_only: true
+        bind:
+          create_host_path: false
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=256m,uid=1000,gid=1000"]
+    networks: [inference]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    logging:
+      driver: none
+  public:
+    build:
+      context: .
+      args:
+        NODE_IMAGE: ${NODE_IMAGE:?Set a reviewed node image@sha256 digest}
+    user: "1000:1000"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 64
+    mem_limit: 512m
+    environment:
+      ROLF_ISOLATED: docker-internal
+      ROLF_CONFIG: /data/model.json
+      ROLF_CORPUS: /data/corpus.json
+      ROLF_KEY_FILE: /run/secrets/bridge_key
+    volumes:
+      - type: bind
+        source: ./.local/model.json
+        target: /data/model.json
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./.local/corpus.json
+        target: /data/corpus.json
+        read_only: true
+        bind: {create_host_path: false}
+    secrets: [bridge_key]
+    networks: [inference, ingress]
+    logging: {driver: none}
+  tunnel:
+    image: ${CLOUDFLARED_IMAGE:?Set a reviewed cloudflare/cloudflared image@sha256 digest}
+    pull_policy: never
+    user: "1000:1000"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 64
+    mem_limit: 256m
+    command: [tunnel, --no-autoupdate, run, --token-file, /run/secrets/tunnel_token]
+    secrets: [tunnel_token]
+    networks: [ingress, egress]
+    logging: {driver: none}
+networks:
+  inference: {internal: true}
+  ingress: {internal: true}
+  egress: {}
+secrets:
+  bridge_key: {file: ./.local/bridge-key}
+  tunnel_token: {file: ./.local/tunnel-token}

@@ -1,74 +1,25 @@
-# Second Rolf — secure local Hermes edge
+# Second Rolf edge v2 — deployment NOT activated
 
-This Worker is the public edge for the GitHub Pages **Second Rolf** interface. It is intentionally separate from `noark-luna-api` and from the private/default Hermes profile.
+This replaces the earlier direct Hermes proxy. `provider: custom` and a `localOnly` label were not enforcement of local inference. **Never expose the owner's full Hermes API through this Worker.**
 
-## Required architecture
+Public visitors use the separate non-agent service in `../second-rolf-local`. The same existing model weights may serve private Hermes, but its tools, memory, secrets and sessions are not shared.
 
-`GitHub Pages -> Cloudflare Turnstile -> second-rolf-api Worker -> HTTPS tunnel -> isolated second-rolf Hermes profile -> local model server/GPU`
+## Cloudflare configuration
 
-**There is no paid/cloud-model fallback.** If the workstation, Hermes profile, tunnel or local model is unavailable, the public page falls back to its small static public-profile knowledge base.
+Keep `PUBLIC_CHAT_ENABLED` absent/false until the workstation acceptance tests in the local README pass. Configure a dedicated named tunnel hostname protected with Cloudflare Access **Service Auth**, allowing only this Worker's service token. Tunnel destination: `http://public:8788`. Never point it at `model:11434`, private Hermes, Docker, SSH or an admin service. Refuse all other hostnames/routes.
 
-## Local inference lock
+Worker secrets: `PUBLIC_BRIDGE_KEY` (matches the dedicated local 32-byte bridge key), `CF_ACCESS_CLIENT_ID`, `CF_ACCESS_CLIENT_SECRET`, `TURNSTILE_SECRET_KEY`.
 
-The Worker always sends:
+Public variables: `PUBLIC_BRIDGE_ORIGIN` (HTTPS origin, no path/credentials), `TURNSTILE_SITE_KEY` (hostname `rolfss.github.io`). Retain `SECOND_ROLF_RATE` from wrangler.toml. Old `HERMES_API_*` values are intentionally ignored. Never paste secret values into chat or GitHub.
 
-- `model: second-rolf-local`
-- `provider: custom`
+After the source ingestion, model, isolation and Access tests pass, deploy with your authenticated Cloudflare tool and enable `PUBLIC_CHAT_ENABLED=true`. No Cloudflare deployment was performed in the implementation session.
 
-The isolated Hermes profile must map `second-rolf-local` to the model already running locally. Hermes supports self-hosted OpenAI-compatible endpoints such as Ollama, LM Studio, vLLM and llama.cpp.
+## Limits and privacy
 
-Use `HERMES_LOCAL_PROFILE.example.yaml` as the profile template. It deliberately contains:
+Turnstile per request; HMAC-pseudonymised network keys; 10/minute native limiter from existing Wrangler configuration. Cloudflare native rate limits are per-location/approximate, not a global billing limit. The local service also has one inference slot and a 100/day in-memory resource cap (resets on restart).
 
-- a `custom` local provider/base URL;
-- the `second-rolf-local` API route;
-- `fallback_providers: []`;
-- memory disabled;
-- action-capable/private-state toolsets disabled.
+No request/response text logging in this code. Providers and the tunnel may retain operational metadata under their policies. No persistent chat storage in the browser or public service. Rate/replay state is temporary memory. Do not claim anonymity.
 
-Do not add OpenAI, OpenRouter, Nous Portal, Anthropic, Codex or other paid/cloud providers as fallback providers for this profile.
+Health checks contact the restricted local service and verify its protocol, actual model readiness and no-tools status. Network isolation still requires host-level verification: an environment variable is not remote attestation. Cloud inference is never a fallback in this implementation.
 
-## Hermes profile
-
-Create a named profile called `second-rolf`. Give it its own `API_SERVER_KEY`, `SOUL.md`, config, sessions and home. Do not clone private state into it.
-
-Copy `SECOND_ROLF_SOUL.md` to the profile's `SOUL.md`. Copy `HERMES_LOCAL_PROFILE.example.yaml` to the profile's `config.yaml`, replacing only:
-
-- `LOCAL_MODEL_NAME`
-- `LOCAL_OPENAI_COMPATIBLE_BASE_URL`
-
-with the model and endpoint already running on the workstation.
-
-For example, common local OpenAI-compatible base URLs are:
-
-- Ollama: `http://127.0.0.1:11434/v1`
-- LM Studio: `http://127.0.0.1:1234/v1`
-- vLLM: `http://127.0.0.1:8000/v1`
-
-Keep Hermes' API server itself on loopback. Expose it only through the authenticated tunnel; never bind Hermes directly to the public network.
-
-Because tool configuration is security-critical, verify the effective tool list after every Hermes update rather than assuming the config was applied.
-
-## Worker configuration
-
-Set in Cloudflare, never GitHub:
-
-- `TURNSTILE_SECRET_KEY` — encrypted secret
-- `TURNSTILE_SITE_KEY` — public variable for `rolfss.github.io`
-- `HERMES_API_SERVER_KEY` — encrypted secret for the **second-rolf** Hermes profile only
-- `HERMES_API_URL` — HTTPS tunnel URL ending in the named profile's `/v1/chat/completions` endpoint
-
-Example shape only:
-
-`https://<private-tunnel-host>/p/second-rolf/v1/chat/completions`
-
-Then deploy from this directory with Wrangler. Do not reuse the Noark Worker's budget, secrets, or bindings.
-
-## Privacy and behavior
-
-- No conversation persistence in the frontend.
-- No question logging in this Worker.
-- Origin restricted to `https://rolfss.github.io`.
-- Turnstile required for every live request.
-- Cloudflare's native rate-limit binding caps live calls at 10/minute per network address without a custom visitor database.
-- Live answers are accepted by the frontend only when the backend reports `mode: hermes-local` and `localOnly: true`.
-- Local model failure means static fallback, **not paid tokens**.
+Official references: https://developers.cloudflare.com/cloudflare-one/access-controls/service-credentials/service-tokens/ and https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/ .

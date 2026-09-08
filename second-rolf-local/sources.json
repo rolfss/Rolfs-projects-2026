@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "checkedAt": "2026-09-08",
+  "sources": [
+    {
+      "id": "portfolio",
+      "title": "Rolf Selås — digitale prosjekter",
+      "kind": "portfolio",
+      "author": "Rolf Selås",
+      "url": "https://rolfss.github.io/Rolfs-projects-2026/",
+      "input": "seed",
+      "approved": true,
+      "status": "verified-public-excerpts"
+    },
+    {
+      "id": "master",
+      "title": "Master thesis — Mystical Experience and Reform in the Spanish Golden Age — Teresa of Avila",
+      "kind": "thesis",
+      "author": "Rolf Selås",
+      "url": "https://github.com/rolfss/Master-Thesis---Mystical-Experience-and-Reform-in-the-Spanish-Golden-Age---Teresa-of-Avila/blob/main/Masteroppgave-Rolf-Sel-s.pdf",
+      "downloadUrl": "https://raw.githubusercontent.com/rolfss/Master-Thesis---Mystical-Experience-and-Reform-in-the-Spanish-Golden-Age---Teresa-of-Avila/main/Masteroppgave-Rolf-Sel-s.pdf",
+      "gitBlobSha": "926b1637cf5b3bb708bbff3063017d7252b6bb74",
+      "input": "pdf",
+      "path": ".local/master.pdf",
+      "approved": true,
+      "status": "located-not-yet-extracted"
+    },
+    {
+      "id": "bachelor",
+      "title": "Bachelor thesis on Julian of Norwich",
+      "kind": "thesis",
+      "author": "Rolf Selås",
+      "url": "https://docs.google.com/document/d/1uG5Wu-Ht7iGiQoO3plj-Jr8AeVvY4KM8K2CRBjsp82M/edit",
+      "input": "text",
+      "path": ".local/bachelor-public.txt",
+      "sha256": null,
+      "approved": false,
+      "status": "awaiting-document-access-or-reviewed-export"
+    },
+    {
+      "id": "cv",
+      "title": "Rolf Selås — public professional CV",
+      "kind": "profile",
+      "author": "Rolf Selås",
+      "url": null,
+      "input": "text",
+      "path": ".local/cv-public.txt",
+      "sha256": null,
+      "approved": false,
+      "status": "awaiting-public-cv-copy"
+    },
+    {
+      "id": "social",
+      "title": "Reviewed public posts and reposts — @rolfsselas",
+      "kind": "original-post",
+      "author": "Rolf Selås",
+      "url": "https://x.com/rolfsselas",
+      "input": "social",
+      "path": ".local/posts-reviewed.json",
+      "sha256": null,
+      "approved": false,
+      "status": "awaiting-owner-reviewed-export"
+    }
+  ]
+}
