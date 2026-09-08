@@ -16,6 +16,8 @@ Undersøkelsene endrer en egen SVG-prinsippskisse som også brukes som tekstur i
 
 `arkivmuseet-narrative-v2` lagrer romfase, en validert undersøkelsessekvens, ledervalg, tidslinje og quizsvar lokalt. Fem læringsmerker åpner sluttrommets to sammenfattende spørsmål. Den tidligere lederbestillingen i `arkivmuseet-journey-v1` beholdes. Gamle merker omgår ikke de nye romprøvene. Sletting av reisen krever eksplisitt bekreftelse. Ingen data sendes til en server.
 
+Et riktig spor bevares i modellen. Fokus flyttes til neste oppgave uten å sende spilleren tilbake til toppen av teksten. Journalsøket støtter både søkeknappen og Enter.
+
 ## Forfatterkilder
 
 `src/room-stories.ts` er det redaksjonelle manuskriptet. Historiske påstander bygger på de eksisterende, kildehenviste saksdataene. Tokke er ikke presentert som fastslått arkivtap, Hanekleiv-funnet er ikke en eneårsak til raset, og NPEs metadataavvik er ikke presentert som feil erstatningsvedtak. Historiske regler gjøres ikke automatisk til dagens rett.
@@ -26,6 +28,6 @@ Undersøkelsene endrer en egen SVG-prinsippskisse som også brukes som tekstur i
 
 Kjør `pnpm test` og `pnpm build`. Kjør deretter `pnpm exec playwright install --with-deps chromium` og `pnpm test:browser`.
 
-Nettlesertesten starter sin egen forhåndsvisning, spiller alle fem rom med både svake og beskyttende valg, prøver gale og riktige quizsvar, kontrollerer lagring, sluttrom, kilder, handlingsplan og skjermbredder ned til 320 piksler. Den undersøker at den faktiske 3D-installasjonen mottar spillerens fremdrift. Resultater og skjermbilder skrives til `experience-artifacts/` og publiseres som et kortvarig GitHub Actions-artefakt, ikke til produksjon.
+Nettlesertesten spiller hele reisen i 2D, med både svake og beskyttende valg, gale og riktige quizsvar, tastaturaktivering, lagring, sluttrom, kilder og handlingsplan. Den prøver skjermbredder ned til 320 piksler med større tekst. Den undersøker deretter alle fem 3D-installasjoner med fremdriften fra den faktiske gjennomspillingen som visuell testdata. Resultater og skjermbilder skrives til `experience-artifacts/` og publiseres som et kortvarig GitHub Actions-artefakt, ikke til produksjon.
 
-Teknisk gjennomspilling erstatter ikke observasjon av målgruppen. Påstander om læringseffekt eller opplevd moro krever brukertesting.
+Se `VALIDATION.md` for metode, verifikasjonsstatus og avgrensninger. Teknisk gjennomspilling erstatter ikke observasjon av målgruppen. Påstander om læringseffekt eller opplevd moro krever brukertesting.
