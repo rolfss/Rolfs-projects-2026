@@ -25,7 +25,7 @@
       <p class="lede">Spør om Rolfs offentlige prosjekter, faglige arbeid og hvordan han angriper problemer. Systemet er tydelig merket som AI og skal ikke late som det faktisk er Rolf.</p>
       <div class="status-row">
         <span class="status" id="status"><i></i><b>Offentlig profilmodus</b></span>
-        <span class="privacy">Ingen samtaler lagres i nettleseren.</span>
+        <span class="privacy">Live AI bruker bare Rolfs lokalt kjørende modell.</span>
       </div>
     </section>
 
@@ -39,7 +39,7 @@
         </ul>
         <div class="boundary">
           <strong>Bevisst avgrenset</strong>
-          <p>Ingen private meldinger, helseopplysninger, arbeidsdata, passord eller direkte tilgang til Rolfs PC.</p>
+          <p>Ingen private meldinger, helseopplysninger, arbeidsdata, passord eller direkte tilgang til Rolfs PC. Ingen betalt sky-AI som fallback.</p>
         </div>
         <button class="clear" id="clear" type="button">Ny samtale</button>
       </aside>
@@ -68,7 +68,7 @@
           <button type="submit" id="send">Send</button>
         </form>
         <div id="turnstile" class="turnstile" hidden></div>
-        <p class="fineprint">Svar i offentlig profilmodus er hentet fra en liten, kuratert kunnskapsbase i selve nettsiden. Når Hermes-broen er aktiv, vil statusen over vise «Hermes live».</p>
+        <p class="fineprint">Når den lokale Hermes-broen er aktiv, viser statusen «Hermes live · lokal GPU». Hvis PC-en eller modellen er utilgjengelig, brukes den lille innebygde offentlige kunnskapsbasen i stedet. Ingen betalt sky-modell kobles inn automatisk.</p>
       </div>
     </section>
   </main>
