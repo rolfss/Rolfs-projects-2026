@@ -1,7 +1,7 @@
 import { API_CONFIG } from './api-config.mjs';
 import { BUILD_INFO, LEGACY_CORPUS_VERSION, LEGACY_RECORD_IDS } from './data.mjs';
 import { getRecord, getSource, sourceUrl } from './engine.mjs';
-import { MODEL_ID, cleanConversation, retrieveConversation } from './rag-shared.mjs';
+import { MODEL_ID, ANSWER_LIMITS, cleanConversation, retrieveConversation } from './rag-shared.mjs';
 
 export function backendOrigin(value = API_CONFIG.origin) {
   if (!value) return '';
@@ -36,7 +36,7 @@ export async function loadLunaStatus() {
 export function validateUiAnswer(answer) {
   if (!answer || answer.mode !== 'luna' || answer.model !== MODEL_ID || !acceptedCorpus(answer.corpusVersion) ||
       !['ok', 'insufficient'].includes(answer.status) || !Array.isArray(answer.results) || answer.results.length > 12 ||
-      typeof answer.lead !== 'string' || answer.lead.length > 1000 || !Array.isArray(answer.points) || answer.points.length > 2)
+      typeof answer.lead !== 'string' || answer.lead.length > ANSWER_LIMITS.claimChars || !Array.isArray(answer.points) || answer.points.length >= ANSWER_LIMITS.claims)
     throw new Error('Ugyldig svar fra backend.');
   const ids = new Set();
   const results = answer.results.map((r, i) => {
@@ -61,18 +61,18 @@ export function validateUiAnswer(answer) {
 export async function askLuna(question, history, token, signal, options = {}) {
   const clean = cleanConversation(question, history);
   if (options.corpusVersion === LEGACY_CORPUS_VERSION && needsUpdatedCorpus(question, history))
-    throw new Error('Dette spørsmålet trenger de nye veilederne. Viser oppdatert lokalt søk til bakenden er oppdatert.');
+    throw new Error('Luna-serveren mangler de nye veilederne og må oppdateres før den kan besvare dette spørsmålet. Kildene til høyre kan leses nå.');
   if (!token) throw new Error('Fullfør sikkerhetskontrollen før du sender til Luna.');
   const response = await fetch(`${backendOrigin()}/api/chat`, { method: 'POST', credentials: 'omit', cache: 'no-store',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ ...clean, requestId: crypto.randomUUID(), turnstileToken: token,
       qualityConsent: options.qualityConsent === true ? '2026-09-review-v1' : '' }),
-    signal: AbortSignal.any([signal, AbortSignal.timeout(65000)]),
+    signal: AbortSignal.any([signal, AbortSignal.timeout(105000)].filter(Boolean)),
   });
   const answer = await response.json();
   if (!response.ok) throw new Error(typeof answer.message === 'string' ? answer.message.slice(0, 300) : 'Luna er ikke tilgjengelig.');
   // The backend may abstain locally without making a paid model call.
-  if (answer.mode === 'local') throw new Error('Ingen sikre kandidater for Luna. Viser lokalt kildesøk.');
+  if (answer.mode === 'local') throw new Error('Kildesøket fant ikke tilstrekkelig grunnlag for Luna. Beskriv arkivspørsmålet nærmere, eller still et oppfølgingsspørsmål til et tidligere Luna-svar.');
   return validateUiAnswer(answer);
 }
 

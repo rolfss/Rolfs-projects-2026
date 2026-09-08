@@ -4,6 +4,11 @@ export const MODEL_ID = 'gpt-5.6-luna';
 export const MODEL_LABEL = 'GPT-5.6 Luna';
 export const MAX_QUESTION = 1000;
 export const MAX_HISTORY = 4;
+export const ANSWER_LIMITS = Object.freeze({ claims: 6, claimChars: 1000, words: 650 });
+
+function isFollowup(question) {
+  return /^(og\b|men\b|hva med\b|gjelder (det|dette)|kan du (utdype|forklare|konkretisere|gi (meg |oss )?(et eksempel|en sjekkliste))|utdyp\b|hvorfor\b|hva betyr det\b|gi (meg |oss )?(et eksempel|en (konkret )?sjekkliste)|hva (bør|skal|må) (vi|jeg) gjøre (først|nå)|forklar (enklere|nærmere)|oppsummer\b|kortere\b)|\b(denne|disse|dette|det samme|i så fall)\b/i.test(question);
+}
 
 export function cleanConversation(question, history = []) {
   if (typeof question !== 'string' || question.trim().length < 2 || question.length > MAX_QUESTION)
@@ -21,9 +26,11 @@ export function cleanConversation(question, history = []) {
 export function retrievalQuery(question, history = []) {
   const previous = history.filter((m) => m.role === 'user').slice(-2).map((m) => m.content);
   // A self-contained new topic must not inherit unrelated earlier sources.
-  const followup = /^(og\b|men\b|hva med\b|gjelder (det|dette)|kan du utdype|utdyp\b|hvorfor\b|hva betyr det\b)|\b(denne|disse|dette|det samme|i så fall)\b/i.test(question);
+  const followup = isFollowup(question);
   if (!previous.length || (!followup && (findIntent(question) || tokenize(question).length >= 3))) return question;
-  return [...previous, question, question].join(' ');
+  // Start at the latest independent question, so a follow-up cannot revive an old topic.
+  const start = previous.findLastIndex((text) => !isFollowup(text) && (findIntent(text) || tokenize(text).length >= 3));
+  return [...previous.slice(Math.max(0, start)), question, question].join(' ');
 }
 
 export function retrieveConversation(question, history = [], limit = 12) {
@@ -57,6 +64,15 @@ export function fallbackAnswer(question, history = [], note = '') {
     guidance: [note, 'Lokalt kildesøk uten språkmodell. Kontroller originalkildene.'].filter(Boolean).join(' ') };
 }
 
+// An explicitly requested AI answer must never be replaced by a canned answer.
+export function lunaFailureAnswer(question, history = [], message = '') {
+  return { status: 'insufficient', query: question, mode: 'unavailable', model: null,
+    lead: 'Luna svarte ikke på spørsmålet. Du har ikke fått en KI-vurdering.', leadCitations: [], points: [],
+    confidence: { level: 'lav', label: 'Ingen KI-vurdering', score: 0 },
+    results: retrieveConversation(question, history),
+    guidance: message || 'Prøv igjen, eller slå av Luna for å bruke lokalt kildesøk.' };
+}
+
 export function responseSchema(candidates) {
   const recordId = { type: 'string', enum: candidates.map(({ record }) => record.id) };
   return {
@@ -64,9 +80,9 @@ export function responseSchema(candidates) {
     required: ['status', 'claims', 'limitation', 'relevance'],
     properties: {
       status: { type: 'string', enum: ['answered', 'insufficient'] },
-      claims: { type: 'array', maxItems: 3, items: {
+      claims: { type: 'array', maxItems: ANSWER_LIMITS.claims, items: {
         type: 'object', additionalProperties: false, required: ['text', 'recordIds'],
-        properties: { text: { type: 'string', maxLength: 650 },
+        properties: { text: { type: 'string', maxLength: ANSWER_LIMITS.claimChars },
           recordIds: { type: 'array', minItems: 1, maxItems: 3, items: recordId } },
       } },
       limitation: { type: 'string', maxLength: 350 },
@@ -88,7 +104,7 @@ function safeText(value, limit) {
 // Only server-owned corpus objects can supply links, sections and page anchors.
 export function finalizeAnswer(question, parsed, candidates) {
   if (!parsed || !['answered', 'insufficient'].includes(parsed.status) || !Array.isArray(parsed.relevance) ||
-      parsed.relevance.length !== candidates.length || !Array.isArray(parsed.claims) || parsed.claims.length > 3)
+      parsed.relevance.length !== candidates.length || !Array.isArray(parsed.claims) || parsed.claims.length > ANSWER_LIMITS.claims)
     throw new Error('Ugyldig modellrespons.');
   const known = new Map(candidates.map((result) => [result.record.id, result]));
   const scores = new Map();
@@ -104,14 +120,14 @@ export function finalizeAnswer(question, parsed, candidates) {
   const rank = new Map(results.map((r) => [r.record.id, r.rank]));
   const limitation = safeText(parsed.limitation, 350);
   const claims = parsed.claims.map((claim) => {
-    const text = safeText(claim.text, 650);
+    const text = safeText(claim.text, ANSWER_LIMITS.claimChars);
     if (!text || !Array.isArray(claim.recordIds) || claim.recordIds.length < 1 || claim.recordIds.length > 3 ||
         new Set(claim.recordIds).size !== claim.recordIds.length ||
         claim.recordIds.some((id) => !rank.has(id) || scores.get(id).score < 50))
       throw new Error('Påstand uten tilstrekkelig kildehenvisning.');
     return { text, citations: claim.recordIds.map((id) => rank.get(id)) };
   });
-  if ([...claims.map((c) => c.text), limitation].join(' ').split(/\s+/u).length > 200)
+  if ([...claims.map((c) => c.text), limitation].join(' ').split(/\s+/u).length > ANSWER_LIMITS.words)
     throw new Error('Svaret er for langt.');
   if (parsed.status === 'answered' && !claims.length) throw new Error('Svar mangler.');
   if (parsed.status === 'insufficient' && claims.length) throw new Error('Motstridende svarstatus.');

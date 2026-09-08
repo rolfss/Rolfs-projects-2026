@@ -64,7 +64,7 @@ Standardgrenser i `worker.mjs`:
 | Forespørsler per IP-identitet | 5/minutt og 60/dag |
 | Forespørsler for hele appen | 250/dag |
 | Samtidige modellkall | 4 |
-| Maksimal modellutdata, inkludert resonnering | 4 096 tokens |
+| Maksimal modellutdata, inkludert resonnering | 8 192 tokens |
 
 Hele den øvre estimerte forespørselskostnaden reserveres i en varig, atomisk transaksjon **før** modellkallet. Bekreftet tokenforbruk frigir ubrukt reserve. Ved ukjent utfall beholdes reservasjonen; appen prøver ikke automatisk igjen. Derfor kan modellen stoppe før et nominelt budsjett er brukt opp.
 
@@ -83,6 +83,16 @@ Budsjettregisteret lagrer summer, forespørsels-ID-er og daglig saltede IP-avtry
 Kun kilde-ID-er fra serverens egen katalog tillates. Modellens lenker aksepteres aldri. Siteringskontrollen kan ikke bevise at alle faglige påstander er riktige. Relevansskårer er heller ikke kalibrerte sannsynligheter. Spørsmål og kildeposter sendes til OpenAI med `store: false`; leverandørens øvrige datavilkår og sikkerhetslogger gjelder fortsatt.
 
 ## Kontroller etter aktivering
+
+### Svarrettelse 8. september 2026
+
+Den publiserte serveren rapporterte kildeversjon `2026-09-02`, mens klienten hadde `2026-09-07`. Dette utløste lokale standardsvar selv når Luna var valgt for spørsmål om nyere veiledere. Klienten viser nå en uttrykkelig feil i denne situasjonen. En oppdatering av GitHub Pages alene oppdaterer ikke Cloudflare-serveren.
+
+Serveroppdateringen gir situasjonstilpassede instrukser, opptil seks kildebelagte avsnitt, rom for begrunnelser og praktiske råd, bedre temaoppfølging og 8 192 tokens til resonnering og svar. Det utføres fortsatt maksimalt ett betalt modellkall per forespørsel. Dags-, måneds- og prøvebudsjettene er uendret; utdatareservasjonen per forespørsel er høyere.
+
+Publiser med `npx wrangler@4 deploy` fra `noark-api`. Behold eksisterende Worker, hemmeligheter, bindingen `LUNA_GATE`, klassen `LunaGate`, migrasjonen `v1` og objektet `noark-global-budget-v1`. Kontroller at `/api/health` viser `answerVersion: "2026-09-08-context-v2"`, `corpusVersion: "2026-09-07"`, `configured: true`, `model: "gpt-5.6-luna"`, `reasoning: "medium"` og `dailyBudgetUsd: 2`.
+
+Regresjonstestene dekker kildeversjonskonflikten, bevaring av tema ved sjekklister og oppfølging, lengre kildebelagte svar, validering helt frem til klienten og uttrykkelige feil ved KI-svikt. Modellkallene er simulerte. En bestått test eller et konfigurert helseendepunkt dokumenterer ikke faktisk modelltilgang eller faglig kvalitet; kontroller dette med et ordinært Luna-spørsmål etter utrulling.
 
 Kjør `npm run validate` i `noark-assistent`. Kontroller deretter manuelt korte svar, åpne originale kilder og sammenlign relevansskårer for eksempelvis «Hva er systemID?», «Hva krever krav 8.15?», et oppfølgingsspørsmål, et spørsmål utenfor arkivområdet og et spørsmål hvor kandidatpostene bare dekker deler av behovet. Beste treff skal ikke rutinemessig få 100 prosent. Prøv kopiering og kildelenker fra både siste og tidligere svar.
 

@@ -15,7 +15,7 @@ import {
   sourceUrl,
 } from "./engine.mjs";
 import { buildDecisionNote } from "./decision-note.mjs";
-import { fallbackAnswer, retrieveConversation, MAX_HISTORY as CHAT_HISTORY } from "./rag-shared.mjs";
+import { fallbackAnswer, lunaFailureAnswer, retrieveConversation, MAX_HISTORY as CHAT_HISTORY } from "./rag-shared.mjs";
 import { askLuna, loadLunaStatus, mountBotCheck, resetBotCheck, needsUpdatedCorpus } from "./luna-client.mjs";
 
 const HISTORY_KEY = "noark-assistent-history-v1";
@@ -129,7 +129,7 @@ function assistantMessage(answer) {
       text: `${answer.confidence.label} · ${answer.confidence.score}/100`,
       attrs: { title: "Anslått kilderelevans, ikke sannsynlighet for at svaret er riktig. Kontroller originalkildene." },
     }),
-    element("span", { className: "answer-mode", text: answer.mode === "luna" ? "GPT-5.6 Luna · medium" : "Lokalt kildesøk" }),
+    element("span", { className: "answer-mode", text: answer.mode === "luna" ? "GPT-5.6 Luna · medium" : answer.mode === "unavailable" ? "Luna svarte ikke" : "Lokalt kildesøk" }),
   );
   content.append(answerHeader);
 
@@ -298,8 +298,8 @@ async function runQuestion(question, { save = true, updateUrl = true, allowAI = 
   if (newTopic) state.turns = [];
   const previous = state.turns.slice(-CHAT_HISTORY);
   const needsNewSources = state.luna.configured && !state.luna.currentCorpus && needsUpdatedCorpus(clean, previous);
-  const useAI = allowAI && state.luna.configured && $("#use-luna").checked && !needsNewSources;
-  if (useAI && !state.botToken) { showToast("Fullfør sikkerhetskontrollen, eller slå av Luna for lokalt søk."); return; }
+  const useAI = allowAI && $("#use-luna").checked;
+  if (useAI && !state.botToken && !needsNewSources) { showToast("Fullfør sikkerhetskontrollen, eller slå av Luna for lokalt søk."); return; }
   const runId = ++state.runId;
   const conversation = $("#conversation");
   state.busy = true;
@@ -308,7 +308,7 @@ async function runQuestion(question, { save = true, updateUrl = true, allowAI = 
   conversation.append(userMessage(clean));
   $("#question").value = "";
   setStatus(useAI ? "Luna vurderer kildene" : "Søker lokalt", true);
-  let answer = fallbackAnswer(clean, previous, needsNewSources ? 'Nye veiledere brukes lokalt. Luna-bakenden må oppdateres før den kan svare fra dette grunnlaget.' : '');
+  let answer = useAI ? null : fallbackAnswer(clean, previous);
   renderEvidence(useAI ? retrieveConversation(clean, previous) : answer.results, clean);
   try {
     if (useAI) answer = await askLuna(clean, previous, state.botToken, state.controller.signal, {
@@ -316,7 +316,7 @@ async function runQuestion(question, { save = true, updateUrl = true, allowAI = 
       qualityConsent: state.luna.questionLogging?.enabled === true && $("#quality-consent").checked,
     });
   } catch (error) {
-    answer = fallbackAnswer(clean, previous, error.name === "AbortError" ? "Luna-forespørselen ble avbrutt." : error.message);
+    answer = lunaFailureAnswer(clean, previous, error.name === "AbortError" ? "Luna-forespørselen ble avbrutt." : error.name === "TimeoutError" ? "Luna brukte for lang tid. Prøv igjen; det er ikke sendt noen automatisk ny forespørsel." : error.message);
   } finally {
     if (useAI) { state.botToken = ""; resetBotCheck(state.botWidget); }
   }
@@ -324,11 +324,15 @@ async function runQuestion(question, { save = true, updateUrl = true, allowAI = 
   state.latestAnswer = answer;
   conversation.append(answer.status === "ok" ? assistantMessage(answer) : insufficientMessage(answer));
   renderEvidence(answer.results, clean);
-  state.turns.push({ role: "user", content: clean }, { role: "assistant", content: [answer.lead, ...answer.points.map((p) => p.text)].join(" ").slice(0, 1500) });
+  if (answer.mode !== "unavailable") {
+    state.turns.push({ role: "user", content: clean }, { role: "assistant", content: [answer.lead, ...answer.points.map((p) => p.text), answer.guidance].join(" ").slice(0, 1500) });
+  } else {
+    $("#question").value = clean;
+  }
   state.turns = state.turns.slice(-CHAT_HISTORY);
   state.busy = false;
   $("#question-form button[type=submit]").disabled = false;
-  setStatus("Klar", false);
+  setStatus(answer.mode === "unavailable" ? "Luna svarte ikke" : "Klar", false);
   if (save) saveHistory(clean);
   if (updateUrl) {
     const url = new URL(window.location.href);
@@ -523,6 +527,7 @@ async function initializeLuna() {
     const active = $("#use-luna").checked;
     $("#bot-check").hidden = !active;
     $("#model-badge").textContent = active ? "GPT-5.6 Luna · medium" : "Lokalt kildesøk";
+    $("#question-form button[type=submit]").textContent = active ? "Spør Luna" : "Søk i kildene";
     if (active && state.botWidget === null) {
       try {
         state.botWidget = await mountBotCheck(state.luna.siteKey, $("#bot-widget"), (token) => { state.botToken = token; });
@@ -530,6 +535,7 @@ async function initializeLuna() {
         $("#use-luna").checked = false;
         $("#bot-check").hidden = true;
         $("#model-badge").textContent = "Lokalt kildesøk";
+        $("#question-form button[type=submit]").textContent = "Søk i kildene";
         showToast("Sikkerhetskontrollen kunne ikke lastes. Lokalt søk er fortsatt tilgjengelig.");
       }
     }

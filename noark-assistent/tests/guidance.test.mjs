@@ -50,7 +50,7 @@ test('format conditions are retained within the bounded model candidate set', ()
   const payload = buildPayload('Er PDF/A-3 akseptert ved avlevering?', [], candidates);
   const input = JSON.parse(payload.body.input[0].content);
   assert.ok(input.source_records.some((r) => r.scope === 'Avlevering til Nasjonalarkivet'));
-  assert.equal(payload.body.max_output_tokens, 4096);
+  assert.equal(payload.body.max_output_tokens, 8192);
   assert.equal(payload.body.reasoning.effort, 'medium');
   assert.ok(payload.reserve < 30000);
 });

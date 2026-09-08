@@ -55,7 +55,7 @@
         <div>
           <p class="prototype-notice-kicker">Modell og begrensninger</p>
           <h2 id="prototype-notice-title">GPT-5.6 Luna · kildebasert resonnering</h2>
-          <p>Tilkobling til <strong>GPT-5.6 Luna</strong>, OpenAIs kostnadseffektive resonneringsmodell i nano-klassen, med <strong>medium resonnering</strong>. Modellen skal gi korte svar med kildehenvisninger og håndtere oppfølgingsspørsmål – ikke skrive essays.</p>
+          <p>Tilkobling til <strong>GPT-5.6 Luna</strong>, OpenAIs kostnadseffektive resonneringsmodell i nano-klassen, med <strong>medium resonnering</strong>. Modellen skal gi svar tilpasset spørsmålet ditt, med begrunnelse, praktiske råd og kildehenvisninger. Du kan stille oppfølgingsspørsmål.</p>
           <p>KI kan ta feil. Grunnlaget er kuraterte sammendrag og kontrollerte formatoppføringer, ikke fulltekst eller løpende nettsøk. Nye veiledere har kontrolltidspunkt og avgrenset virkeområde. Kontroller originalkildene; dette er fagstøtte, ikke en juridisk fasit.</p>
           <p id="model-status" role="status">Luna er ikke aktivert ennå. Lokalt kildesøk fungerer uansett.</p>
         </div>
@@ -90,7 +90,7 @@
             <label for="question">Spørsmål</label>
             <textarea id="question" name="question" rows="3" maxlength="1000" required placeholder="Eksempel: Må fagsystemet vårt integreres med en Noark-kjerne?"></textarea>
             <div class="luna-controls">
-              <label class="luna-switch"><input type="checkbox" id="use-luna" disabled> Bruk Luna til korte svar og oppfølging</label>
+              <label class="luna-switch"><input type="checkbox" id="use-luna" disabled> Bruk Luna til tilpassede svar og oppfølging</label>
               <p class="message-note">Med Luna sendes spørsmålet, opptil fire tidligere meldinger og relevante kildeposter til OpenAI via en beskyttet backend. Ikke skriv personopplysninger, pasientinformasjon eller taushetsbelagt innhold. Nylige spørsmål lagres lokalt og kan slettes nedenfor.</p>
               <p class="message-note" id="quality-status" role="status">Kontrollerer om forbedringsloggen er aktiv.</p>
               <label class="luna-switch"><input type="checkbox" id="quality-consent" disabled> Jeg samtykker til at en redigert kopi av spørsmålet lagres i opptil 30 dager for å forbedre kildesøket.</label>
@@ -103,7 +103,7 @@
             </div>
             <div class="form-row">
               <span><kbd>Ctrl</kbd> + <kbd>Enter</kbd> sender</span>
-              <button class="primary-button" type="submit">Finn kildebasert svar</button>
+              <button class="primary-button" type="submit">Søk i kildene</button>
             </div>
           </form>
         </section>
@@ -172,7 +172,7 @@
       <div class="method-grid">
         <article><span>01</span><h2>Hent</h2><p>Spørsmålet normaliseres, utvides med et avgrenset norsk arkivfaglig synonymsett og rangeres mot kildepostene.</p></article>
         <article><span>02</span><h2>Ranger</h2><p>Søkemotoren finner kandidater fra kravnummer, titler, emneord og innhold. Luna vurderer kandidatenes relevans mot spørsmålet og sorterer dem på nytt når KI er aktivert.</p></article>
-        <article><span>03</span><h2>Sett sammen</h2><p>Luna instrueres til å svare kort og bare fra kildegrunnlaget. Henvisninger må peke til registrerte kildeposter. Ved manglende KI eller feil vises et tydelig merket, lokalt svar.</p></article>
+        <article><span>03</span><h2>Sett sammen</h2><p>Luna bruker kildene til å forklare hva som gjelder i situasjonen din. Henvisninger må peke til registrerte kildeposter. Hvis Luna ikke svarer, får du en tydelig feilmelding og kan prøve igjen eller velge lokalt kildesøk.</p></article>
         <article><span>04</span><h2>Kontroller</h2><p>Hver kildepost viser originalkilde, tilgjengelig plassering og et begrunnet relevansanslag. En gyldig henvisning garanterer ikke at modellens tolkning er riktig: åpne originalen.</p></article>
       </div>
 

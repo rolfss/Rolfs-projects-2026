@@ -2,9 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { answerQuestion, searchRecords } from '../engine.mjs';
-import { cleanConversation, retrievalQuery, retrieveConversation, finalizeAnswer, responseSchema, fallbackAnswer } from '../rag-shared.mjs';
-import { backendOrigin, validateUiAnswer } from '../luna-client.mjs';
-import { BUILD_INFO } from '../data.mjs';
+import { cleanConversation, retrievalQuery, retrieveConversation, finalizeAnswer, responseSchema, fallbackAnswer, lunaFailureAnswer } from '../rag-shared.mjs';
+import { backendOrigin, validateUiAnswer, askLuna } from '../luna-client.mjs';
+import { BUILD_INFO, LEGACY_CORPUS_VERSION } from '../data.mjs';
 import { buildDecisionNote } from '../decision-note.mjs';
 
 const q = 'Er Noark fortsatt obligatorisk?';
@@ -35,6 +35,19 @@ test('follow-up inherits relevant earlier question, new topic does not', () => {
   const history = [{ role: 'user', content: 'Hva krever Noark om tilgangsstyring?' }];
   assert.match(retrievalQuery('Og hva med logging?', history), /tilgangsstyring/);
   assert.equal(retrievalQuery('Hva er systemID?', history), 'Hva er systemID?');
+});
+test('practical follow-ups keep the latest subject without reviving an unrelated topic', () => {
+  const history = [{ role: 'user', content: 'Hva er systemID?' },
+    { role: 'assistant', content: 'En identifikator.' },
+    { role: 'user', content: 'Hvordan etablerer vi internkontroll med dokumentasjonsforvaltningen?' },
+    { role: 'assistant', content: 'Kartlegg dokumentasjonen.' }];
+  for (const followup of ['Gi meg en konkret sjekkliste', 'Hva bør vi gjøre først?', 'Kan du forklare nærmere?']) {
+    const query = retrievalQuery(followup, history);
+    assert.match(query, /internkontroll/);
+    assert.doesNotMatch(query, /systemID/);
+    assert.ok(retrieveConversation(followup, history).some((r) => r.record.id === 'guide-control-steps'));
+  }
+  assert.equal(retrievalQuery('Hva er mappeID?', history), 'Hva er mappeID?');
 });
 test('conversation rejects injected system roles and oversized input', () => {
   assert.throws(() => cleanConversation('a'.repeat(1001)));
@@ -69,8 +82,44 @@ test('fabricated citations, uncited claims and output links rejected', () => {
   ]) { const p = response(); modify(p); assert.throws(() => finalizeAnswer(q, p, candidates)); }
 });
 test('long essays rejected instead of clipped across claims or citations', () => {
-  const p = response(); p.claims = Array.from({ length: 3 }, () => ({ text: 'ord '.repeat(90), recordIds: [candidates[0].record.id] }));
+  const p = response(); p.claims = Array.from({ length: 6 }, () => ({ text: 'ord '.repeat(110), recordIds: [candidates[0].record.id] }));
   assert.throws(() => finalizeAnswer(q, p, candidates));
+});
+test('a substantial answer with five practical points survives backend and UI validation', () => {
+  const p = response();
+  p.claims = Array.from({ length: 6 }, (_, i) => ({ text: `Punkt ${i + 1}: ${'Forklaring med kildegrunnlag. '.repeat(15)}`, recordIds: [candidates[0].record.id] }));
+  const a = validateUiAnswer({ ...finalizeAnswer(q, p, candidates), corpusVersion: BUILD_INFO.corpusVersion });
+  assert.equal(a.points.length, 5);
+  assert.equal(a.points[4].text, p.claims[5].text.trim());
+});
+test('legacy source mismatch stops the AI request with an explicit error, never a canned answer', async (t) => {
+  let calls = 0;
+  t.mock.method(globalThis, 'fetch', async () => { calls++; throw new Error('Unexpected model call'); });
+  await assert.rejects(() => askLuna('Er PDF/A-3 akseptert ved avlevering?', [], 'token', undefined,
+    { corpusVersion: LEGACY_CORPUS_VERSION }), /Luna-serveren mangler de nye veilederne/);
+  assert.equal(calls, 0);
+});
+test('client delivers the custom answer and conversation without a required abort signal', async (t) => {
+  const history = [{ role: 'user', content: 'Vi vurderer et nytt sak-arkivsystem.' }];
+  const p = response(); p.claims[0].text = 'Ved deres systembytte må kravene vurderes mot dokumentasjonsbehovet.';
+  t.mock.method(globalThis, 'fetch', async (_url, options) => {
+    const sent = JSON.parse(options.body);
+    assert.equal(sent.question, q); assert.deepEqual(sent.history, history);
+    assert.equal(sent.qualityConsent, ''); assert.ok(options.signal);
+    return Response.json({ ...finalizeAnswer(q, p, candidates), corpusVersion: BUILD_INFO.corpusVersion });
+  });
+  assert.equal((await askLuna(q, history, 'test-token')).lead, p.claims[0].text);
+});
+test('provider failure and local abstention stay failures when Luna was requested', async (t) => {
+  t.mock.method(globalThis, 'fetch', async () => Response.json({ message: 'Budsjettet er nådd.' }, { status: 429 }));
+  await assert.rejects(() => askLuna(q, [], 'token'), /Budsjettet er nådd/);
+  t.mock.method(globalThis, 'fetch', async () => Response.json(fallbackAnswer(q)));
+  await assert.rejects(() => askLuna(q, [], 'token'), /ikke tilstrekkelig grunnlag/);
+  const failure = lunaFailureAnswer(q, [], 'Budsjettet er nådd.');
+  assert.equal(failure.mode, 'unavailable'); assert.equal(failure.status, 'insufficient');
+  assert.deepEqual(failure.points, []); assert.deepEqual(failure.leadCitations, []);
+  assert.notEqual(failure.lead, fallbackAnswer(q).lead);
+  assert.equal(failure.guidance, 'Budsjettet er nådd.');
 });
 test('insufficient evidence produces explicit abstention', () => {
   const p = response(); p.status = 'insufficient'; p.claims = []; p.limitation = 'Kildegrunnlaget dekker ikke hele spørsmålet.';
