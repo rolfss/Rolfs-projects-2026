@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="nb">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Second Rolf er en offentlig, avgrenset AI-representasjon av Rolf Selås basert på offentlig prosjektinformasjon.">
+  <meta name="theme-color" content="#0b2531">
+  <title>Second Rolf — Rolf Selås</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <a class="skip-link" href="#chat">Hopp til chat</a>
+  <header class="topbar">
+    <a class="brand" href="../"><span>RS</span><strong>Rolf Selås</strong></a>
+    <nav aria-label="Navigasjon">
+      <a href="../">Prosjekter</a>
+      <a href="https://github.com/rolfss/Rolfs-projects-2026/tree/main/site/second-rolf" rel="noreferrer">Kildekode</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="intro">
+      <p class="eyebrow">Eksperiment · offentlig AI-representasjon</p>
+      <h1>Second Rolf</h1>
+      <p class="lede">Spør om Rolfs offentlige prosjekter, faglige arbeid og hvordan han angriper problemer. Systemet er tydelig merket som AI og skal ikke late som det faktisk er Rolf.</p>
+      <div class="status-row">
+        <span class="status" id="status"><i></i><b>Offentlig profilmodus</b></span>
+        <span class="privacy">Ingen samtaler lagres i nettleseren.</span>
+      </div>
+    </section>
+
+    <section class="shell" id="chat" aria-label="Second Rolf chat">
+      <aside class="side">
+        <h2>Hva den kjenner</h2>
+        <ul>
+          <li>Prosjektene på denne GitHub-siden</li>
+          <li>Offentlig profesjonell profil</li>
+          <li>Arbeidsmåte og prosjektprinsipper</li>
+        </ul>
+        <div class="boundary">
+          <strong>Bevisst avgrenset</strong>
+          <p>Ingen private meldinger, helseopplysninger, arbeidsdata, passord eller direkte tilgang til Rolfs PC.</p>
+        </div>
+        <button class="clear" id="clear" type="button">Ny samtale</button>
+      </aside>
+
+      <div class="chat-panel">
+        <div class="messages" id="messages" aria-live="polite" aria-label="Samtale">
+          <article class="message assistant">
+            <div class="avatar">R2</div>
+            <div>
+              <span class="speaker">Second Rolf</span>
+              <p>Hei. Jeg er en AI-representasjon av Rolf, ikke Rolf selv. Spør meg om prosjektene hans, dokumentasjonsforvaltning, AI-verktøy eller hvordan han bygger digitale produkter.</p>
+            </div>
+          </article>
+        </div>
+
+        <div class="suggestions" aria-label="Forslag">
+          <button type="button" data-prompt="Hva jobber Rolf med?">Hva jobber Rolf med?</button>
+          <button type="button" data-prompt="Hvilket prosjekt viser best hvordan Rolf bruker AI?">AI-prosjekter</button>
+          <button type="button" data-prompt="Hva er Arkivmuseet?">Arkivmuseet</button>
+          <button type="button" data-prompt="Hvordan tenker Rolf om gode digitale verktøy?">Arbeidsmåte</button>
+        </div>
+
+        <form class="composer" id="composer">
+          <label class="sr-only" for="question">Spør Second Rolf</label>
+          <textarea id="question" name="question" rows="2" maxlength="1000" placeholder="Spør Second Rolf …" required></textarea>
+          <button type="submit" id="send">Send</button>
+        </form>
+        <div id="turnstile" class="turnstile" hidden></div>
+        <p class="fineprint">Svar i offentlig profilmodus er hentet fra en liten, kuratert kunnskapsbase i selve nettsiden. Når Hermes-broen er aktiv, vil statusen over vise «Hermes live».</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>Second Rolf · offentlig beta</span>
+    <span>AI-representasjon — ikke personen selv</span>
+  </footer>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
