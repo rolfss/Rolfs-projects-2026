@@ -55,7 +55,7 @@ Example shape only:
 
 `https://<private-tunnel-host>/p/second-rolf/v1/chat/completions`
 
-Then deploy from this directory with Wrangler. Do not reuse the Noark Worker's budget, secrets, or Durable Objects.
+Then deploy from this directory with Wrangler. Do not reuse the Noark Worker's budget, secrets, or bindings.
 
 ## Privacy and behavior
 
@@ -63,5 +63,5 @@ Then deploy from this directory with Wrangler. Do not reuse the Noark Worker's b
 - No question logging in this Worker.
 - Origin restricted to `https://rolfss.github.io`.
 - Turnstile required for every live request.
-- Per-IP Durable Object limits: 8/minute, 60/day.
+- Cloudflare's native rate-limit binding caps live calls at 10/minute per network address without a custom visitor database.
 - The frontend falls back to a small public-profile knowledge base if Hermes is offline.
