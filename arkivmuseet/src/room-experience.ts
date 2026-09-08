@@ -53,9 +53,17 @@ export function renderRoom(j:Journey,c:MuseumCase,focus=false){
    const query=$<HTMLInputElement>('#journal-query').value.trim().toLocaleLowerCase('nb-NO');
    if(query.length<3||!('vedlikehold av skolebygget'.includes(query))){$('#puzzle-feedback').textContent='Skriv minst tre bokstaver fra tittelen på dokumentet, for eksempel «skole». Ingen treff er kontrollert ennå.';$('#journal-query').focus();return;}
   }
-  if(correct){p.investigation.push(t.id);j.feedback[c.id]=t.feedback;rerender();j.hooks.announce(t.feedback);}
+  if(correct){
+   const scroll=$('#story-content').scrollTop;
+   p.investigation.push(t.id);j.feedback[c.id]=t.feedback;j.save();renderRoom(j,c);
+   $('#story-content').scrollTop=scroll;
+   const prompt=document.querySelector<HTMLElement>('.puzzle-prompt,.room-feedback.success');
+   if(prompt){prompt.tabIndex=-1;prompt.focus({preventScroll:true});prompt.scrollIntoView({block:'nearest'});}
+   j.hooks.announce(t.feedback);
+  }
   else{j.feedback[c.id]=t.feedback;$('#puzzle-feedback').textContent=t.feedback;j.hooks.announce(t.feedback);}
  });
+ document.querySelector<HTMLInputElement>('#journal-query')?.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();document.querySelector<HTMLButtonElement>('[data-tool="search"]')?.click();}});
  document.querySelectorAll<HTMLButtonElement>('[data-decision]').forEach(b=>b.onclick=()=>{p.choice=Number(b.dataset.decision);p.turn=0;p.phase=3;rerender();});
  document.querySelector<HTMLButtonElement>('#retry-choice')?.addEventListener('click',()=>{p.choice=null;p.turn=0;p.phase=2;rerender();});
  document.querySelector<HTMLButtonElement>('#compare-paths')?.addEventListener('click',()=>j.compare(m,p.choice!));
