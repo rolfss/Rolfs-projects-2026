@@ -9,6 +9,7 @@ on:
       - "lumen-relay/**"
       - "brukerstottejakten/**"
       - "noark-assistent/**"
+      - "arkivmuseet/**"
       - ".github/workflows/validate-browser-projects.yml"
       - ".github/workflows/deploy-pages.yml"
 
@@ -46,3 +47,15 @@ jobs:
       - name: Kjør tester for Noark 5-arkivassistenten
         working-directory: ./noark-assistent
         run: npm run validate
+
+      - name: Sett opp pnpm for Arkivmuseet
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+
+      - name: Valider og bygg Arkivmuseet
+        working-directory: ./arkivmuseet
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm test
+          pnpm build

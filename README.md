@@ -4,9 +4,15 @@
 
 ## [Se og prøv de nyeste prosjektene →](https://rolfss.github.io/Rolfs-projects-2026/)
 
-**Nyest:** Noark 5-arkivassistent · Archive Assist · MetaReady · Lumen Relay · Brukerstøttejakten
+**Nyest:** Arkivmuseet · Noark 5-arkivassistent · Archive Assist · MetaReady · Lumen Relay · Brukerstøttejakten
 
 ---
+
+## Arkivmuseet
+
+**Sporene staten ikke hadde råd til å miste.** Et museum i sanntids-3D med fem virkelige norske saker, kildemodus, guidet omvisning og Lederens rom.
+
+[Besøk museet](https://rolfss.github.io/Rolfs-projects-2026/arkivmuseet/) · [Tekstversjon](https://rolfss.github.io/Rolfs-projects-2026/arkivmuseet/tekst.html) · [Kilder og dokumentasjon](./arkivmuseet/)
 
 ## Noark 5-arkivassistent
 
