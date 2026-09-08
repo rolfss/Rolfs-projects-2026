@@ -61,7 +61,7 @@ export class MuseumWorld {
  frameReading(reading:boolean){if(reading&&innerWidth>800)this.camera.setViewOffset(innerWidth,innerHeight,innerWidth*.17,0,innerWidth,innerHeight);else this.camera.clearViewOffset();this.camera.updateProjectionMatrix();}
  box(w:number,h:number,d:number,x:number,y:number,z:number,mat:T.Material=stone,parent:T.Object3D=this.scene,solid=false){const m=new T.Mesh(new T.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);if(solid)this.solids.push({x,z,w:w+.55,d:d+.55});return m;}
  model(name:string,x:number,y:number,z:number,parent:T.Object3D=this.scene,scale=1,rot=0){const proto=this.kit.getObjectByName(name);if(!proto)throw new Error('Mangler modell: '+name);const m=proto.clone(true);m.position.set(x,y,z);m.rotation.y=rot;m.scale.multiplyScalar(scale);m.traverse(o=>{if(o instanceof T.Mesh){o.castShadow=true;o.receiveShadow=true;}});parent.add(m);return m;}
- label(text:string,sub:string,x:number,y:number,z:number,width=4,rot=0,color='#d9c695',parent:T.Object3D=this.scene){const cv=document.createElement('canvas');cv.width=1024;cv.height=256;const ctx=cv.getContext('2d')!;ctx.fillStyle=color;ctx.textAlign='center';ctx.font='42px Georgia';ctx.fillText(text,512,100,980);ctx.font='23px Segoe UI';ctx.fillText(sub,512,167,970);const tx=new T.CanvasTexture(cv);tx.colorSpace=T.SRGBColorSpace;const m=new T.Mesh(new T.PlaneGeometry(width,width/4),new T.MeshBasicMaterial({map:tx,transparent:true,depthWrite:false,side:T.DoubleSide}));m.position.set(x,y,z);m.rotation.y=rot;parent.add(m);return m;}
+ label(text:string,sub:string,x:number,y:number,z:number,width=4,rot=0,color='#d9c695',parent:T.Object3D=this.scene){const cv=document.createElement('canvas');cv.width=1024;cv.height=256;const ctx=cv.getContext('2d')!;ctx.fillStyle='#112720';ctx.fillRect(0,0,1024,256);ctx.strokeStyle=color;ctx.lineWidth=4;ctx.strokeRect(8,8,1008,240);ctx.fillStyle='#fff0c9';ctx.textAlign='center';ctx.font='bold 50px Georgia';ctx.fillText(text,512,100,980);ctx.font='30px Segoe UI';ctx.fillText(sub,512,167,970);const tx=new T.CanvasTexture(cv);tx.colorSpace=T.SRGBColorSpace;const m=new T.Mesh(new T.PlaneGeometry(width,width/4),new T.MeshBasicMaterial({map:tx,transparent:false,depthWrite:true,side:T.DoubleSide,toneMapped:false}));m.position.set(x,y,z);m.rotation.y=rot;parent.add(m);return m;}
  buildExterior(){
   const sky=new Sky();sky.scale.setScalar(380);this.scene.add(sky);const u=sky.material.uniforms;u.turbidity.value=5;u.rayleigh.value=1.6;u.mieCoefficient.value=.006;u.mieDirectionalG.value=.78;u.sunPosition.value.copy(this.sun.position);
   this.box(190,.3,220,0,-.52,40,new T.MeshStandardMaterial({color:0x697768,roughness:1}));
@@ -153,6 +153,11 @@ export class MuseumWorld {
   }
   this.label('Visuell rekonstruksjon','Ingen dokumenter i installasjonen er originaler.',0,.42,1.43,3.8,0,'#e4d6b7',group);
   this.mergeStatic(group);
+  if(c.image?.kind==='photo'){
+   const tx=new T.TextureLoader().load(import.meta.env.BASE_URL+c.image.src);tx.colorSpace=T.SRGBColorSpace;
+   const image=new T.Mesh(new T.PlaneGeometry(5.4,5.4*c.image.height/c.image.width),new T.MeshBasicMaterial({map:tx,toneMapped:false}));image.position.set(0,4,-3.6);group.add(image);
+  }
+  const indicator=this.label('DITT VALG FORMER SPORENE','Åpne oppdraget · Finn spor · Prøv et ledervalg',0,4.1,1,4.8,0,c.accent,group);indicator.name='outcome-label';
   // Simple glazing, no costly screen-space refraction.
   const glass=new T.Mesh(new T.BoxGeometry(4.9,3.6,3),new T.MeshPhysicalMaterial({color:0xc4dfd6,transparent:true,opacity:.055,roughness:.15,metalness:.2,depthWrite:false}));glass.position.y=2.02;group.add(glass);
  }
@@ -165,8 +170,9 @@ export class MuseumWorld {
  turn(x:number,y:number){this.target=null;this.yaw-=x*.002*this.settings.sensitivity;this.pitch=T.MathUtils.clamp(this.pitch-y*.0018*this.settings.sensitivity,-1,1);this.look();}
  look(){this.camera.rotation.set(this.pitch,this.yaw,0,'YXZ');}
  valid(x:number,z:number){const hall=Math.abs(x)<9.65&&z> -10&&z<53.3;const wing=Math.abs(x)<27.4&&Math.abs(x)>9&&[9,27,45].some(v=>Math.abs(z-v)<7.4);if(!(hall||wing))return false;return !this.solids.some(b=>Math.abs(x-b.x)<b.w/2&&Math.abs(z-b.z)<b.d/2);}
+ setOutcome(id:string,safe:boolean|null){const g=this.artifacts.get(id);if(!g)return;const old=g.getObjectByName('outcome-label') as T.Mesh|undefined;if(old){old.removeFromParent();old.geometry.dispose();const mat=old.material as T.MeshBasicMaterial;mat.map?.dispose();mat.dispose();}const label=this.label(safe===null?'DITT VALG FORMER SPORENE':safe?'SPORENE KAN FØLGES':'HVEM KAN FINNE GRUNNLAGET?',safe===null?'Finn spor · Prøv et ledervalg':safe?'Øvelse: Bevaring og gjenfinning er prøvd':'Øvelse: Dokumentasjon kan bli vanskelig å bruke',0,4.1,1,4.8,0,safe===false?'#d89d7f':'#9bd5b1',g);label.name='outcome-label';g.traverse(o=>{if(o.userData.signal&&o instanceof T.Mesh)(o.material as T.MeshBasicMaterial).color.setHex(safe===false?0x1a2e2d:0x84babe);});}
  setStage(id:string,step:number){const g=this.artifacts.get(id);if(!g)return;g.traverse(o=>{if(o.userData.signal&&(o instanceof T.Mesh)){(o.material as T.MeshBasicMaterial).color.setHex(step>=1?0x1a2e2d:0x84babe);}});}
- tick=()=>{if(this.disposed)return;requestAnimationFrame(this.tick);const now=performance.now(),dt=Math.min((now-this.lastTime)/1000,.05);this.lastTime=now;if(document.hidden)return;
+ tick=()=>{if(this.disposed)return;requestAnimationFrame(this.tick);const now=performance.now(),dt=Math.min((now-this.lastTime)/1000,.05);this.lastTime=now;if(document.hidden||document.body.classList.contains('flat-mode'))return;
   if(!this.paused){
    if(this.active){this.doors[0].rotation.y=T.MathUtils.damp(this.doors[0].rotation.y,-1.55,1.2,dt);this.doors[1].rotation.y=T.MathUtils.damp(this.doors[1].rotation.y,1.55,1.2,dt);}
    if(this.target){this.flight+=dt;const t=Math.min(this.flight/2.8,1),e=t*t*(3-2*t);this.camera.position.lerpVectors(this.from,this.target,e);let diff=(this.targetYaw-this.fromYaw)%(Math.PI*2);if(diff>Math.PI)diff-=Math.PI*2;if(diff<-Math.PI)diff+=Math.PI*2;this.yaw=this.fromYaw+diff*e;this.pitch=T.MathUtils.lerp(this.fromPitch,this.targetPitch,e);this.look();if(t===1)this.target=null;}
