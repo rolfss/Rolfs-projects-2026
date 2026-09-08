@@ -1,46 +1,52 @@
-# Second Rolf — secure Hermes edge
+# Second Rolf — secure local Hermes edge
 
 This Worker is the public edge for the GitHub Pages **Second Rolf** interface. It is intentionally separate from `noark-luna-api` and from the private/default Hermes profile.
 
 ## Required architecture
 
-`GitHub Pages -> Cloudflare Turnstile -> second-rolf-api Worker -> HTTPS tunnel -> isolated Hermes profile`
+`GitHub Pages -> Cloudflare Turnstile -> second-rolf-api Worker -> HTTPS tunnel -> isolated second-rolf Hermes profile -> local model server/GPU`
 
-Do **not** point this Worker at the default/private Hermes profile. Hermes' API server exposes the agent, including its configured tools. The public profile must therefore be isolated before the Worker is activated.
+**There is no paid/cloud-model fallback.** If the workstation, Hermes profile, tunnel or local model is unavailable, the public page falls back to its small static public-profile knowledge base.
+
+## Local inference lock
+
+The Worker always sends:
+
+- `model: second-rolf-local`
+- `provider: custom`
+
+The isolated Hermes profile must map `second-rolf-local` to the model already running locally. Hermes supports self-hosted OpenAI-compatible endpoints such as Ollama, LM Studio, vLLM and llama.cpp.
+
+Use `HERMES_LOCAL_PROFILE.example.yaml` as the profile template. It deliberately contains:
+
+- a `custom` local provider/base URL;
+- the `second-rolf-local` API route;
+- `fallback_providers: []`;
+- memory disabled;
+- action-capable/private-state toolsets disabled.
+
+Do not add OpenAI, OpenRouter, Nous Portal, Anthropic, Codex or other paid/cloud providers as fallback providers for this profile.
 
 ## Hermes profile
 
-Create a named profile called `second-rolf`. Give it its own `API_SERVER_KEY`, `SOUL.md`, config, sessions and home. Keep built-in memory/user profile disabled and remove action-capable toolsets. Do not clone private state into it.
+Create a named profile called `second-rolf`. Give it its own `API_SERVER_KEY`, `SOUL.md`, config, sessions and home. Do not clone private state into it.
 
-Suggested profile properties:
+Copy `SECOND_ROLF_SOUL.md` to the profile's `SOUL.md`. Copy `HERMES_LOCAL_PROFILE.example.yaml` to the profile's `config.yaml`, replacing only:
 
-```yaml
-memory:
-  memory_enabled: false
-  user_profile_enabled: false
+- `LOCAL_MODEL_NAME`
+- `LOCAL_OPENAI_COMPATIBLE_BASE_URL`
 
-agent:
-  disabled_toolsets:
-    - terminal
-    - file
-    - browser
-    - skills
-    - memory
-    - session_search
-    - cronjob
-    - code_execution
-    - delegation
-    - messaging
-    - homeassistant
-    - discord
-    - discord_admin
-```
+with the model and endpoint already running on the workstation.
+
+For example, common local OpenAI-compatible base URLs are:
+
+- Ollama: `http://127.0.0.1:11434/v1`
+- LM Studio: `http://127.0.0.1:1234/v1`
+- vLLM: `http://127.0.0.1:8000/v1`
+
+Keep Hermes' API server itself on loopback. Expose it only through the authenticated tunnel; never bind Hermes directly to the public network.
 
 Because tool configuration is security-critical, verify the effective tool list after every Hermes update rather than assuming the config was applied.
-
-Copy `SECOND_ROLF_SOUL.md` to the profile's `SOUL.md`. Keep the profile limited to public information.
-
-Enable its API server with a unique key. Hermes documents an OpenAI-compatible API server and named-profile endpoints. Keep the server on loopback and expose it only through a tunnel; never bind the Hermes server itself directly to the public network.
 
 ## Worker configuration
 
@@ -64,4 +70,5 @@ Then deploy from this directory with Wrangler. Do not reuse the Noark Worker's b
 - Origin restricted to `https://rolfss.github.io`.
 - Turnstile required for every live request.
 - Cloudflare's native rate-limit binding caps live calls at 10/minute per network address without a custom visitor database.
-- The frontend falls back to a small public-profile knowledge base if Hermes is offline.
+- Live answers are accepted by the frontend only when the backend reports `mode: hermes-local` and `localOnly: true`.
+- Local model failure means static fallback, **not paid tokens**.
