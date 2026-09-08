@@ -1,6 +1,6 @@
 # Kilder til Arkivmuseet
 
-Kontrollert 8. september 2026. Originalkildene er lenket. Førstesiden av rapportene om Osen og NPE vises også som merkede faksimiler, med originalkilden tilgjengelig.
+Kontrollert 8. september 2026. Originalkildene er lenket. Osen-rapportens side 1 og 3, Tokke-rapportens side 7 og NPE-rapportens side 1 og 6 vises som merkede faksimiler. Nyhetspaneler bruker korte, autentiske overskrifter og museets egen utforming.
 
 ## osen25: Endelig tilsynsrapport og pålegg – Osen kommune
 
@@ -71,3 +71,8 @@ Osen-rapporten gjelder et tilsyn i 2025 selv om saksreferansen starter med 2024.
 Det ble også søkt i rapportene om Statistisk sentralbyrå (5.–6. mars 2024), Helseklage (5.–6. november 2024), Ibestad (12.–13. juni 2024) og Sauda (24. og 30. september 2024). De er utelatt fra denne utgaven for å holde antallet historier avgrenset. Tilsynsrapportene finnes i [statlig katalog](https://www.nasjonalarkivet.no/offentlig-forvaltning/om_tilsyn/tilsynsrapporter-fra-statlig-sektor/) og [kommunal katalog](https://www.nasjonalarkivet.no/offentlig-forvaltning/om_tilsyn/tilsynsrapporter-fra-kommunal-sektor/).
 
 Lovdata ble kontrollert ved direkte henting av konsolidert lov- og forskriftstekst. Alle fem historiske hovedkilder og begge Lovdata-tekster ga HTTP 200.
+
+## Presseomtale på veggene
+
+- [Derfor raste Hanekleivtunnelen](https://www.forskning.no/samferdsel-sikkerhet-geofag/derfor-raste-hanekleivtunnelen/1010691) — forskning.no, 2007-02-15. Kuratert overskriftsutdrag. Veggpanelet er museets utforming, ikke en faksimile av nettsiden.
+- [Klager på hemmelighold om Hanekleivtunnelen](https://www.vg.no/nyheter/i/zWbV4/klager-paa-hemmelighold-om-hanekleivtunnelen) — VG / NTB, 2007-02-22. Kuratert overskriftsutdrag. Dette er en egen innsynsklage, ikke Sivilombudsmannens sak 2008/171 i naborommet.

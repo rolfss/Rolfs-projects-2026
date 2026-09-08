@@ -1,0 +1,71 @@
+{
+  "rooms": [
+    {
+      "caseId": "osen",
+      "name": "Det offentlige blikket",
+      "wall": "#174a78",
+      "accent": "#ffc457",
+      "sound": "paper",
+      "soundCaption": "[Myke papirlyder til venstre. En svak kontorklang i bakgrunnen.]",
+      "introduction": "Et dokument kan være ferdig, og likevel mangle i journalen. Se stedet, undersøk rapporten, og spør hvem som følger sporet helt frem."
+    },
+    {
+      "caseId": "tokke",
+      "name": "Etter at skjermen blir svart",
+      "wall": "#09675f",
+      "accent": "#73e0d2",
+      "sound": "server",
+      "soundCaption": "[Lav, jevn suselyd og en dempet elektronisk tone.]",
+      "introduction": "Et system lever noen få år. Dokumentasjonen kan trenges et helt liv. Her handler det om hva som finnes igjen etter at systemet stenges."
+    },
+    {
+      "caseId": "innsyn",
+      "name": "Bak avgjørelsen",
+      "wall": "#7c3448",
+      "accent": "#ffa997",
+      "sound": "room",
+      "soundCaption": "[En svært svak, dempet romtone.]",
+      "introduction": "Du kjenner avslaget. Men kan du følge vurderingen bak det? I dette rommet er det avstanden mellom et svar og en forklaring som teller."
+    },
+    {
+      "caseId": "hanekleiv",
+      "name": "Det som ligger bak overflaten",
+      "wall": "#984921",
+      "accent": "#ffd26b",
+      "sound": "tunnel",
+      "soundCaption": "[Dempet luftstrøm. Fottrinn gir ekko når du går. Lyden er laget for museet.]",
+      "introduction": "Du ser en tunnelåpning. Det viktigste kan ligge skjult. Fotografiet, presseomtalen og granskningsfunnet viser forskjellige sider av samme historie."
+    },
+    {
+      "caseId": "npe",
+      "name": "Tid setter spor",
+      "wall": "#49356f",
+      "accent": "#d1b9ff",
+      "sound": "clock",
+      "soundCaption": "[En lav, jevn klokkerytme. Myk romklang.]",
+      "introduction": "Når kom brevet? Når ble det skrevet? Når ble det registrert? Små opplysninger kan gjøre et saksforløp lettere å forstå."
+    }
+  ],
+  "press": [
+    {
+      "id": "forskning-hanekleiv",
+      "caseId": "hanekleiv",
+      "publisher": "forskning.no",
+      "date": "2007-02-15",
+      "headline": "Derfor raste Hanekleivtunnelen",
+      "url": "https://www.forskning.no/samferdsel-sikkerhet-geofag/derfor-raste-hanekleivtunnelen/1010691",
+      "context": "Artikkelen presenterer undersøkelsesgruppens funn. Den omtaler både geologi, sikring, bemanning og dokumentasjon.",
+      "note": "Kuratert overskriftsutdrag. Veggpanelet er museets utforming, ikke en faksimile av nettsiden."
+    },
+    {
+      "id": "vg-hanekleiv",
+      "caseId": "hanekleiv",
+      "publisher": "VG / NTB",
+      "date": "2007-02-22",
+      "headline": "Klager på hemmelighold om Hanekleivtunnelen",
+      "url": "https://www.vg.no/nyheter/i/zWbV4/klager-paa-hemmelighold-om-hanekleivtunnelen",
+      "context": "Presseomtale av Norsk Presseforbunds klage om innsyn i dokumenter fra byggingen av tunnelen.",
+      "note": "Kuratert overskriftsutdrag. Dette er en egen innsynsklage, ikke Sivilombudsmannens sak 2008/171 i naborommet."
+    }
+  ]
+}

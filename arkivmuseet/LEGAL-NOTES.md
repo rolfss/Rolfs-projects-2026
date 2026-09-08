@@ -31,3 +31,9 @@ De fem nye oppdragene bruker fiktive virksomheter, dokumentkort og handlingsforl
 Fotografier fra Tokke og Hanekleivtunnelen viser stedene på de angitte datoene, ikke de omtalte hendelsene. Faksimilene fra Osen og NPE er faktiske rapportsider. NPE-bildets rapportdato er 22. januar 2025, selv om tilsynet fant sted i 2024.
 
 Lederbestillingen er en lokal arbeidsstøtte for å avtale rolle, frist og bevis på gjennomført kontroll. Den er ingen komplett lovsjekkliste eller automatisk beslutning om bevaring eller kassasjon.
+
+## Galleriutgaven
+
+Nye veggverk viser Osen-rapportens side 3, Tokke-rapportens side 7 og NPE-rapportens side 6. NPEs forbehold om originaldokumentenes dato og henvisning til endringen på side 2 følger bildet. Osen-fotografiet viser et sted i 2005, ikke tilsynet i 2025.
+
+VG/NTBs sak fra februar 2007 gjelder en innsynsklage knyttet til Hanekleivtunnelen. Den identifiseres ikke med den separate saken 2008/171. Lys- og lydendringer etter et ledervalg er museets iscenesettelse av en fiktiv konsekvens, ikke dokumentasjon av forhold hos de omtalte virksomhetene.

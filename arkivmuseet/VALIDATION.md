@@ -1,4 +1,16 @@
-# Validering av lederreisen · versjon 1.1
+# Validering av galleriutgaven
+
+8. september 2026.
+
+- 17 automatiske tester bestått. De 12 tidligere innholds- og oppdragstestene er beholdt.
+- Nye tester kontrollerer 14 unike veggverk, fem ulike romfarger, unike veggplasser per rom, lokale bildefiler, kreditering og markering av stedsfoto, faksimiler og presseutdrag.
+- Kamerageometrien er beregnet med Three.js uten WebGL: alle stopp er innenfor rommene og utenfor monterne; bildeflatene passer over lesepanelets planlagte område ved seks skjermstørrelser fra 320 × 568 til 1920 × 1080. Dette er geometriske tester, ikke visuell skjermkontroll.
+- TypeScript og produksjonsbygg bestått. Tekstversjonen genereres med nye rapportsider, stedsfoto, galleriintroduksjoner og begge nyhetsutdragene.
+- Nettleser-, lyd-, mobil-, utskrifts- og visuell testing er **ikke kjørt for galleriutgaven**. Det eksisterende nettleserskriptet er oppdatert til at rom åpner på omvisningen før oppdraget. Eldre nettlesermålinger nedenfor gjelder den første utgaven.
+
+## Historikk: lederreisen 1.1
+
+
 
 8. september 2026.
 
