@@ -1,4 +1,16 @@
-# Validering av første utgave
+# Validering av lederreisen · versjon 1.1
+
+8. september 2026.
+
+- 12 automatiske tester bestått, inkludert alle 80 kombinasjoner av sporkort, alle 15 handlingsforløp og krav om fullført konsekvenskjede før læringsmerke.
+- Test av lagring/gjenopptakelse, skadet lagring, ugyldige valg og lederbestillingens eksport.
+- De fire bildene ligger lokalt med kontroll av filreferanser, kreditering, lisenslenker og skillet mellom stedsfoto og faksimile.
+- TypeScript og produksjonsbygg kontrolleres med prosjektets ordinære byggkommando.
+- Nettleser-, mobil-, utskrifts- og visuell testing er **ikke kjørt for versjon 1.1**. De eldre målingene nedenfor gjelder første utgave og sertifiserer ikke den nye reisen.
+- Det eksisterende nettleserskriptet er tilpasset at rom nå åpner på oppdraget, og at Lederens rom avsluttes med en lederbestilling. Skriptet er ikke kjørt i denne endringen.
+
+## Historikk: første utgave
+
 
 Kontrollert 8. september 2026.
 
