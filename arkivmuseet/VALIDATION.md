@@ -1,39 +1,40 @@
-# Validering av første utgave
+# Arkivmuseet — validation and review
 
-Kontrollert 8. september 2026.
+## Automated checks
 
-## Innhold
+`pnpm test` runs 26 source, content and logic tests. `pnpm build` validates the historical case references, regenerates the complete no-JavaScript text version, checks TypeScript and produces the static Vite build.
 
-- Alle fem primærkildene er hentet direkte. Kontroll av dato, relevant tekst, sitater og kildeplassering.
-- Konsolidert lov og forskrift er hentet direkte fra Lovdata; §§ 5 og 8 i loven, §§ 5–7 og 13–15 i forskriften, samt ikraftsettingsreglene er kontrollert.
-- Tokke: uavklart lesbarhet er beholdt som risiko, ikke konkludert arkivtap.
-- NPE: endringen etter innvendinger og positive funn er tatt med.
-- Hanekleiv: teknisk granskningshistorie, uten påstand om konstatert arkivlovbrudd.
-- 2008/171: dagens særregel om innsynssaker er forklart uttrykkelig.
-- 5 automatiske datatester bestått. Typetest og Vite-produksjonsbygg bestått.
+`pnpm test:browser` starts its own preview server and runs Chromium through the actual UI. The current suite contains 130 checks:
 
-## Nettleser
+- All five coherent room stories, investigations and leadership choices.
+- Wrong probes, an invalid typed journal search, both weak choices per room, retry paths, wrong quiz answers and explanatory feedback.
+- Keyboard activation of the investigation controls and Enter submission of the journal search.
+- Both questions in every room, exact badge counts, the locked and unlocked final room, and both final synthesis questions.
+- Partial progress across reloads, revisiting completed rooms, source and gallery dialogs, and an actual action-plan download.
+- Layout and working controls at 390, 320 and 800 pixels, with text size set to 130%.
+- A separate WebGL-unavailable smoke test and the generated no-JavaScript stories and morals.
+- Actual 3D geometry and each room's updated exhibit texture, using state obtained from the completed UI journey.
 
-46 funksjonskontroller bestått i Chrome på den lokale produksjonsbygde versjonen:
+The full 130-check suite and build passed in [GitHub Actions run 34247900716](https://github.com/rolfss/Rolfs-projects-2026/actions/runs/34247900716), on commit `2a2dc3983e2a6970c85710b241ac396aa42b583b`. No browser JavaScript errors or missing application resources were recorded. Later commits are rechecked by the same workflow; use its latest run for their status.
 
-- Faktisk WebGL-rendering; musemodeller, skygger og innlasting.
-- WASD, dra-for-å-se, pause og kollisjon mot sentralmonteren.
-- Alle fem rom, fem fortellerdeler per rom, kilder og regelverk.
-- Hele guidede besøket og alle åtte lederalternativer.
-- Avslutning og tilbakeføring til fri utforskning.
-- Lyd etter brukerhandling og av/på-kontroll.
-- Mobilvisning 390 × 844, berøringsbevegelse, kildepanel og større tekst.
-- Full tekstversjon med JavaScript slått av.
-- Ingen registrerte JavaScript-/konsollfeil eller HTTP-feil på appens egne filer.
+## Visual review
 
-Skjermbilder av hovedhall, utstillinger, mobilforside, mobile kildepaneler og innstillinger er visuelt kontrollert. Kildelenkene har `target="_blank"` og `rel="noopener noreferrer"`.
+The workflow publishes 16 screenshots plus `results.json` and a built review workbench as the short-lived `museum-review` artifact. Screenshots cover all five 3D exhibits, all five solved inline diagrams, the first badge, the finale, and mobile layouts.
 
-## Ytelse og grenser
+Visual inspection of the first complete run found that older 3D labels obscured portions of the new chapter boards. The boards were moved in front of those labels and server faces, resized to retain approximately the same framing, and given supports. The workflow generates fresh screenshots for reviewing that change.
 
-Hovedvisningen viste omtrent 100–200 tegnekall etter sammenslåing og instansiering. Ca. 180 kB komprimert JavaScript og en ukomprimert modellpakke på ca. 582 kB. Målinger fra lokal Chrome er ikke en garanti for fysiske mobilenheter. Ingen fysisk iPhone/Safari-test eller full WCAG-revisjon er gjennomført.
+Software WebGL captures use reduced motion and the existing lower-quality graphics setting. The harness briefly pauses the already-rendered canvas while capturing a screenshot so software rendering does not starve Chromium's compositor. This is a capture technique, not a production performance benchmark.
 
-## Gjenta nettleserprøven
+The production wrapper in `src/world.ts` preserves the museum architecture in `src/world-core.ts`. It limits passive redraws while reading or viewing a stationary exhibit; free movement and camera flights retain the original animation cadence. The frame-budget policy has its own unit test.
 
-Bygg først, og start `pnpm preview`. Installer Chromium for Playwright med `pnpm exec playwright install chromium`, eller sett `MUSEUM_CHROME` til en allerede installert Chrome. Kjør `pnpm test:browser` i en annen terminal. `MUSEUM_URL` kan settes til den offentlige museumsadressen. Resultater og skjermbilder havner i den ignorerte mappen `qa-output/`, eller i `MUSEUM_QA_DIR`.
+## Scope and limits
 
-GitHub Pages-byggingen kjører de eksisterende prosjektenes tester og deretter museets datatester og produksjonsbygg. Den publiserte siden kontrolleres i tillegg fra nettleseren etter utrulling.
+These checks verify functionality, source structure and selected layouts, not measured learning gains or subjective enjoyment. No target-audience usability study, physical-device performance benchmark, or formal accessibility audit has been performed. The preserved audio and print features are not covered by the new end-to-end suite.
+
+Historical sources, fictional exercises and pedagogical interpretations are labelled separately. Tokke is not represented as proven permanent data loss, missing documentation is not presented as the sole cause of the Hanekleiv collapse, and NPE's metadata finding is not presented as evidence of incorrect compensation decisions.
+
+Changes remain in the existing draft pull request. A passing review workflow does not publish the app to GitHub Pages.
+
+## Leader benefits centrepieces
+
+The 26 checks and production build pass locally for this addition. New geometry checks cover the low foreground stands, clear sightlines to chapter screens, existing wall viewpoints and framing on phones, tablets and desktop. Shared benefit copy covers all five cases; the two short law-purpose excerpts have explicit attribution. This addition was not manually reviewed in a browser; the existing automated experience workflow remains the regression gate.
