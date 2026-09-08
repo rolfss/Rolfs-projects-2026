@@ -1,0 +1,22 @@
+name = "second-rolf-api"
+main = "worker.mjs"
+compatibility_date = "2026-09-01"
+workers_dev = true
+keep_vars = true
+
+# Never commit values for these secrets:
+# TURNSTILE_SECRET_KEY
+# HERMES_API_SERVER_KEY
+# HERMES_API_URL can be a dashboard variable or secret; it must be HTTPS and end in /v1/chat/completions.
+# TURNSTILE_SITE_KEY is a public dashboard variable.
+
+[[durable_objects.bindings]]
+name = "SECOND_ROLF_GATE"
+class_name = "SecondRolfGate"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["SecondRolfGate"]
+
+[observability]
+enabled = false
