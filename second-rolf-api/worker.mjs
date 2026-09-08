@@ -4,8 +4,6 @@ const MAX_QUESTION = 1_000;
 const MAX_HISTORY = 8;
 const MAX_HISTORY_MESSAGE = 6_000;
 const MAX_ANSWER = 6_000;
-const PER_MINUTE = 8;
-const PER_DAY = 60;
 
 const SYSTEM = `You are Second Rolf, a public AI representation of Rolf Selås. You are not Rolf and must never claim to be him.
 Your job is to discuss only Rolf's public professional work, public portfolio projects, general professional interests, and publicly suitable opinions or explanations supplied in this request or in the isolated second-rolf profile.
@@ -73,7 +71,7 @@ function configured(env) {
   try {
     const url = new URL(env.HERMES_API_URL || '');
     return Boolean(
-      env.TURNSTILE_SECRET_KEY && env.TURNSTILE_SITE_KEY && env.HERMES_API_SERVER_KEY &&
+      env.TURNSTILE_SECRET_KEY && env.TURNSTILE_SITE_KEY && env.HERMES_API_SERVER_KEY && env.SECOND_ROLF_RATE &&
       url.protocol === 'https:' && !url.username && !url.password &&
       /\/v1\/chat\/completions\/?$/.test(url.pathname)
     );
@@ -93,12 +91,10 @@ async function verifyTurnstile(token, request, env) {
 }
 
 async function rateLimit(request, env) {
-  if (!env.SECOND_ROLF_GATE) return true;
-  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-  const id = env.SECOND_ROLF_GATE.idFromName(ip);
-  const stub = env.SECOND_ROLF_GATE.get(id);
-  const response = await stub.fetch('https://gate/check', { method: 'POST' });
-  return response.ok;
+  if (!env.SECOND_ROLF_RATE) return false;
+  const key = request.headers.get('CF-Connecting-IP') || 'anonymous';
+  const { success } = await env.SECOND_ROLF_RATE.limit({ key });
+  return success === true;
 }
 
 function extractAnswer(payload) {
@@ -130,23 +126,6 @@ async function callHermes(clean, env) {
   const answer = extractAnswer(payload);
   if (!answer) throw new Error('Hermes returnerte et tomt eller ukjent svarformat.');
   return answer;
-}
-
-export class SecondRolfGate {
-  constructor(state) { this.state = state; }
-  async fetch(request) {
-    if (request.method !== 'POST') return new Response('Method not allowed', { status: 405 });
-    const now = new Date();
-    const minuteKey = `m:${now.toISOString().slice(0, 16)}`;
-    const dayKey = `d:${now.toISOString().slice(0, 10)}`;
-    const [minute = 0, day = 0] = await Promise.all([
-      this.state.storage.get(minuteKey),
-      this.state.storage.get(dayKey)
-    ]);
-    if (minute >= PER_MINUTE || day >= PER_DAY) return new Response('Rate limit', { status: 429 });
-    await this.state.storage.put({ [minuteKey]: minute + 1, [dayKey]: day + 1 });
-    return new Response('ok');
-  }
 }
 
 export default {
