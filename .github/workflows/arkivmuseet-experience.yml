@@ -1,0 +1,47 @@
+name: Arkivmuseet experience
+on:
+  pull_request:
+    paths:
+      - 'arkivmuseet/**'
+      - '.github/workflows/arkivmuseet-experience.yml'
+permissions:
+  contents: read
+concurrency:
+  group: museum-experience-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  experience:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - name: Install, test and build
+        working-directory: arkivmuseet
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm test
+          pnpm build
+      - name: Browser play-through
+        working-directory: arkivmuseet
+        run: |
+          if [ -f scripts/verify-experience.mjs ]; then
+            pnpm exec playwright install --with-deps chromium
+            node scripts/verify-experience.mjs
+          fi
+      - name: Package review workbench
+        if: always()
+        run: tar -czf museum-workbench.tar.gz arkivmuseet
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: museum-review
+          path: |
+            museum-workbench.tar.gz
+            arkivmuseet/experience-artifacts/
+          retention-days: 3
