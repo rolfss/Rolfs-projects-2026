@@ -23,3 +23,11 @@ Ingen historisk rapport brukes som bevis på dagens tilstand eller som dokumenta
 ## Lederens rom
 
 Fire uttrykkelig tenkte scenarioer. Konsekvensene er mulige, ikke sikre. Arkivlova § 8 og arkivforskrifta § 13 er relevant bakgrunn. Sistnevnte skiller mellom kommuner/fylkeskommuner (kommuneloven § 25-1) og andre organers øverste ledelse. Museet hevder ikke at alt i Teams, e-post eller KI-verktøy skal bevares.
+
+## Interaktive lederoppdrag · versjon 1.1
+
+De fem nye oppdragene bruker fiktive virksomheter, dokumentkort og handlingsforløp. Ingen av spillvalgene tilskrives Osen, Tokke, AID, Statens vegvesen eller NPE. «Beskyttende» valg betyr et anbefalt pedagogisk grep i akkurat denne øvelsen, ikke et juridisk fasitsvar eller en garanti mot tap eller skade. Læringsmerkene viser bare gjennomføring. Ingen score måler faktisk risiko, rettighetstap, sikkerhet eller etterlevelse.
+
+Fotografier fra Tokke og Hanekleivtunnelen viser stedene på de angitte datoene, ikke de omtalte hendelsene. Faksimilene fra Osen og NPE er faktiske rapportsider. NPE-bildets rapportdato er 22. januar 2025, selv om tilsynet fant sted i 2024.
+
+Lederbestillingen er en lokal arbeidsstøtte for å avtale rolle, frist og bevis på gjennomført kontroll. Den er ingen komplett lovsjekkliste eller automatisk beslutning om bevaring eller kassasjon.

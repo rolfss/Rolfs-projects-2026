@@ -1,6 +1,6 @@
 # Kilder til Arkivmuseet
 
-Kontrollert 8. september 2026. Originalkildene er lenket, ikke republisert i fulltekst.
+Kontrollert 8. september 2026. Originalkildene er lenket. Førstesiden av rapportene om Osen og NPE vises også som merkede faksimiler, med originalkilden tilgjengelig.
 
 ## osen25: Endelig tilsynsrapport og pålegg – Osen kommune
 
