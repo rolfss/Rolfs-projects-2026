@@ -1,3 +1,4 @@
+import {RoomStoryWorld} from './room-world';
 import * as T from 'three';
 import {galleryRooms,itemsForCase,panelCanvas} from './gallery';
 import type {GalleryItem} from './gallery';
@@ -8,12 +9,13 @@ export class GalleryWorld{
   targets:T.Mesh[]=[];groups=new Map<string,T.Group>();items=new Map<string,GalleryItem>();
   private textures=new Map<string,T.Texture>();
   private loader=new T.TextureLoader();
-  constructor(private scene:T.Scene,private cases:MuseumCase[]){}
+  private chapters:RoomStoryWorld;
+  constructor(private scene:T.Scene,private cases:MuseumCase[]){this.chapters=new RoomStoryWorld(scene,cases);}
   private texture(path:string){let tx=this.textures.get(path);if(!tx){tx=this.loader.load(import.meta.env.BASE_URL+path,undefined,undefined,()=>{document.dispatchEvent(new CustomEvent('gallery-image-error',{detail:path}));});tx.colorSpace=T.SRGBColorSpace;this.textures.set(path,tx);}return tx;}
   private box(parent:T.Object3D,w:number,h:number,d:number,x:number,y:number,z:number,color:string,metalness=0){const mesh=new T.Mesh(new T.BoxGeometry(w,h,d),new T.MeshStandardMaterial({color,metalness,roughness:.58}));mesh.position.set(x,y,z);parent.add(mesh);return mesh;}
   private caption(item:GalleryItem,accent:string){const c=document.createElement('canvas');c.width=1536;c.height=270;const ctx=c.getContext('2d')!;ctx.fillStyle='#f6eedc';ctx.fillRect(0,0,c.width,c.height);ctx.fillStyle=accent;ctx.fillRect(0,0,16,c.height);ctx.fillStyle='#172932';ctx.font='bold 42px Arial';ctx.fillText(item.kicker,54,68,1428);ctx.font='37px Georgia';ctx.fillText(item.title,54,127,1428);ctx.font='28px Arial';ctx.fillText(item.credit+' · Åpne for bildetekst og originalkilde',54,205,1428);const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;return t;}
   buildRoom(c:MuseumCase){
-    if(this.groups.has(c.id))return;
+    if(this.groups.has(c.id))return;this.chapters.build(c.id);
     const theme=galleryRooms.find(r=>r.caseId===c.id)!;const room=new T.Group();room.position.set(c.position[0],0,c.position[1]);room.rotation.y=Math.sign(c.position[0])>0?-Math.PI/2:Math.PI/2;this.scene.add(room);this.groups.set(c.id,room);
     for(const item of itemsForCase(c)){
       this.items.set(item.id,item);const p=wallPlacement(item.slot,item.kind==='document');const frame=new T.Group();frame.position.fromArray(p.position);frame.rotation.y=p.yaw;room.add(frame);

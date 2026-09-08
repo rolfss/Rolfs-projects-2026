@@ -1,0 +1,51 @@
+/* Readable, chapter-led museum experience. All diagrams also work without WebGL. */
+.room-experience #story{width:min(670px,55vw);background:#102936;backdrop-filter:blur(16px)}
+.room-experience #story-content{padding:1rem 1.6rem 1.5rem;scroll-behavior:auto}
+.room-experience #story h2{font-size:clamp(1.7rem,2.5vw,2.5rem);line-height:1.18;max-width:24ch;margin:.65rem 0 1.1rem;color:#fff3dc}
+.room-experience #story h3{font-size:1.2rem;line-height:1.45;color:#fff3dc}
+.room-experience .room-topline{display:flex;align-items:flex-start;gap:.5rem;margin-bottom:.8rem}
+.room-experience .chapter-steps{display:flex;flex-wrap:wrap;gap:.25rem .7rem;padding:0;margin:0;list-style:none;flex:1}
+.room-experience .chapter-steps li{font-size:.77rem;color:#a9bdcc;border-bottom:2px solid transparent;padding:.4rem 0}
+.room-experience .chapter-steps li[aria-current]{color:#f3d191;border-color:#f3d191;font-weight:700}
+.room-experience .chapter-steps li.done{color:#9ce5c8}
+.room-experience #room-sources{font-size:.8rem;padding:.45rem .6rem;white-space:nowrap}
+.story-prose{font-size:1.0625rem;line-height:1.75;color:#eff0e9;max-width:65ch}
+.room-problem{background:#203949;border-left:3px solid #f1ce83;padding:1rem 1.1rem;margin:1.1rem 0}
+.room-problem strong{font-size:.85rem;color:#f1ce83;letter-spacing:.05em}
+.room-problem p{margin:.45rem 0 0;font-size:1.03rem}
+.chapter-scene{margin:1.2rem 0 1rem}.chapter-scene svg{width:100%;height:auto;display:block;border:1px solid #547082;border-radius:12px;box-shadow:0 9px 30px #0002}
+.chapter-scene figcaption{font-size:.8rem;color:#bac8d0;line-height:1.5;margin:.5rem .1rem 0}
+.room-source,.room-source a{font-size:.85rem;line-height:1.6;color:#e3cea6}.room-boundary{font-size:.91rem;color:#cbd2d6;background:#193441;padding:.85rem 1rem;border-radius:4px}
+.room-contract{font-size:.95rem;color:#e5d8b9;border-top:1px solid #59717e;padding-top:.8rem}
+.room-experience .save-note{font-size:.75rem;color:#b7c6cc;margin:1.35rem 0 0}
+.room-experience .simulation-label{font-size:.78rem;color:#ecd39b;letter-spacing:.07em;margin-top:.5rem}
+.investigation-progress{display:flex;gap:.55rem;margin:.8rem 0}
+.investigation-progress span{display:grid;place-items:center;min-width:32px;height:32px;border:1px solid #6a8290;color:#aec5d2;border-radius:50%;font-size:.85rem}
+.investigation-progress .active{border-color:#f1ce83;color:#f1ce83}.investigation-progress .solved{background:#9ce5c8;color:#143e36;border-color:#9ce5c8}
+.puzzle-tools{display:grid;grid-template-columns:1fr 1fr;gap:.65rem;margin:1rem 0}
+.puzzle-tools button{display:flex;align-items:center;gap:.7rem;text-align:left;padding:1rem;background:#1b3b4d;border-color:#6a8390;font-size:1rem;line-height:1.4;min-height:72px;transition:transform .15s,background .15s}
+.puzzle-tools button:hover:not(:disabled){background:#284b5c;transform:translateY(-2px)}
+.puzzle-tools button span{font-size:1.4rem;color:#f1ce83}.puzzle-tools button:disabled{background:#17473e;color:#cae8d9;border-color:#4b9b7e;opacity:1;cursor:default}
+.puzzle-tools button:disabled span{color:#9ce5c8}.puzzle-npe{grid-template-columns:repeat(3,1fr)}.puzzle-npe button{flex-direction:column;text-align:center}
+.puzzle-innsyn button{background:#e4ddc8;color:#213746;border-left:6px solid #bb924d}.puzzle-innsyn button:hover:not(:disabled){background:#fff3dc}.puzzle-innsyn button span{color:#6c542d}
+.journal-query{display:grid;gap:.6rem;font-size:.96rem;color:#f1ce83}.journal-query input{padding:.9rem;border:1px solid #8ba3af;background:#091f2c;color:#fff3dc;font:inherit;min-width:0;border-radius:4px;width:100%}
+.room-feedback{background:#1d3949;border-left:3px solid #d5b06d;padding:1rem;line-height:1.65;font-size:1rem;margin:1.1rem 0;color:#f0e9d7}
+.room-feedback.success{border-color:#9ce5c8;background:#183e3b}.room-feedback p{margin:.45rem 0 0}
+.room-moral{border-top:1px solid #c8ae76;border-bottom:1px solid #c8ae76;padding:1.25rem .2rem;margin:1.5rem 0;background:linear-gradient(110deg,#f5d2930a,transparent)}
+.room-moral>span{color:#f1ce83;font-size:.75rem;letter-spacing:.1em}.room-moral>p{font:1.45rem/1.5 Georgia,serif;margin:.6rem 0;color:#fff3dc}.room-moral small{color:#b8c7cd;font-size:.77rem}
+.chosen-summary{font-size:.93rem;color:#bdccd5}.chosen-summary strong{color:#f1ce83}
+.room-experience .decision-options button{background:#1d3b4c;border-color:#73848b;font-size:1rem}.room-experience .decision-options strong{font-size:1.07rem;color:#fff3dc}.room-experience .decision-options small{color:#bfced6;font-size:.94rem}
+.quiz-options{display:grid;gap:.75rem;margin:1.25rem 0}.quiz-options button{display:flex;align-items:center;gap:.9rem;text-align:left;background:#1d3b4c;line-height:1.6;min-height:70px;font-size:1rem;border-color:#6a8190}
+.quiz-options button>span{border:1px solid #9fb1bb;border-radius:50%;width:32px;height:32px;min-width:32px;display:grid;place-items:center;color:#f1ce83;font-size:.85rem}
+.quiz-options .correct{background:#17483b;border-color:#9ce5c8;opacity:1;cursor:default}.quiz-options .incorrect{background:#4b342f;border-color:#edb090}.quiz-invitation{font-size:.95rem;color:#bdcdd4}
+.earned-emblem{width:80px;height:80px;margin:1.2rem auto;border-radius:50%;border:3px double #f1ce83;background:#193e3b;box-shadow:0 0 42px #9ce5c819;display:grid;place-items:center;font:2.5rem Georgia;color:#a7edd0;animation:earn-stamp .5s ease-out}
+.memory-keys{display:grid;grid-template-columns:repeat(5,1fr);gap:.5rem;margin:1.4rem 0}.memory-keys>span{display:flex;flex-direction:column;align-items:center;gap:.45rem;padding:.55rem .15rem;color:#a1b8c5;text-align:center}
+.memory-keys b{display:grid;place-items:center;width:42px;height:42px;border:1px solid #6b818c;border-radius:50%;font:1.2rem Georgia}.memory-keys small{font-size:.66rem;overflow-wrap:anywhere;line-height:1.4}.memory-keys .lit{color:#d8ebdf}.memory-keys .lit b{background:#1d5041;border-color:#b4dec0;color:#cff4cb;box-shadow:0 0 18px #9ce5c815}
+.room-experience #story-nav{padding:.9rem 1.25rem;gap:.8rem;background:#0d2330}.room-experience #story-nav button{font-size:.93rem;line-height:1.4;min-height:48px}.room-experience #story-nav>span{font-size:.8rem;color:#c5d0d5;letter-spacing:0}.room-experience button:disabled{cursor:default}
+.room-experience .takeaway{background:#1c3d40;border-color:#608681}.room-experience #mission-title:focus{outline:none}
+@keyframes earn-stamp{from{transform:scale(.85);opacity:.4}to{transform:scale(1);opacity:1}}
+@media(min-width:1101px){.room-experience.reading .journey-hud{max-width:34vw}.room-experience.reading .room-tag{max-width:35vw}}
+@media(max-width:800px){.room-experience #story{width:auto;left:.5rem;right:.5rem;top:5.2rem;bottom:.5rem}.room-experience #story-content{padding:.8rem 1rem 1.25rem}.room-experience #story h2{font-size:1.85rem}.room-experience.reading .bottom-bar{display:none}.room-experience #story-nav{padding:.65rem .8rem}.room-experience #story-nav>span{display:none}.room-experience .chapter-steps{gap:.2rem .6rem}.room-experience .chapter-steps li{font-size:.76rem}.room-experience .story-top .eyebrow{font-size:.72rem}.room-experience .memory-keys{gap:.12rem}.room-experience .memory-keys small{font-size:.63rem}.room-experience .room-topline{flex-wrap:wrap}.room-experience .room-topline #room-sources{margin-left:auto}.room-experience #toolbar button{font-size:.77rem}}
+@media(max-width:400px){.puzzle-tools{grid-template-columns:1fr}.puzzle-npe{grid-template-columns:repeat(3,1fr)}.puzzle-npe button{padding:.6rem .3rem;font-size:.84rem}.room-experience #story-content{padding:.65rem .75rem}.room-experience #story h2{font-size:1.65rem}.room-experience #story-nav button{font-size:.83rem;padding:.65rem}.room-experience #toolbar{gap:0}.room-experience #toolbar button{padding:.35rem;font-size:.72rem}.room-experience .story-top{padding:.3rem .8rem}.quiz-options button{font-size:.96rem;padding:.8rem}.memory-keys b{width:34px;height:34px}}
+@media(prefers-reduced-motion:reduce){.earned-emblem{animation:none}.puzzle-tools button{transition:none}.puzzle-tools button:hover:not(:disabled){transform:none}}
+@media print{.room-experience #story{display:none!important}}
