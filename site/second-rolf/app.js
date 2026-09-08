@@ -49,7 +49,7 @@ const knowledge = [
   {
     id: 'ai',
     terms: ['ai','ki','kunstig','intelligens','modell','luna','hermes'],
-    answer: 'AI brukes først og fremst som et verktøy rundt konkrete arbeidsproblemer: kildebaserte svar, metadataforslag og interaktive assistenter. Second Rolf er neste steg: en avgrenset offentlig representasjon som senere kan kobles til Hermes uten å gi offentligheten tilgang til den private arbeidsstasjonen.',
+    answer: 'AI brukes først og fremst som et verktøy rundt konkrete arbeidsproblemer: kildebaserte svar, metadataforslag og interaktive assistenter. Second Rolf er lagt opp slik at live-svar skal produseres av Rolfs lokalt kjørende modell via en isolert Hermes-profil, uten betalt sky-AI som fallback.',
     source: 'Offentlig portefølje · Second Rolf-arkitektur'
   },
   {
@@ -89,7 +89,7 @@ function localAnswer(question) {
   })).sort((a, b) => b.score - a.score);
   const matches = ranked.filter((item) => item.score > 0).slice(0, 2);
   if (!matches.length) return {
-    text: 'Jeg har foreløpig bare en liten, offentlig kunnskapsbase. Spør gjerne om Rolfs prosjekter, dokumentasjonsforvaltning, AI-verktøy eller arbeidsmåte. Når Hermes-broen er aktiv, kan jeg håndtere langt friere spørsmål.',
+    text: 'Jeg har foreløpig bare en liten, offentlig kunnskapsbase. Spør gjerne om Rolfs prosjekter, dokumentasjonsforvaltning, AI-verktøy eller arbeidsmåte. Når den lokale Hermes-broen er aktiv, kan jeg håndtere langt friere spørsmål.',
     sources: ['Second Rolf · offentlig profilmodus']
   };
   return {
@@ -108,7 +108,7 @@ function addMessage(role, text, sources = []) {
   if (role === 'assistant') {
     const speaker = document.createElement('span');
     speaker.className = 'speaker';
-    speaker.textContent = live ? 'Second Rolf · Hermes' : 'Second Rolf';
+    speaker.textContent = live ? 'Second Rolf · lokal Hermes' : 'Second Rolf';
     bubble.append(speaker);
   }
   const p = document.createElement('p');
@@ -153,11 +153,11 @@ async function detectLiveMode() {
     });
     if (!response.ok) return;
     const data = await response.json();
-    if (data?.configured !== true || data?.mode !== 'hermes') return;
+    if (data?.configured !== true || data?.mode !== 'hermes-local' || data?.localOnly !== true) return;
     live = true;
     siteKey = typeof data.siteKey === 'string' ? data.siteKey : '';
     els.status.classList.add('live');
-    els.status.querySelector('b').textContent = 'Hermes live';
+    els.status.querySelector('b').textContent = 'Hermes live · lokal GPU';
     await loadTurnstile();
   } catch {
     // Safe fallback: the page remains useful without exposing or probing the local workstation.
@@ -175,11 +175,11 @@ async function askLive(question) {
       requestId: crypto.randomUUID(),
       turnstileToken
     }),
-    signal: AbortSignal.timeout(90000)
+    signal: AbortSignal.timeout(120000)
   });
   const data = await response.json();
-  if (!response.ok) throw new Error(typeof data?.message === 'string' ? data.message : 'Hermes-broen svarte ikke.');
-  if (typeof data?.answer !== 'string' || !data.answer.trim()) throw new Error('Ugyldig svar fra Hermes-broen.');
+  if (!response.ok) throw new Error(typeof data?.message === 'string' ? data.message : 'Den lokale Hermes-broen svarte ikke.');
+  if (data?.mode !== 'hermes-local' || data?.localOnly !== true || typeof data?.answer !== 'string' || !data.answer.trim()) throw new Error('Ugyldig svar fra den lokale Hermes-broen.');
   return { text: data.answer.trim().slice(0, 6000), sources: Array.isArray(data.sources) ? data.sources.slice(0, 6).map(String) : [] };
 }
 
@@ -196,7 +196,7 @@ async function submit(question) {
       try { result = await askLive(cleaned); }
       catch {
         result = localAnswer(cleaned);
-        result.text = `${result.text}\n\nHermes-broen var ikke tilgjengelig for denne meldingen. Lokal offentlig profilmodus ble brukt i stedet.`;
+        result.text = `${result.text}\n\nDen lokale modellen var ikke tilgjengelig for denne meldingen. Ingen betalt sky-modell ble brukt; offentlig profilmodus ble brukt i stedet.`;
       }
     } else result = localAnswer(cleaned);
     addMessage('assistant', result.text, result.sources);
