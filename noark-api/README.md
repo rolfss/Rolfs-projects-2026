@@ -1,5 +1,21 @@
 # Aktiver Luna for Noark-assistenten
 
+## Oppdater den eksisterende Luna-serveren
+
+Fra roten av en oppdatert utsjekking av dette repositoryet, med Node.js 22 eller nyere:
+
+```sh
+node noark-api/deploy.mjs
+```
+
+Kommandoen kjører testene, bygger Worker-koden, åpner Cloudflares offisielle innlogging og publiserer til den eksisterende `noark-luna-api`. Godkjenn innloggingen i nettleseren på samme PC. Eksisterende Worker-hemmeligheter, dashboard-variabler og budsjettregister bevares gjennom konfigurasjonen i `wrangler.toml`.
+
+Etter publisering kontrolleres **den offentlige backendadressen som nettsiden faktisk bruker**. Kontrollen må finne rett kildeversjon, svarversjon, modell, aktivering og alle tre budsjettgrenser. En gammel server med `configured: true` alene blir ikke godkjent. Helsekontrollen beviser ikke at OpenAI kan levere et svar: åpne deretter nettsiden på nytt, aktiver Luna og test «Hva er systemID?» og «Hva er avlevering?».
+
+`node noark-api/deploy.mjs --check` kontrollerer bare den aktive utrullingen. `--dry-run` kjører tester og bygg uten innlogging eller publisering. Ingen av kontrollene sender betalte modellspørsmål. Wrangler-versjonen er låst i skriptet.
+
+## Oppsett og arkitektur
+
 Bakenden bruker **GPT-5.6 Luna**, `reasoning.effort: medium`, via OpenAI Responses API. Nettleseren forblir på GitHub Pages; API-nøkkelen ligger bare som hemmelighet i en Cloudflare Worker. Én SQLite Durable Object deler budsjett og forespørselsgrenser mellom alle brukere.
 
 **Status:** implementert og enhetstestet med simulerte API-kall. Ingen nøkkel følger med, og ingen betalte API-kall eller live Cloudflare-utrulling er utført som del av implementeringen. Helseendepunktet kontrollerer konfigurasjon, ikke om API-kontoen faktisk har tilgang til modellen.
