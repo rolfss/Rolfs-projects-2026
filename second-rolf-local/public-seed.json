@@ -1,0 +1,8 @@
+[
+  {"title":"Rolf Selås — digitale produkter","text":"Her ligger testede digitale produkter fra 2026 innen arkivkrav, dokumentanalyse, informasjonskvalitet, AI-beredskap og interaktive systemer. Fellesnevneren er å gjøre faglogikk om til verktøy folk faktisk kan bruke."},
+  {"title":"Arbeidsmåte — prosjektprinsipper","text":"Faglig logikk først. Grensesnitt etterpå. Etterprøvbart: Kilder, regler og begrensninger skal kunne forstås av andre enn den som skrev koden. Brukbart: Et fagverktøy må fungere på vanlig skjerm, uten komplisert oppsett eller skjulte forutsetninger. Testet: Domenelogikk blir kontrollert med automatiske tester før den publiseres. Nøkternt: Systemet skal si fra når grunnlaget er svakt, i stedet for å late som det vet."},
+  {"title":"Archive Assist — metadata og titler","text":"Appen leser dokumentinnhold og tilgjengelige metadata, setter et redigerbart tittelforslag og lar saksbehandler eller arkivar kontrollere resultatet før eksport."},
+  {"title":"MetaReady — informasjonsstyring","text":"Arbeidsflate for metadata, eierskap, proveniens, sensitivitet, livsløp, relasjoner, kvalitet og AI-beredskap. Mangler blir gjort om til konkrete tiltak."},
+  {"title":"Arkivmuseet — dokumentasjon og ledelse","text":"Gå inn i et museum i 3D og oppdag fem virkelige norske saker om dokumentasjon, offentlighet og etterprøvbarhet. Avslutt besøket med fire valg i Lederens rom."},
+  {"title":"Noark 5-arkivassistent — kildebasert søk","text":"En kildebasert søke- og svarassistent for Noark 5 versjon 6.0 og arkivregelverket fra 2026. Den rangerer relevante kildeposter, lager et kort svar og viser kravnummer, seksjon og side."}
+]

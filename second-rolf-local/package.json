@@ -1,0 +1,1 @@
+{"name":"second-rolf-local","private":true,"type":"module","version":"2.0.0","engines":{"node":">=22"},"scripts":{"test":"node --test tests/*.test.mjs","check":"node --check core.mjs && node --check server.mjs","start":"node server.mjs"}}

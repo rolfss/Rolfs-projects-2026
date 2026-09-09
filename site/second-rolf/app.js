@@ -1,232 +1,83 @@
-const BACKEND_ORIGIN = 'https://second-rolf-api.rolfsselas.workers.dev';
-const LIVE_HEALTH = '/api/second-rolf/health';
-const LIVE_CHAT = '/api/second-rolf';
-const MAX_HISTORY = 8;
-
-const knowledge = [
-  {
-    id: 'profile',
-    terms: ['rolf','jobb','jobber','arbeid','bakgrunn','profil','hvem'],
-    answer: 'Rolf arbeider i skjæringspunktet mellom dokumentasjonsforvaltning, informasjonsstyring og digitale produkter. På denne siden viser han særlig små, fungerende verktøy som gjør komplisert faglogikk mer forståelig og brukbar.',
-    source: 'Prosjektsiden'
-  },
-  {
-    id: 'principles',
-    terms: ['tenker','arbeidsmåte','prinsipp','bygger','produkt','verktøy','design','god','gode'],
-    answer: 'En tydelig rød tråd er: faglig logikk først, grensesnitt etterpå. Verktøyene skal være etterprøvbare, brukbare, testede og nøkterne — særlig ved å vise begrensninger i stedet for å late som systemet vet mer enn det gjør.',
-    source: 'Prosjektsiden · prosjektprinsipper'
-  },
-  {
-    id: 'noark',
-    terms: ['noark','arkivassistent','arkiv','regelverk','rag'],
-    answer: 'Noark 5-arkivassistenten er en kildebasert fagassistent for Noark og arkivregelverket. Den er laget for å finne relevant grunnlag, svare kort og vise hvilke kilder svaret bygger på.',
-    source: 'Noark 5-arkivassistent'
-  },
-  {
-    id: 'archive-assist',
-    terms: ['archive','assist','metadata','dokument','tittel','saksdokument'],
-    answer: 'Archive Assist leser dokumentinnhold og tilgjengelige metadata og foreslår blant annet en bedre saksdokumenttittel. Poenget er å hjelpe saksbehandler eller arkivar, ikke å fjerne menneskelig kontroll.',
-    source: 'Archive Assist'
-  },
-  {
-    id: 'metaready',
-    terms: ['metaready','metadata','ai-beredskap','beredskap','informasjonsstyring','informasjon'],
-    answer: 'MetaReady er en arbeidsflate for metadata, eierskap, proveniens, sensitivitet, livsløp, relasjoner, kvalitet og AI-beredskap. Den gjør mangler om til konkrete styringstiltak.',
-    source: 'MetaReady'
-  },
-  {
-    id: 'arkivmuseet',
-    terms: ['arkivmuseet','museum','museet','3d','leder','offentlighet','etterprøvbarhet'],
-    answer: 'Arkivmuseet er en nettbasert 3D-museumsopplevelse om hvorfor offentlig dokumentasjon betyr noe. Brukeren går gjennom virkelige saker om dokumentasjon, offentlighet og etterprøvbarhet og avslutter med valg rettet mot ledere.',
-    source: 'Arkivmuseet'
-  },
-  {
-    id: 'games',
-    terms: ['spill','lumen','relay','brukerstøttejakten','interaktiv','game'],
-    answer: 'Rolf bruker også spillmekanikk som demonstrasjon av interaksjonsdesign. Lumen Relay er et kort nettleserspill, mens Brukerstøttejakten er et mer omfattende, humoristisk IT-spill med nivåer, saker og oppgraderinger.',
-    source: 'Lumen Relay · Brukerstøttejakten'
-  },
-  {
-    id: 'ai',
-    terms: ['ai','ki','kunstig','intelligens','modell','luna','hermes'],
-    answer: 'AI brukes først og fremst som et verktøy rundt konkrete arbeidsproblemer: kildebaserte svar, metadataforslag og interaktive assistenter. Second Rolf er lagt opp slik at live-svar skal produseres av Rolfs lokalt kjørende modell via en isolert Hermes-profil, uten betalt sky-AI som fallback.',
-    source: 'Offentlig portefølje · Second Rolf-arkitektur'
-  },
-  {
-    id: 'contact',
-    terms: ['kontakt','samarbeid','samarbeide','github','kode','repo'],
-    answer: 'Den sikreste veien videre er å se prosjektkoden på GitHub og kontakte Rolf gjennom hans vanlige offentlige kanaler. Second Rolf skal ikke inngå avtaler, love samarbeid eller opptre som om den har fullmakt.',
-    source: 'Second Rolf · sikkerhetsgrense'
-  }
-];
-
-const els = {
-  messages: document.querySelector('#messages'),
-  form: document.querySelector('#composer'),
-  question: document.querySelector('#question'),
-  send: document.querySelector('#send'),
-  clear: document.querySelector('#clear'),
-  status: document.querySelector('#status'),
-  turnstile: document.querySelector('#turnstile')
-};
-
-let history = [];
-let live = false;
-let siteKey = '';
-let turnstileToken = '';
-let widgetId = null;
-
-function normalize(text) {
-  return text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9æøå -]/g, ' ');
-}
-
-function localAnswer(question) {
-  const normalizedQuestion = normalize(question);
-  const words = new Set(normalizedQuestion.split(/\s+/).filter((w) => w.length > 2));
-  const ranked = knowledge.map((item) => ({
-    ...item,
-    score: item.terms.reduce((sum, term) => sum + (words.has(normalize(term)) ? 2 : normalizedQuestion.includes(normalize(term)) ? 1 : 0), 0)
-  })).sort((a, b) => b.score - a.score);
-  const matches = ranked.filter((item) => item.score > 0).slice(0, 2);
-  if (!matches.length) return {
-    text: 'Jeg har foreløpig bare en liten, offentlig kunnskapsbase. Spør gjerne om Rolfs prosjekter, dokumentasjonsforvaltning, AI-verktøy eller arbeidsmåte. Når den lokale Hermes-broen er aktiv, kan jeg håndtere langt friere spørsmål.',
-    sources: ['Second Rolf · offentlig profilmodus']
-  };
-  return {
-    text: matches.map((item) => item.answer).join('\n\n'),
-    sources: [...new Set(matches.map((item) => item.source))]
-  };
-}
-
-function addMessage(role, text, sources = []) {
-  const article = document.createElement('article');
-  article.className = `message ${role}`;
-  const avatar = document.createElement('div');
-  avatar.className = 'avatar';
-  avatar.textContent = role === 'assistant' ? 'R2' : 'DU';
-  const bubble = document.createElement('div');
-  if (role === 'assistant') {
-    const speaker = document.createElement('span');
-    speaker.className = 'speaker';
-    speaker.textContent = live ? 'Second Rolf · lokal Hermes' : 'Second Rolf';
-    bubble.append(speaker);
-  }
-  const p = document.createElement('p');
-  p.textContent = text;
-  bubble.append(p);
-  if (sources.length) {
-    const small = document.createElement('div');
-    small.className = 'sources';
-    small.textContent = `Grunnlag: ${sources.join(' · ')}`;
-    bubble.append(small);
-  }
-  article.append(avatar, bubble);
-  els.messages.append(article);
-  els.messages.scrollTop = els.messages.scrollHeight;
-}
-
-async function loadTurnstile() {
-  if (!siteKey || window.turnstile) return;
-  await new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
-    script.async = true;
-    script.onload = resolve;
-    script.onerror = reject;
-    document.head.append(script);
+import {BACKEND,ready,trimHistory,validateResponse,safeLink} from './client.mjs';
+const $=s=>document.querySelector(s);
+const messages=$('#messages'), input=$('#question'), status=$('#status b');
+let history=[], active=null, generation=0, live=false, token='', widget=null;
+const buttons=[...document.querySelectorAll('[data-prompt]'),$('#send')];
+function badge(value) { live=value;$('#status').classList.toggle('live',value);status.textContent=value?'Lokal modell tilgjengelig':'Statisk profil · KI ikke tilkoblet'; }
+function append(role,text,citations=[],mode='static') {
+  const article=document.createElement('article');article.className=`message ${role}`;
+  const avatar=document.createElement('div');avatar.className='avatar';avatar.textContent=role==='user'?'DU':'R2';
+  const bubble=document.createElement('div'),label=document.createElement('span'),p=document.createElement('p');
+  label.className='speaker';label.textContent=role==='user'?'Du':mode==='local-rag'?'Second Rolf · lokal KI':'Second Rolf · statisk informasjon';
+  p.textContent=text;bubble.append(label,p);
+  citations.forEach((c,i)=>{
+    const box=document.createElement('details'),title=document.createElement('summary'),quote=document.createElement('p');
+    box.className='sources';title.textContent=`[${i+1}] ${c.title}${c.page?` · PDF-side ${c.page}`:''}`;
+    quote.textContent=`«${c.quote}»`;box.append(title,quote);
+    const link=safeLink(c.url);if(link){const a=document.createElement('a');a.href=link;a.rel='noreferrer noopener';a.target='_blank';a.textContent='Åpne originalkilden';box.append(a);}
+    if(c.kind==='repost'){const note=document.createElement('p');note.textContent=`Delt innlegg fra ${c.originalAuthor||'en annen forfatter'}. Deling er ikke dokumentasjon på tilslutning.`;box.append(note);}
+    bubble.append(box);
   });
-  els.turnstile.hidden = false;
-  widgetId = window.turnstile.render(els.turnstile, {
-    sitekey: siteKey,
-    action: 'second-rolf-chat',
-    theme: 'light',
-    callback: (token) => { turnstileToken = token; },
-    'expired-callback': () => { turnstileToken = ''; },
-    'error-callback': () => { turnstileToken = ''; return true; }
-  });
+  article.append(avatar,bubble);messages.append(article);messages.scrollTop=messages.scrollHeight;
 }
-
-async function detectLiveMode() {
+function staticAnswer(q) {
+  if(/master|teresa|avila|bachelor|julian|norwich|thesis|oppgav/i.test(q)) return 'Oppgavene er lokalisert, men fullteksten er ikke lastet inn i denne statiske profilen. Jeg kan ikke uttale meg om innholdet uten kilder. Se kildestatusen nedenfor.';
+  if(/cv|experience|erfaring|jobb|twitter|retweet|repost|polit/i.test(q)) return 'CV og utvalgte offentlige innlegg venter på kildeimport og gjennomgang. Jeg vil ikke fylle hullene med antakelser om Rolf.';
+  if(/arkivmuse/i.test(q)) return 'Arkivmuseet er porteføljens digitale museum om dokumentasjon, offentlighet og etterprøvbarhet. Dette er forhåndsskrevet prosjektinformasjon, ikke et KI-generert svar.';
+  if(/archive|metadata|metaready/i.test(q)) return 'Archive Assist hjelper med dokumenttitler og metadata; MetaReady viser informasjonskvalitet og forbedringstiltak. Se originalprosjektene fra porteføljesiden.';
+  return 'Lokal KI er ikke tilkoblet. Denne statiske profilen kan vise prosjektinformasjon, men kan ikke føre en fri samtale eller lese oppgavene. Full Hermes-tilgang er for eieren, ikke offentlige besøkende.';
+}
+async function check() {
+  $('#connect').disabled=true;
   try {
-    const response = await fetch(`${BACKEND_ORIGIN}${LIVE_HEALTH}`, {
-      cache: 'no-store', credentials: 'omit', signal: AbortSignal.timeout(4500)
+    const response=await fetch(`${BACKEND}/api/second-rolf/health`,{credentials:'omit',cache:'no-store',signal:AbortSignal.timeout(9000)});
+    const data=await response.json();if(!response.ok||!ready(data))throw new Error('offline');
+    if(!window.turnstile) await new Promise((resolve,reject)=>{
+      const s=document.createElement('script');s.src='https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';s.async=true;
+      const timer=setTimeout(()=>reject(new Error('timeout')),10000);s.onload=()=>{clearTimeout(timer);resolve();};s.onerror=()=>{clearTimeout(timer);reject(new Error('load'));};document.head.append(s);
     });
-    if (!response.ok) return;
-    const data = await response.json();
-    if (data?.configured !== true || data?.mode !== 'hermes-local' || data?.localOnly !== true) return;
-    live = true;
-    siteKey = typeof data.siteKey === 'string' ? data.siteKey : '';
-    els.status.classList.add('live');
-    els.status.querySelector('b').textContent = 'Hermes live · lokal GPU';
-    await loadTurnstile();
-  } catch {
-    // Safe fallback: the page remains useful without exposing or probing the local workstation.
-  }
+    $('#turnstile').hidden=false;
+    if(widget!==null)window.turnstile.remove(widget);
+    token='';widget=window.turnstile.render($('#turnstile'),{sitekey:data.siteKey,action:'second-rolf-chat',theme:'light',
+      callback:value=>{token=value;},'expired-callback':()=>{token='';},'error-callback':()=>{token='';return true;}});
+    badge(true);
+    const names={portfolio:'Portefølje',master:'Masteroppgave',bachelor:'Bacheloroppgave',cv:'CV',social:'Offentlige innlegg'};
+    $('#source-status').textContent=(Array.isArray(data.sourceStatus)?data.sourceStatus:[]).slice(0,10)
+      .map(s=>`${names[s.id]||s.id}: ${s.status==='indexed'?`${s.chunks} kildeutdrag lastet inn`:'ikke lastet inn'}`).join(' · ');
+  } catch {badge(false);$('#notice').textContent='Ingen verifisert tilkobling til lokal KI. Ingen KI-spørsmål er sendt.';}
+  finally {$('#connect').disabled=false;}
 }
-
-async function askLive(question) {
-  if (siteKey && !turnstileToken) throw new Error('Fullfør sikkerhetskontrollen før du sender.');
-  const response = await fetch(`${BACKEND_ORIGIN}${LIVE_CHAT}`, {
-    method: 'POST', credentials: 'omit', cache: 'no-store',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      question,
-      history: history.slice(-MAX_HISTORY),
-      requestId: crypto.randomUUID(),
-      turnstileToken
-    }),
-    signal: AbortSignal.timeout(120000)
-  });
-  const data = await response.json();
-  if (!response.ok) throw new Error(typeof data?.message === 'string' ? data.message : 'Den lokale Hermes-broen svarte ikke.');
-  if (data?.mode !== 'hermes-local' || data?.localOnly !== true || typeof data?.answer !== 'string' || !data.answer.trim()) throw new Error('Ugyldig svar fra den lokale Hermes-broen.');
-  return { text: data.answer.trim().slice(0, 6000), sources: Array.isArray(data.sources) ? data.sources.slice(0, 6).map(String) : [] };
-}
-
 async function submit(question) {
-  const cleaned = question.trim().slice(0, 1000);
-  if (cleaned.length < 2) return;
-  addMessage('user', cleaned);
-  history.push({ role: 'user', content: cleaned });
-  els.question.value = '';
-  els.send.disabled = true;
+  if(active)return;
+  const q=question.trim();if(q.length<2||q.length>1200)return;
+  if(live&&!token){$('#notice').textContent='Fullfør sikkerhetskontrollen før du sender.';return;}
+  const current=++generation;active=new AbortController();buttons.forEach(b=>b.disabled=true);
+  append('user',q);input.value='';$('#notice').textContent=live?'Den lokale modellen arbeider …':'';
   try {
-    let result;
-    if (live) {
-      try { result = await askLive(cleaned); }
-      catch {
-        result = localAnswer(cleaned);
-        result.text = `${result.text}\n\nDen lokale modellen var ikke tilgjengelig for denne meldingen. Ingen betalt sky-modell ble brukt; offentlig profilmodus ble brukt i stedet.`;
-      }
-    } else result = localAnswer(cleaned);
-    addMessage('assistant', result.text, result.sources);
-    history.push({ role: 'assistant', content: result.text });
-    history = history.slice(-MAX_HISTORY);
+    let data;
+    if(live){
+      const response=await fetch(`${BACKEND}/api/second-rolf`,{method:'POST',credentials:'omit',cache:'no-store',
+        headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q,history:trimHistory(history),requestId:crypto.randomUUID(),turnstileToken:token}),
+        signal:AbortSignal.any([active.signal,AbortSignal.timeout(95000)])});
+      if(!response.ok)throw new Error('unavailable');data=validateResponse(await response.json());
+    } else data={answer:staticAnswer(q),citations:[],mode:'static'};
+    if(current!==generation)return;
+    append('assistant',data.answer,data.citations,data.mode);
+    // Keep only actual generated complete turns; never present static text as previous model output.
+    if(data.mode==='local-rag')history=trimHistory([...history,{role:'user',content:q},{role:'assistant',content:data.answer}]);
+    $('#notice').textContent='';
+  } catch {
+    if(current!==generation)return;badge(false);
+    append('assistant','Lokal KI svarte ikke med et kontrollerbart svar. Ingen skymodell kobles inn automatisk. Prøv tilkoblingen igjen eller bruk prosjektlenkene.');
+    $('#notice').textContent='Svaret ble ikke fullført.';
   } finally {
-    if (widgetId !== null && window.turnstile) {
-      window.turnstile.reset(widgetId);
-      turnstileToken = '';
-    }
-    els.send.disabled = false;
-    els.question.focus();
+    if(current===generation){active=null;buttons.forEach(b=>b.disabled=false);token='';if(widget!==null&&window.turnstile)window.turnstile.reset(widget);input.focus();}
   }
 }
-
-els.form.addEventListener('submit', (event) => {
-  event.preventDefault();
-  submit(els.question.value);
-});
-els.question.addEventListener('keydown', (event) => {
-  if (event.key === 'Enter' && !event.shiftKey) {
-    event.preventDefault();
-    els.form.requestSubmit();
-  }
-});
-document.querySelectorAll('[data-prompt]').forEach((button) => button.addEventListener('click', () => submit(button.dataset.prompt)));
-els.clear.addEventListener('click', () => {
-  history = [];
-  els.messages.querySelectorAll('.message').forEach((message, index) => { if (index) message.remove(); });
-  els.question.focus();
-});
-
-detectLiveMode();
+$('#composer').addEventListener('submit',e=>{e.preventDefault();submit(input.value);});
+input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();submit(input.value);}});
+document.querySelectorAll('[data-prompt]').forEach(b=>b.addEventListener('click',()=>submit(b.dataset.prompt)));
+$('#clear').addEventListener('click',()=>{generation++;active?.abort();active=null;history=[];messages.replaceChildren();buttons.forEach(b=>b.disabled=false);input.value='';$('#notice').textContent='Samtalen er tømt fra denne fanen.';input.focus();});
+$('#connect').addEventListener('click',check);
+badge(false);
+// No external connection or bot-check script loads until the visitor opts in.
