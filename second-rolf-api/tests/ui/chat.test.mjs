@@ -1,13 +1,15 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { beforeEach, afterEach, it, expect, vi } from 'vitest';
+import { PROFILE_REVISION } from '../../../site/second-rolf/interview.js';
 
 const harness = vi.hoisted(() => ({ status: null, token: null }));
 vi.mock('../../../site/second-rolf/status.js', () => ({ BACKEND_ORIGIN: 'https://second-rolf-api.rolfsselas.workers.dev', watchStatus: fn => { harness.status = fn; } }));
 const flush = async () => { for (let i = 0; i < 12; i++) await Promise.resolve(); };
 const query = s => document.querySelector(s);
 const submit = async text => { query('#question').value = text; query('#composer').dispatchEvent(new Event('submit', { cancelable: true })); await flush(); };
-const reply = text => new Response(JSON.stringify({ answer: text, mode: 'local-model', localOnly: true, sources: [] }), { status: 200 });
+const reply = (text, profileRevision = PROFILE_REVISION) => new Response(JSON.stringify({ answer: text, profileRevision, mode: 'local-model', localOnly: true, sources: [] }), { status: 200 });
+const status = data => harness.status({ profileRevision: PROFILE_REVISION, ...data });
 
 beforeEach(async () => {
   vi.resetModules();
@@ -28,7 +30,7 @@ it('loads verification on a fresh page without a named element occupying the SDK
     window.turnstile = sdk;
     script.onload(new Event('load'));
   });
-  harness.status({ available: true, gpu: true, siteKey: 'site' }); await flush();
+  status({ available: true, gpu: true, siteKey: 'site' }); await flush();
   expect(append).toHaveBeenCalledTimes(1);
   expect(sdk.render).toHaveBeenCalledTimes(1);
   const fetcher = vi.fn().mockResolvedValue(reply('Live answer')); vi.stubGlobal('fetch', fetcher);
@@ -38,23 +40,36 @@ it('loads verification on a fresh page without a named element occupying the SDK
 });
 
 it('keeps offline answers and source links, without falsely labelling them local AI', async () => {
-  harness.status({ available: false }); await submit('Hva er Arkivmuseet?');
+  status({ available: false }); await submit('Hva er Arkivmuseet?');
   expect(query('#messages').textContent).toContain('offentlig profil');
   expect(query('#messages .sources a').href).toContain('/arkivmuseet/');
   expect(query('#status').classList.contains('live')).toBe(false);
 });
 
-it('turns the availability light on and off as health changes', () => {
-  harness.status({ available: true, gpu: true, siteKey: 'site' }); expect(query('#status').classList.contains('live')).toBe(true);
-  harness.status({ available: false }); expect(query('#status').classList.contains('live')).toBe(false);
+it('turns the availability light on and off for the current profile', () => {
+  status({ available: true, gpu: true, siteKey: 'site' }); expect(query('#status').classList.contains('live')).toBe(true);
+  status({ available: false }); expect(query('#status').classList.contains('live')).toBe(false);
+});
+
+it('does not call an old backend even if its availability light would be green', async () => {
+  const fetcher = vi.fn(); vi.stubGlobal('fetch', fetcher);
+  for (const profileRevision of [undefined, 'older-revision']) {
+    harness.status({ available: true, gpu: true, siteKey: 'site', profileRevision });
+    await submit('Hvilken musikk liker Rolf?');
+  }
+  expect(fetcher).not.toHaveBeenCalled();
+  expect(query('#status').classList.contains('live')).toBe(false);
+  expect(query('#messages').textContent).toContain('Metallica');
+  expect(window.turnstile.render).not.toHaveBeenCalled();
 });
 
 it('sends only previous complete turns and blocks duplicate submissions while answering', async () => {
-  harness.status({ available: true, gpu: true, siteKey: 'site' });
+  status({ available: true, gpu: true, siteKey: 'site' });
   let resolve;
   const fetcher = vi.fn(() => new Promise(r => { resolve = r; })); vi.stubGlobal('fetch', fetcher);
   await submit('First question'); await submit('Duplicate question'); expect(fetcher).toHaveBeenCalledTimes(1);
   expect(JSON.parse(fetcher.mock.calls[0][1].body).history).toEqual([]);
+  expect(JSON.parse(fetcher.mock.calls[0][1].body).profileRevision).toBe(PROFILE_REVISION);
   resolve(reply('First answer')); await flush(); harness.token('another');
   await submit('Follow up');
   const body = JSON.parse(fetcher.mock.calls[1][1].body);
@@ -63,22 +78,31 @@ it('sends only previous complete turns and blocks duplicate submissions while an
 });
 
 it('preserves the question when verification is not ready', async () => {
-  harness.status({ available: true, siteKey: 'site' }); harness.token('');
+  status({ available: true, siteKey: 'site' }); harness.token('');
   const fetcher = vi.fn(); vi.stubGlobal('fetch', fetcher); await submit('Please keep this question');
   expect(fetcher).not.toHaveBeenCalled(); expect(query('#question').value).toBe('Please keep this question');
   expect(query('#messages').children).toHaveLength(1);
 });
 
 it('ignores a late reply after starting a new conversation', async () => {
-  harness.status({ available: true, siteKey: 'site' });
+  status({ available: true, siteKey: 'site' });
   let resolve; vi.stubGlobal('fetch', () => new Promise(r => { resolve = r; }));
   await submit('Old question'); query('#clear').click(); resolve(reply('Old answer')); await flush();
   expect(query('#messages').children).toHaveLength(1); expect(query('#send').disabled).toBe(false);
 });
 
 it('uses an honest fallback and safe text rendering after a network failure', async () => {
-  harness.status({ available: true, siteKey: 'site' }); vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')));
+  status({ available: true, siteKey: 'site' }); vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')));
   await submit('Arkivmuseet <img src=x onerror=alert(1)>');
   expect(query('#status').classList.contains('live')).toBe(false); expect(query('#messages').textContent).toContain('offentlige profilen');
   expect(query('#messages img')).toBeNull();
+});
+
+it('discards stale response content instead of displaying it or retaining it in history', async () => {
+  status({ available: true, siteKey: 'site' });
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(reply('STALE_CONTENT', 'older-revision')));
+  await submit('Hvilke bøker liker Rolf?');
+  expect(query('#messages').textContent).not.toContain('STALE_CONTENT');
+  expect(query('#messages').textContent).toContain('Ringenes herre');
+  expect(query('#status').classList.contains('live')).toBe(false);
 });

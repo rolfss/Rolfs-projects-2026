@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Second Rolf er en offentlig, avgrenset AI-representasjon av Rolf Selås basert på prosjekter og hans egne beskrivelser av interesser, bøker, musikk og fritid.">
+  <meta name="description" content="Second Rolf er en avgrenset AI-representasjon basert på offentlige prosjekter og enkle interesser som bøker, musikk og spill.">
   <meta name="theme-color" content="#0b2531">
   <title>Second Rolf — Rolf Selås</title>
   <link rel="stylesheet" href="./style.css">
@@ -14,61 +14,56 @@
     <a class="brand" href="../"><span>RS</span><strong>Rolf Selås</strong></a>
     <nav aria-label="Navigasjon">
       <a href="../">Prosjekter</a>
-      <a href="./interview.html">Intervjugrunnlag</a>
+      <a href="./interview.html">Interesser</a>
       <a href="https://github.com/rolfss/Rolfs-projects-2026/tree/main/site/second-rolf" rel="noreferrer">Kildekode</a>
     </nav>
   </header>
-
   <main>
     <section class="intro">
       <p class="eyebrow">Eksperiment · offentlig AI-representasjon</p>
       <h1>Second Rolf</h1>
-      <p class="lede">Spør om Rolfs prosjekter, interesser, bøker, musikk og fritid — og hvorfor disse tingene betyr noe for ham. Grunnlaget er offentlige prosjekter og hans egne beskrivelser. Systemet er AI, ikke Rolf selv.</p>
+      <p class="lede">Spør om Rolfs prosjekter, bøker, musikk, spill og andre interesser. Grunnlaget er offentlig prosjektinformasjon og en kort interesseoversikt. Systemet er AI, ikke Rolf selv.</p>
       <div class="status-row">
         <span class="status" id="status" role="status"><i aria-hidden="true"></i><b>Offentlig profilmodus</b></span>
-        <span class="privacy">Live AI bruker bare Rolfs lokalt kjørende modell.</span>
+        <span class="privacy">Kun offentlige prosjekter og enkle interesser.</span>
       </div>
     </section>
-
     <section class="shell" id="chat" aria-label="Second Rolf chat">
       <aside class="side">
         <h2>Hva den kjenner</h2>
         <ul>
           <li>Prosjektene på denne GitHub-siden</li>
           <li>Arbeidsmåte og prosjektprinsipper</li>
-          <li>Filosofi, mystikk og psykologi</li>
-          <li>Bøker, musikk, spill, trening og vennskap</li>
+          <li>Science fiction, fantasy og lydbøker</li>
+          <li>Musikk, spill og andre hobbyer</li>
         </ul>
-        <p><a href="./interview.html">Rolfs egne beskrivelser · 14.09.2026</a></p>
+        <p><a href="./interview.html">Se interesseoversikten</a></p>
         <div class="boundary">
           <strong>Bevisst avgrenset</strong>
-          <p>Ingen private meldinger, helseopplysninger, arbeidsdata, passord eller direkte tilgang til Rolfs PC. Egne tolkninger skilles fra etablerte fakta. Ingen betalt sky-AI som fallback.</p>
+          <p>Privatliv og personlighetstolkninger er ikke en del av kunnskapsbasen. Ingen private meldinger, arbeidsdata, passord eller direkte tilgang til Rolfs PC. Ingen betalt sky-AI som fallback.</p>
         </div>
         <button class="clear" id="clear" type="button">Ny samtale</button>
       </aside>
-
       <div class="chat-panel">
         <div class="messages" id="messages" aria-live="polite" aria-label="Samtale">
           <article class="message assistant">
             <div class="avatar">R2</div>
             <div>
               <span class="speaker">Second Rolf</span>
-              <p>Hei. Jeg er en AI-representasjon av Rolf, ikke Rolf selv. Spør om prosjektene hans, hva han liker å lese og høre på, eller hvorfor mystikk, psykologi, vennskap og trening betyr noe for ham. Jeg skiller mellom det han har fortalt og det jeg ikke vet.</p>
+              <p>Hei. Jeg er en AI-representasjon av Rolf, ikke Rolf selv. Spør om prosjektene hans, science fiction, bøker, musikk eller spill. Jeg svarer ut fra den offentlige kunnskapsbasen.</p>
             </div>
           </article>
         </div>
-
         <div class="suggestions" aria-label="Forslag">
-          <button type="button" data-prompt="Hva interesserer Rolf seg for utenom jobb?">Interesser</button>
-          <button type="button" data-prompt="Hvilke bøker betyr noe for Rolf, og hvorfor?">Bøker og hvorfor</button>
+          <button type="button" data-prompt="Hvilke hobbyer har Rolf?">Interesser</button>
+          <button type="button" data-prompt="Hvilke bøker liker Rolf?">Bøker</button>
           <button type="button" data-prompt="Hvilken musikk liker Rolf?">Musikk</button>
-          <button type="button" data-prompt="Hvorfor er kristen mystikk interessant for Rolf?">Mystikk og psykologi</button>
-          <button type="button" data-prompt="Hva jobber Rolf med?">Hva jobber Rolf med?</button>
+          <button type="button" data-prompt="Spiller Rolf Civilization VI?">Civilization VI</button>
+          <button type="button" data-prompt="Hvilke prosjekter viser Rolf her?">Prosjekter</button>
           <button type="button" data-prompt="Hvilket prosjekt viser best hvordan Rolf bruker AI?">AI-prosjekter</button>
           <button type="button" data-prompt="Hva er Arkivmuseet?">Arkivmuseet</button>
           <button type="button" data-prompt="Hvordan tenker Rolf om gode digitale verktøy?">Arbeidsmåte</button>
         </div>
-
         <form class="composer" id="composer">
           <label class="sr-only" for="question">Spør Second Rolf</label>
           <textarea id="question" name="question" rows="2" maxlength="1000" placeholder="Spør Second Rolf …" required></textarea>
@@ -76,15 +71,14 @@
         </form>
         <p id="chat-feedback" class="chat-feedback" role="status" aria-live="polite"></p>
         <div id="verification" class="turnstile" hidden></div>
-        <p class="fineprint">Grønt lys betyr at Ministral 3 14B er tilgjengelig på Rolfs PC. Statusen oppdateres automatisk. Hvis PC-en eller modellen er utilgjengelig, brukes den innebygde offentlige kunnskapsbasen i stedet. Ingen betalt sky-modell kobles inn automatisk.</p>
+        <p class="fineprint">Live AI brukes bare når modellen er tilgjengelig og den gjeldende offentlige kunnskapsbasen er bekreftet. Ellers brukes den innebygde interesse- og prosjektoversikten. Ingen betalt sky-modell kobles inn automatisk.</p>
       </div>
     </section>
   </main>
-
   <footer>
     <span>Second Rolf · offentlig beta</span>
     <span>AI-representasjon — ikke personen selv</span>
   </footer>
-  <script type="module" src="./app.js?v=20260914-interview"></script>
+  <script type="module" src="./app.js?v=20260914-basic-public"></script>
 </body>
 </html>

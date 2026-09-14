@@ -1,4 +1,4 @@
-import { cleanConversation, MODEL, sourcesFor, readJsonBounded } from './protocol.mjs';
+import { cleanConversation, MODEL, PROFILE_REVISION, sourcesFor, readJsonBounded } from './protocol.mjs';
 export { LocalRelay } from './relay.mjs';
 const ORIGIN = 'https://rolfss.github.io';
 
@@ -48,7 +48,7 @@ export default {
       if (url.pathname === '/api/second-rolf/health' && request.method === 'GET') {
         const ready = configured(env);
         const status = ready ? await env.LOCAL_RELAY.getByName('rolf-workstation').health() : { available: false, gpu: false };
-        return json({ configured: ready, ...status, model: MODEL, mode: 'local-model', localOnly: true, siteKey: env.TURNSTILE_SITE_KEY || '' }, 200, origin);
+        return json({ configured: ready, ...status, profileRevision: PROFILE_REVISION, model: MODEL, mode: 'local-model', localOnly: true, siteKey: env.TURNSTILE_SITE_KEY || '' }, 200, origin);
       }
       if (url.pathname !== '/api/second-rolf') return fail('not_found', 'Ukjent endepunkt.', 404, origin);
       if (origin !== ORIGIN) return fail('origin', 'Denne nettsiden har ikke tilgang.', 403);
@@ -66,10 +66,11 @@ export default {
         clean = cleanConversation(data);
         if (typeof data.turnstileToken !== 'string' || !data.turnstileToken || data.turnstileToken.length > 2048) throw new Error('Sikkerhetskontrollen mangler.');
       } catch (error) { return fail('request', error.message, 400, origin); }
+      if (data.profileRevision !== PROFILE_REVISION) return fail('profile_revision', 'Last inn siden på nytt for å bruke gjeldende offentlig kunnskapsbase.', 409, origin);
       if (!(await verifyTurnstile(data.turnstileToken, request, env))) return fail('turnstile', 'Fullfør sikkerhetskontrollen og prøv igjen.', 403, origin);
       const result = await env.LOCAL_RELAY.getByName('rolf-workstation').chat(clean);
-      if (result.error) return fail(result.error, result.error === 'busy' ? 'Modellen svarer noen andre. Prøv igjen om litt.' : 'Den lokale modellen er ikke tilgjengelig.', result.error === 'busy' ? 429 : 503, origin);
-      return json({ answer: result.answer, sources: sourcesFor(result.answer), model: MODEL, mode: 'local-model', localOnly: true }, 200, origin);
+      if (result.error) return fail(result.error, result.error === 'busy' ? 'Modellen svarer noen andre. Prøv igjen om litt.' : 'Den lokale modellen er ikke tilgjengelig med gjeldende kunnskapsbase.', result.error === 'busy' ? 429 : 503, origin);
+      return json({ answer: result.answer, sources: sourcesFor(result.answer), profileRevision: PROFILE_REVISION, model: MODEL, mode: 'local-model', localOnly: true }, 200, origin);
     } catch { return fail('unavailable', 'Tilkoblingen er midlertidig utilgjengelig. Prøv igjen.', 503, origin); }
   }
 };

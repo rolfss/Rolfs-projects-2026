@@ -3,52 +3,37 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Interesser og refleksjoner — Second Rolf</title>
-  <meta name="description" content="Rolfs egne beskrivelser av interesser, bøker, musikk og fritid fra et stemmeintervju 14. september 2026.">
+  <title>Interesser — Second Rolf</title>
+  <meta name="description" content="En kort oversikt over bøker, musikk, spill og andre interesser.">
   <link rel="stylesheet" href="./style.css">
   <style>
-    .interview-page { max-width: 900px; margin: 0 auto; padding: 2rem 1.25rem; }
-    .interview-entry { padding: 1.5rem 0; border-top: 1px solid #cbd5df; scroll-margin-top: 1rem; }
-    .interview-entry h2 { margin-bottom: .75rem; }
-    .interview-entry p, .interview-entry blockquote { line-height: 1.65; }
-    .interview-entry blockquote { margin: .75rem 0; padding-left: 1rem; border-left: 3px solid #cbd5df; }
-    .interview-page a { text-decoration: underline; }
-    .interview-actions { display: flex; gap: 1.5rem; flex-wrap: wrap; margin: 1.5rem 0; }
+    .interests-page { max-width: 800px; margin: 0 auto; padding: 2rem 1.25rem; }
+    .interests-page h1 { font-size: clamp(2.5rem, 7vw, 4.5rem); }
+    .interest-entry { padding: 1.25rem 0; border-top: 1px solid #cbd5df; scroll-margin-top: 1rem; }
+    .interest-entry h2 { margin-bottom: .75rem; }
+    .interest-entry p { line-height: 1.65; }
+    .interests-page a { text-decoration: underline; }
   </style>
 </head>
 <body>
-  <a class="skip-link" href="#entries">Hopp til intervjuutdrag</a>
-  <main class="interview-page">
-    <p class="eyebrow">Second Rolf · kildegrunnlag</p>
-    <h1>Interesser og refleksjoner</h1>
-    <p>Fra Rolfs stemmeintervju 14. september 2026. Sammendragene er parafraser; de engelske utdragene er hentet fra den oppgitte transkripsjonen, ikke kontrollert mot lyd. Personlige tolkninger er ikke eksternt faktasjekkede påstander.</p>
-    <p>Dette er et utvalgt offentlig kildegrunnlag, ikke hele den private samtalen. Opplysningene beskriver hva Rolf fortalte denne dagen.</p>
-    <div class="interview-actions"><a href="./">Tilbake til Second Rolf</a><a id="download" hidden>Last ned kildegrunnlaget som JSON</a></div>
-    <nav id="topics" aria-label="Temaer i intervjuet"></nav>
-    <section id="entries" aria-label="Intervjuutdrag"></section>
-    <noscript><p>JavaScript må være aktivert for å vise intervjuutdragene. <a href="https://github.com/rolfss/Rolfs-projects-2026/blob/main/site/second-rolf/interview.js">Les kildefilen på GitHub.</a></p></noscript>
+  <a class="skip-link" href="#entries">Hopp til interesser</a>
+  <main class="interests-page">
+    <p class="eyebrow">Second Rolf</p>
+    <h1>Interesser</h1>
+    <p>Bøker, musikk, spill og andre fritidsinteresser.</p>
+    <p><a href="./">Tilbake til Second Rolf</a></p>
+    <section id="entries" aria-label="Interesser"></section>
+    <noscript><p>Science fiction, fantasy, lydbøker, musikk, Civilization VI, skriving, videoredigering, programmering, trening og turer.</p></noscript>
   </main>
   <script type="module">
-    import { interview } from './interview.js';
+    import { interview } from './interview.js?v=20260914-basic-public';
     const entries = document.getElementById('entries');
-    const topics = document.getElementById('topics');
-    const labels = { self_report: 'Egen beskrivelse', personal_view: 'Personlig tolkning', reported_example: 'Eget eksempel' };
-    for (const [index, entry] of interview.entries.entries()) {
-      if (index) topics.append(' · ');
-      const link = document.createElement('a'); link.href = `#${entry.id}`; link.textContent = entry.topic; topics.append(link);
-      const article = document.createElement('article'); article.id = entry.id; article.className = 'interview-entry';
+    for (const entry of interview.entries) {
+      const article = document.createElement('article'); article.id = entry.id; article.className = 'interest-entry';
       const heading = document.createElement('h2'); heading.textContent = entry.topic;
-      const type = document.createElement('p'); type.className = 'eyebrow'; type.textContent = `${labels[entry.kind]} · ${interview.date}`;
       const summary = document.createElement('p'); summary.textContent = entry.summary;
-      article.append(heading, type, summary);
-      const evidenceLabel = document.createElement('p'); evidenceLabel.textContent = 'Utdrag fra transkripsjonen:'; article.append(evidenceLabel);
-      for (const text of entry.evidence) { const quote = document.createElement('blockquote'); quote.lang = 'en'; quote.textContent = text; article.append(quote); }
-      entries.append(article);
+      article.append(heading, summary); entries.append(article);
     }
-    const download = document.getElementById('download');
-    const blobUrl = URL.createObjectURL(new Blob([JSON.stringify(interview, null, 2) + '\n'], { type: 'application/json;charset=utf-8' }));
-    download.href = blobUrl; download.download = 'second-rolf-interview-2026-09-14.json'; download.hidden = false;
-    // Entries are generated after navigation; resolve the cited anchor explicitly.
     const target = document.getElementById(location.hash.slice(1));
     if (target) target.scrollIntoView();
   </script>
