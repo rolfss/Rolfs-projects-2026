@@ -8,6 +8,7 @@ on:
       - "metaready/**"
       - "lumen-relay/**"
       - "brukerstottejakten/**"
+      - "vedtak/**"
       - "noark-assistent/**"
       - "arkivmuseet/**"
       - ".github/workflows/validate-browser-projects.yml"
@@ -42,6 +43,10 @@ jobs:
 
       - name: Kjør tester for Brukerstøttejakten
         working-directory: ./brukerstottejakten
+        run: npm test && npm run check
+
+      - name: Kjør tester for VEDTAK!
+        working-directory: ./vedtak
         run: npm test && npm run check
 
       - name: Kjør tester for Noark 5-arkivassistenten

@@ -4,7 +4,13 @@
 
 ## [Se og prøv de nyeste prosjektene →](https://rolfss.github.io/Rolfs-projects-2026/)
 
-**Nyest:** [Second Rolf](https://rolfss.github.io/Rolfs-projects-2026/second-rolf/) · Arkivmuseet · Noark 5-arkivassistent · Archive Assist · MetaReady · Lumen Relay · Brukerstøttejakten
+**Nyest:** [VEDTAK!](https://rolfss.github.io/Rolfs-projects-2026/vedtak/) · [Second Rolf](https://rolfss.github.io/Rolfs-projects-2026/second-rolf/) · Arkivmuseet · Noark 5-arkivassistent · Archive Assist · MetaReady · Lumen Relay · Brukerstøttejakten
+
+## VEDTAK! — Jakten på samfunnsnytten
+
+**For folket. Mot papirmølla.** Et originalt plattformspill med norsk offentlig sektor som lekeplass. Spill som gaupa Kari gjennom tre kapitler med dobbelthopp, kaffedash, TILLIT-bokstaver, sjekkpunkter, hemmelige dugnader og en avsluttende kamp mot Saksbehandlingskøen. Original grafikk, syntetisert spillmusikk, tastatur- og mobilkontroller.
+
+[Spill VEDTAK! →](https://rolfss.github.io/Rolfs-projects-2026/vedtak/) · [Kode og spillveiledning](./vedtak/)
 
 ## Second Rolf
 
