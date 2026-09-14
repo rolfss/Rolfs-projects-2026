@@ -18,6 +18,23 @@ beforeEach(async () => {
 });
 afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); document.body.innerHTML = ''; });
 
+it('loads verification on a fresh page even when a named element occupies the SDK global', async () => {
+  const sdk = window.turnstile;
+  window.turnstile = query('#turnstile');
+  const append = vi.spyOn(document.head, 'append').mockImplementation(script => {
+    expect(script.src).toBe('https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit');
+    window.turnstile = sdk;
+    script.onload(new Event('load'));
+  });
+  harness.status({ available: true, gpu: true, siteKey: 'site' }); await flush();
+  expect(append).toHaveBeenCalledTimes(1);
+  expect(sdk.render).toHaveBeenCalledTimes(1);
+  const fetcher = vi.fn().mockResolvedValue(reply('Live answer')); vi.stubGlobal('fetch', fetcher);
+  await submit('A real question');
+  expect(fetcher).toHaveBeenCalledTimes(1);
+  expect(query('#messages').textContent).toContain('Live answer');
+});
+
 it('keeps offline answers and source links, without falsely labelling them local AI', async () => {
   harness.status({ available: false }); await submit('Hva er Arkivmuseet?');
   expect(query('#messages').textContent).toContain('offentlig profil');

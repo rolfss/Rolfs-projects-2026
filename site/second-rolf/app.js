@@ -56,7 +56,8 @@ function setLive(status) {
 
 async function loadTurnstile() {
   if (!siteKey) return;
-  if (!window.turnstile) {
+  // An element named "turnstile" can appear on window before the SDK loads.
+  if (typeof window.turnstile?.render !== 'function') {
     if (!scriptPromise) scriptPromise = new Promise((resolve, reject) => {
       const script = document.createElement('script');
       script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'; script.async = true;
