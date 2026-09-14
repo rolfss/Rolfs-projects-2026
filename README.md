@@ -6,9 +6,9 @@
 
 **Nyest:** [VEDTAK!](https://rolfss.github.io/Rolfs-projects-2026/vedtak/) · [Second Rolf](https://rolfss.github.io/Rolfs-projects-2026/second-rolf/) · Arkivmuseet · Noark 5-arkivassistent · Archive Assist · MetaReady · Lumen Relay · Brukerstøttejakten
 
-## VEDTAK! — Jakten på samfunnsnytten
+## VEDTAK! — Felles sak
 
-**For folket. Mot papirmølla.** Et originalt plattformspill med norsk offentlig sektor som lekeplass. Spill som gaupa Kari gjennom tre kapitler med dobbelthopp, kaffedash, TILLIT-bokstaver, sjekkpunkter, hemmelige dugnader og en avsluttende kamp mot Saksbehandlingskøen. Original grafikk, syntetisert spillmusikk, tastatur- og mobilkontroller.
+**For folket. Med hverandre.** Et originalt plattformspill med varm humor fra norsk arbeidshverdag. Bli med Kari på en fellesskapsstafett med dobbelthopp, kaffedash, TILLIT-bokstaver, hemmelige dugnader og en finale med Konfettikolossen. Tre originale musikktemaer, ni lagoppdrag, seks varige merker, fem ranger og Fellesløft med glimtmagnet og doble poeng. Konfetti og fyrverkeri feirer bragdene underveis.
 
 [Spill VEDTAK! →](https://rolfss.github.io/Rolfs-projects-2026/vedtak/) · [Kode og spillveiledning](./vedtak/)
 

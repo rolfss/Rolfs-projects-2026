@@ -1,11 +1,12 @@
 import fs from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import WebSocket from 'ws';
-import { MODEL, modelRequest, MAX_ANSWER, readJsonBounded, parseModelAnswer } from '../protocol.mjs';
+import { MODEL, PROFILE_REVISION, modelRequest, MAX_ANSWER, readJsonBounded, parseModelAnswer } from '../protocol.mjs';
 
 const OLLAMA = 'http://127.0.0.1:11434';
 
 export async function infer(conversation, signal) {
+  if (conversation.profileRevision !== PROFILE_REVISION) throw new Error('Public profile revision mismatch');
   const response = await fetch(`${OLLAMA}/api/chat`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(modelRequest(conversation)),
@@ -51,8 +52,8 @@ export function connect(config) {
       if (!active && (!status.available || Date.now() - verifiedAt > 300_000)) {
         status = await probeModel(true); verifiedAt = Date.now();
       }
-      send({ type: 'health', ...status, available: status.available && verifiedAt > 0 });
-    } catch { verifiedAt = 0; send({ type: 'health', available: false, gpu: false, model: MODEL }); }
+      send({ type: 'health', ...status, profileRevision: PROFILE_REVISION, available: status.available && verifiedAt > 0 });
+    } catch { verifiedAt = 0; send({ type: 'health', available: false, gpu: false, model: MODEL, profileRevision: PROFILE_REVISION }); }
     finally { probing = false; }
   }
   function open() {
@@ -60,7 +61,7 @@ export function connect(config) {
     const ws = new WebSocket(url, { headers: { Authorization: `Bearer ${config.key}` }, handshakeTimeout: 15_000, maxPayload: 48_000 });
     socket = ws;
     ws.on('open', () => {
-      lastAck = Date.now(); console.log('Second Rolf connected. Model: ' + MODEL);
+      lastAck = Date.now(); console.log('Second Rolf connected. Model: ' + MODEL + '. Public profile: ' + PROFILE_REVISION);
       void heartbeat(); timer = setInterval(() => { void heartbeat(); }, 15_000);
     });
     ws.on('message', async raw => {
@@ -69,16 +70,16 @@ export function connect(config) {
       if (data.type === 'ack') { lastAck = Date.now(); return; }
       if (data.type === 'cancel' && active?.id === data.id) { active.controller.abort(); return; }
       if (data.type !== 'chat' || typeof data.id !== 'string') return;
-      if (active) { ws.send(JSON.stringify({ type: 'answer', id: data.id, error: 'busy' })); return; }
+      if (active) { ws.send(JSON.stringify({ type: 'answer', id: data.id, error: 'busy', profileRevision: PROFILE_REVISION })); return; }
       const controller = new AbortController();
       active = { id: data.id, controller };
       try {
         const answer = await infer(data, controller.signal);
         verifiedAt = Date.now();
-        if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'answer', id: data.id, answer }));
+        if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'answer', id: data.id, answer, profileRevision: PROFILE_REVISION }));
       } catch {
         verifiedAt = 0;
-        if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'answer', id: data.id, error: 'local_model_unavailable' }));
+        if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'answer', id: data.id, error: 'local_model_unavailable', profileRevision: PROFILE_REVISION }));
       } finally { if (active?.controller === controller) active = null; }
     });
     ws.on('error', () => {}); // No credentials, prompts or answers are written to logs.

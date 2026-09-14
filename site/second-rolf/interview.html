@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="nb">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Interesser — Second Rolf</title>
+  <meta name="description" content="En kort oversikt over bøker, musikk, spill og andre interesser.">
+  <link rel="stylesheet" href="./style.css">
+  <style>
+    .interests-page { max-width: 800px; margin: 0 auto; padding: 2rem 1.25rem; }
+    .interests-page h1 { font-size: clamp(2.5rem, 7vw, 4.5rem); }
+    .interest-entry { padding: 1.25rem 0; border-top: 1px solid #cbd5df; scroll-margin-top: 1rem; }
+    .interest-entry h2 { margin-bottom: .75rem; }
+    .interest-entry p { line-height: 1.65; }
+    .interests-page a { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#entries">Hopp til interesser</a>
+  <main class="interests-page">
+    <p class="eyebrow">Second Rolf</p>
+    <h1>Interesser</h1>
+    <p>Bøker, musikk, spill og andre fritidsinteresser.</p>
+    <p><a href="./">Tilbake til Second Rolf</a></p>
+    <section id="entries" aria-label="Interesser"></section>
+    <noscript><p>Science fiction, fantasy, lydbøker, musikk, Civilization VI, skriving, videoredigering, programmering, trening og turer.</p></noscript>
+  </main>
+  <script type="module">
+    import { interview } from './interview.js?v=20260914-basic-public';
+    const entries = document.getElementById('entries');
+    for (const entry of interview.entries) {
+      const article = document.createElement('article'); article.id = entry.id; article.className = 'interest-entry';
+      const heading = document.createElement('h2'); heading.textContent = entry.topic;
+      const summary = document.createElement('p'); summary.textContent = entry.summary;
+      article.append(heading, summary); entries.append(article);
+    }
+    const target = document.getElementById(location.hash.slice(1));
+    if (target) target.scrollIntoView();
+  </script>
+</body>
+</html>

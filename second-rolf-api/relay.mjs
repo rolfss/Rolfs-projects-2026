@@ -1,5 +1,5 @@
 import { DurableObject } from 'cloudflare:workers';
-import { MODEL, MAX_ANSWER, cleanConversation } from './protocol.mjs';
+import { MODEL, PROFILE_REVISION, MAX_ANSWER, cleanConversation } from './protocol.mjs';
 
 // One object coordinates one physical GPU. Chat text is intentionally transient.
 export class LocalRelay extends DurableObject {
@@ -10,18 +10,16 @@ export class LocalRelay extends DurableObject {
     this.finishAll();
     const [client, server] = Object.values(new WebSocketPair());
     this.ctx.acceptWebSocket(server);
-    server.serializeAttachment({ available: false, gpu: false, checkedAt: 0 });
+    server.serializeAttachment({ available: false, gpu: false, checkedAt: 0, profileRevision: '' });
     return new Response(null, { status: 101, webSocket: client });
   }
 
   health() {
     const socket = this.ctx.getWebSockets().find(s => s.readyState === 1);
     const state = socket?.deserializeAttachment();
-    return {
-      available: Boolean(state?.available && Date.now() - state.checkedAt < 45_000),
-      gpu: Boolean(state?.available && state?.gpu && Date.now() - state.checkedAt < 45_000),
-      busy: this.pending.size > 0
-    };
+    const current = state?.profileRevision === PROFILE_REVISION;
+    const available = Boolean(current && state?.available && Date.now() - state.checkedAt < 45_000);
+    return { available, gpu: Boolean(available && state?.gpu), busy: this.pending.size > 0, profileRevision: current ? PROFILE_REVISION : '' };
   }
 
   async chat(data) {
@@ -37,7 +35,7 @@ export class LocalRelay extends DurableObject {
         resolve({ error: 'local_model_unavailable' });
       }, 90_000);
       this.pending.set(id, { resolve, timer, socket });
-      try { socket.send(JSON.stringify({ type: 'chat', id, ...conversation })); }
+      try { socket.send(JSON.stringify({ type: 'chat', id, ...conversation, profileRevision: PROFILE_REVISION })); }
       catch { this.finish(id, { error: 'local_model_unavailable' }); }
     });
   }
@@ -47,13 +45,17 @@ export class LocalRelay extends DurableObject {
     let data;
     try { data = JSON.parse(raw); } catch { socket.close(1003, 'Invalid JSON'); return; }
     if (data.type === 'health') {
-      socket.serializeAttachment({ available: data.available === true && data.model === MODEL, gpu: data.gpu === true, checkedAt: Date.now() });
+      const current = data.profileRevision === PROFILE_REVISION;
+      const available = current && data.available === true && data.model === MODEL;
+      socket.serializeAttachment({ available, gpu: available && data.gpu === true, checkedAt: Date.now(), profileRevision: current ? PROFILE_REVISION : '' });
+      if (!available) this.finishAll(socket);
       socket.send(JSON.stringify({ type: 'ack' }));
       return;
     }
     if (data.type === 'answer' && this.pending.get(data.id)?.socket === socket) {
-      const answer = typeof data.answer === 'string' ? data.answer.trim().slice(0, MAX_ANSWER) : '';
-      if (!answer) socket.serializeAttachment({ available: false, gpu: false, checkedAt: Date.now() });
+      const current = data.profileRevision === PROFILE_REVISION && socket.deserializeAttachment()?.profileRevision === PROFILE_REVISION;
+      const answer = current && typeof data.answer === 'string' ? data.answer.trim().slice(0, MAX_ANSWER) : '';
+      if (!answer) socket.serializeAttachment({ available: false, gpu: false, checkedAt: Date.now(), profileRevision: '' });
       this.finish(data.id, answer ? { answer } : { error: 'local_model_unavailable' });
     }
   }
