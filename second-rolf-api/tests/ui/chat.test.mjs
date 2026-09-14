@@ -18,9 +18,11 @@ beforeEach(async () => {
 });
 afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); document.body.innerHTML = ''; });
 
-it('loads verification on a fresh page even when a named element occupies the SDK global', async () => {
+it('loads verification on a fresh page without a named element occupying the SDK global', async () => {
   const sdk = window.turnstile;
-  window.turnstile = query('#turnstile');
+  delete window.turnstile;
+  expect(window.turnstile).toBeUndefined();
+  expect(query('#turnstile')).toBeNull();
   const append = vi.spyOn(document.head, 'append').mockImplementation(script => {
     expect(script.src).toBe('https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit');
     window.turnstile = sdk;

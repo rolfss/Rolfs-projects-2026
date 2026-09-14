@@ -1,6 +1,6 @@
 import { knowledge } from './knowledge.js';
 import { BACKEND_ORIGIN, watchStatus } from './status.js';
-const els = Object.fromEntries(['messages', 'composer', 'question', 'send', 'clear', 'status', 'turnstile', 'chat-feedback'].map(id => [id, document.getElementById(id)]));
+const els = Object.fromEntries(['messages', 'composer', 'question', 'send', 'clear', 'status', 'verification', 'chat-feedback'].map(id => [id, document.getElementById(id)]));
 let history = [], live = false, siteKey = '', turnstileToken = '', widgetId = null, scriptPromise, busy = false, generation = 0, controller;
 
 function normalize(text) { return text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9æøå -]/g, ' '); }
@@ -51,7 +51,7 @@ function setLive(status) {
   els.status.title = live ? 'Ministral 3 14B på Rolfs PC' : 'PC-en eller modellen er ikke tilkoblet. Offentlig profil er fortsatt tilgjengelig.';
   if (typeof status.siteKey === 'string' && status.siteKey) siteKey = status.siteKey;
   if (live) void loadTurnstile().catch(() => { els['chat-feedback'].textContent = 'Sikkerhetskontrollen kunne ikke lastes. Prøv å laste siden på nytt.'; });
-  else els.turnstile.hidden = true;
+  else els.verification.hidden = true;
 }
 
 async function loadTurnstile() {
@@ -67,9 +67,9 @@ async function loadTurnstile() {
     });
     await scriptPromise;
   }
-  els.turnstile.hidden = !live;
+  els.verification.hidden = !live;
   if (widgetId !== null) return;
-  widgetId = window.turnstile.render(els.turnstile, {
+  widgetId = window.turnstile.render(els.verification, {
     sitekey: siteKey, action: 'second-rolf-chat', theme: 'light',
     callback: token => { turnstileToken = token; if (!busy) els['chat-feedback'].textContent = ''; },
     'expired-callback': () => { turnstileToken = ''; },
