@@ -155,3 +155,12 @@ footer a { margin-left: auto; color: var(--teal); font-weight: 850; text-decorat
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
 }
+
+.second-rolf-spotlight { max-width: var(--max); margin: 1.5rem auto 0; display: flex; align-items: center; justify-content: space-between; gap: 2rem; padding: clamp(1.4rem, 3vw, 2.3rem); border: 1px solid #b9d9d3; border-radius: 18px; background: #e2f0ec; }
+.second-rolf-spotlight h2 { margin: 0 0 .45rem; font-size: clamp(2rem, 4vw, 3rem); color: var(--navy); line-height: 1.1; }
+.second-rolf-spotlight p:last-child { max-width: 700px; margin-bottom: 0; color: #405e61; }
+.spotlight-action { display: flex; flex-direction: column; align-items: flex-start; gap: .8rem; flex-shrink: 0; }
+.model-status { display: flex; align-items: center; gap: .55rem; font-size: .8rem; color: #405e61; }
+.model-status i { width: 9px; height: 9px; border-radius: 50%; background: #ae792c; }
+.model-status.live i { background: #238650; box-shadow: 0 0 0 4px #c5e6d3; }
+@media (max-width: 760px) { .second-rolf-spotlight { align-items: flex-start; flex-direction: column; gap: 1rem; } .site-header { flex-wrap: wrap; gap: 1rem; } .site-header nav { flex-wrap: wrap; gap: .8rem; } }

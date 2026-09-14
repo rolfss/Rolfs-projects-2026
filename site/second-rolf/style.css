@@ -57,6 +57,10 @@ textarea { width: 100%; resize: vertical; min-height: 58px; max-height: 160px; p
 .composer button:disabled { opacity: .45; cursor: progress; }
 .turnstile { padding: 0 1.8rem .8rem; }
 .fineprint { margin: 0; padding: 0 1.8rem 1.2rem; font-size: .76rem; color: var(--muted); line-height: 1.45; }
+.chat-feedback { margin: 0; padding: 0 1.8rem .7rem; color: #7e471e; font-size: .86rem; }
+.chat-feedback:empty { display: none; }
+.message p, .sources { overflow-wrap: anywhere; }
+.suggestions button:disabled { opacity: .55; cursor: progress; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 footer { max-width: 1180px; margin: 0 auto; padding: 1.5rem 2rem 2.5rem; display: flex; justify-content: space-between; gap: 1rem; color: var(--muted); font-size: .85rem; }
 @media (max-width: 760px) {

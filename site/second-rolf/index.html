@@ -24,7 +24,7 @@
       <h1>Second Rolf</h1>
       <p class="lede">Spør om Rolfs offentlige prosjekter, faglige arbeid og hvordan han angriper problemer. Systemet er tydelig merket som AI og skal ikke late som det faktisk er Rolf.</p>
       <div class="status-row">
-        <span class="status" id="status"><i></i><b>Offentlig profilmodus</b></span>
+        <span class="status" id="status" role="status"><i aria-hidden="true"></i><b>Offentlig profilmodus</b></span>
         <span class="privacy">Live AI bruker bare Rolfs lokalt kjørende modell.</span>
       </div>
     </section>
@@ -67,8 +67,9 @@
           <textarea id="question" name="question" rows="2" maxlength="1000" placeholder="Spør Second Rolf …" required></textarea>
           <button type="submit" id="send">Send</button>
         </form>
+        <p id="chat-feedback" class="chat-feedback" role="status" aria-live="polite"></p>
         <div id="turnstile" class="turnstile" hidden></div>
-        <p class="fineprint">Når den lokale Hermes-broen er aktiv, viser statusen «Hermes live · lokal GPU». Hvis PC-en eller modellen er utilgjengelig, brukes den lille innebygde offentlige kunnskapsbasen i stedet. Ingen betalt sky-modell kobles inn automatisk.</p>
+        <p class="fineprint">Grønt lys betyr at Ministral 3 14B er tilgjengelig på Rolfs PC. Statusen oppdateres automatisk. Hvis PC-en eller modellen er utilgjengelig, brukes den lille innebygde offentlige kunnskapsbasen i stedet. Ingen betalt sky-modell kobles inn automatisk.</p>
       </div>
     </section>
   </main>

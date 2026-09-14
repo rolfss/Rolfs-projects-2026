@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "site/**"
+      - "second-rolf-api/**"
       - "archive-assist/**"
       - "metaready/**"
       - "lumen-relay/**"
@@ -38,6 +39,10 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 22
+
+      - name: Kjør tester for Second Rolf
+        working-directory: ./second-rolf-api
+        run: npm ci && npm test && npm run check
 
       - name: Kjør tester for Archive Assist
         working-directory: ./archive-assist

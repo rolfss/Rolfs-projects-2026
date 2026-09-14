@@ -1,74 +1,64 @@
-# Second Rolf — secure local Hermes edge
+# Second Rolf — local AI
 
-This Worker is the public edge for the GitHub Pages **Second Rolf** interface. It is intentionally separate from `noark-luna-api` and from the private/default Hermes profile.
+Second Rolf answers portfolio questions with **Ministral 3 14B (Q4_K_M)** on Rolf's own Windows PC. The public facts in `site/second-rolf/knowledge.js` are shared by the offline profile and the model's system context. Conversation history supports follow-up questions. Source IDs resolve to links to the published projects.
 
-## Required architecture
+The selected PC has an NVIDIA RTX 5070 Ti (16 GB VRAM), AMD Ryzen 7 9800X3D and 32 GB RAM. The model ran fully on the GPU with an 8,192-token context and about 8.9 GB allocated by Ollama. A warmed portfolio answer took 1.95 seconds and generated 134 tokens at approximately 84 tokens/second. This is one measured example, not a latency guarantee. Initial model loading takes longer.
 
-`GitHub Pages -> Cloudflare Turnstile -> second-rolf-api Worker -> HTTPS tunnel -> isolated second-rolf Hermes profile -> local model server/GPU`
+## Connection
 
-**There is no paid/cloud-model fallback.** If the workstation, Hermes profile, tunnel or local model is unavailable, the public page falls back to its small static public-profile knowledge base.
+```text
+GitHub Pages → verification + rate limit → Cloudflare Worker → workstation relay
+                                                           ↕ authenticated outbound WSS
+                                               local connector → loopback Ollama → GPU
+```
 
-## Local inference lock
+The PC opens the connection to Cloudflare. It needs no public IP, DNS name, tunnel or inbound firewall port. Ollama listens only on `127.0.0.1:11434`. The connector pins the model and constructs the system prompt locally. It accepts only bounded chat messages, with no tools, shell, file access, browsing or model-management route. Cloud AI is disabled in Ollama and there is no paid model fallback.
 
-The Worker always sends:
+The public status checks actual model readiness reported by the authenticated PC every 15 seconds. Readiness starts only after a successful local inference probe; probes repeat after an unload and periodically while idle. A missing heartbeat expires after 45 seconds. Socket disconnects immediately fail pending work. The browser refreshes its light every 15 seconds and when returning to the page. Green indicates availability; the GPU label is shown only when Ollama reports GPU memory use.
 
-- `model: second-rolf-local`
-- `provider: custom`
+One physical GPU processes one public request at a time. Additional requests receive a clear busy response. Requests have bounded duration and length. Conversation text is transient: browser memory, the active relay request and local inference. No conversation database, private profile, model tools or chat logs are used. Cloudflare necessarily carries the public messages between the browser and PC; inference itself is local. Platform access/security logs may contain request metadata.
 
-The isolated Hermes profile must map `second-rolf-local` to the model already running locally. Hermes supports self-hosted OpenAI-compatible endpoints such as Ollama, LM Studio, vLLM and llama.cpp.
+## Deploy the public backend
 
-Use `HERMES_LOCAL_PROFILE.example.yaml` as the profile template. It deliberately contains:
+Requires Node 22 or later and an existing Cloudflare account with Workers and Durable Objects support.
 
-- a `custom` local provider/base URL;
-- the `second-rolf-local` API route;
-- `fallback_providers: []`;
-- memory disabled;
-- action-capable/private-state toolsets disabled.
+```powershell
+npm ci
+npm test
+npm run check
+npx wrangler deploy
+npx wrangler secret put LOCAL_CONNECTOR_KEY
+npx wrangler secret put TURNSTILE_SECRET_KEY
+npx wrangler secret put TURNSTILE_SITE_KEY
+```
 
-Do not add OpenAI, OpenRouter, Nous Portal, Anthropic, Codex or other paid/cloud providers as fallback providers for this profile.
+Create a managed Turnstile widget for `rolfss.github.io`. The frontend uses action `second-rolf-chat`; the Worker validates both hostname and action. Generate a random connector key with at least 32 bytes of entropy. Keep it only in the Worker secret and the PC's private config, never in source or frontend code. All three settings are required before public chat becomes available. Health stays offline if any are missing. Do not use testing keys in production.
 
-## Hermes profile
+`wrangler.jsonc` defines a SQLite-capable Durable Object namespace (one object for the physical workstation), but no chat text is written to its storage. Only model-readiness metadata is attached to the hibernating WebSocket. Restarting the relay can interrupt a current answer; the page then uses its built-in profile mode.
 
-Create a named profile called `second-rolf`. Give it its own `API_SERVER_KEY`, `SOUL.md`, config, sessions and home. Do not clone private state into it.
+## Run on Windows
 
-Copy `SECOND_ROLF_SOUL.md` to the profile's `SOUL.md`. Copy `HERMES_LOCAL_PROFILE.example.yaml` to the profile's `config.yaml`, replacing only:
+Install the official [Ollama Windows runtime](https://docs.ollama.com/windows) and download the [Ministral 3 14B model](https://ollama.com/library/ministral-3:14b). Keep its model directory separate from the source checkout. Recommended server environment:
 
-- `LOCAL_MODEL_NAME`
-- `LOCAL_OPENAI_COMPATIBLE_BASE_URL`
+```powershell
+$env:OLLAMA_HOST = '127.0.0.1:11434'
+$env:OLLAMA_NO_CLOUD = '1'
+$env:OLLAMA_NUM_PARALLEL = '1'
+$env:OLLAMA_CONTEXT_LENGTH = '8192'
+$env:OLLAMA_FLASH_ATTENTION = '1'
+$env:OLLAMA_KV_CACHE_TYPE = 'q8_0'
+ollama serve
+# In another terminal:
+ollama pull ministral-3:14b
+node local/connector.mjs C:\path\to\private-config.json
+```
 
-with the model and endpoint already running on the workstation.
+The private config has `workerUrl` set to `https://second-rolf-api.rolfsselas.workers.dev` and `key` set to the same random connector secret. Restrict the file to the Windows account and SYSTEM. The connector rejects other remote hosts. It automatically reconnects after network or Worker restarts. The provided Windows setup includes start/stop controls and a sign-in startup task; see the PC's local instructions.
 
-For example, common local OpenAI-compatible base URLs are:
+The model uses GPU memory while available. Stopping Second Rolf unloads its dedicated runtime; sleeping or turning off the PC makes the public page fall back to profile mode. Other portfolio projects and their AI providers are independent.
 
-- Ollama: `http://127.0.0.1:11434/v1`
-- LM Studio: `http://127.0.0.1:1234/v1`
-- vLLM: `http://127.0.0.1:8000/v1`
+## Verification
 
-Keep Hermes' API server itself on loopback. Expose it only through the authenticated tunnel; never bind Hermes directly to the public network.
+`npm test` runs the actual Cloudflare local runtime, covering verification failures, CORS, request bounds, prompt-role injection, availability and recovery, hibernation, stale heartbeats, conversation transport, overload, disconnects and invalid model responses. The runtime override in `package.json` keeps the test runner's engine aligned with the deployment compatibility date. Update it alongside Wrangler.
 
-Because tool configuration is security-critical, verify the effective tool list after every Hermes update rather than assuming the config was applied.
-
-## Worker configuration
-
-Set in Cloudflare, never GitHub:
-
-- `TURNSTILE_SECRET_KEY` — encrypted secret
-- `TURNSTILE_SITE_KEY` — public variable for `rolfss.github.io`
-- `HERMES_API_SERVER_KEY` — encrypted secret for the **second-rolf** Hermes profile only
-- `HERMES_API_URL` — HTTPS tunnel URL ending in the named profile's `/v1/chat/completions` endpoint
-
-Example shape only:
-
-`https://<private-tunnel-host>/p/second-rolf/v1/chat/completions`
-
-Then deploy from this directory with Wrangler. Do not reuse the Noark Worker's budget, secrets, or bindings.
-
-## Privacy and behavior
-
-- No conversation persistence in the frontend.
-- No question logging in this Worker.
-- Origin restricted to `https://rolfss.github.io`.
-- Turnstile required for every live request.
-- Cloudflare's native rate-limit binding caps live calls at 10/minute per network address without a custom visitor database.
-- Live answers are accepted by the frontend only when the backend reports `mode: hermes-local` and `localOnly: true`.
-- Local model failure means static fallback, **not paid tokens**.
+Model reference: [Mistral's official model card](https://docs.mistral.ai/models/ministral-3-14b-25-12). The 14B model provides a practical quality/memory balance on this 16 GB GPU; larger variants would leave less headroom or spill into slower system RAM.

@@ -4,7 +4,13 @@
 
 ## [Se og prøv de nyeste prosjektene →](https://rolfss.github.io/Rolfs-projects-2026/)
 
-**Nyest:** Arkivmuseet · Noark 5-arkivassistent · Archive Assist · MetaReady · Lumen Relay · Brukerstøttejakten
+**Nyest:** [Second Rolf](https://rolfss.github.io/Rolfs-projects-2026/second-rolf/) · Arkivmuseet · Noark 5-arkivassistent · Archive Assist · MetaReady · Lumen Relay · Brukerstøttejakten
+
+## Second Rolf
+
+**Snakk med en offentlig AI-representasjon av Rolf, drevet av en lokal modell på hans egen PC.** Ministral 3 14B bruker prosjektinformasjonen som grunnlag, håndterer oppfølgingsspørsmål og viser kildelenker. Et grønt lys viser når lokal AI er tilgjengelig; den innebygde offentlige profilen fungerer også når PC-en er frakoblet.
+
+[Snakk med Second Rolf →](https://rolfss.github.io/Rolfs-projects-2026/second-rolf/) · [Lokal AI og dokumentasjon](./second-rolf-api/)
 
 ---
 

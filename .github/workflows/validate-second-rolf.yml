@@ -1,0 +1,20 @@
+name: Validate Second Rolf local AI
+on:
+  push:
+    paths: ['second-rolf-api/**', 'site/second-rolf/**', '.github/workflows/validate-second-rolf.yml']
+  pull_request:
+    paths: ['second-rolf-api/**', 'site/second-rolf/**', '.github/workflows/validate-second-rolf.yml']
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - run: npm ci
+        working-directory: second-rolf-api
+      - run: npm test && npm run check && npx wrangler deploy --dry-run
+        working-directory: second-rolf-api
