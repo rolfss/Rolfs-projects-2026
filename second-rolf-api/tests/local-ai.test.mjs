@@ -2,7 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { env } from 'cloudflare:workers';
 import { runInDurableObject, evictDurableObject } from 'cloudflare:test';
 import worker from '../worker.mjs';
-import { MODEL, modelRequest, cleanConversation, sourcesFor, readJsonBounded } from '../protocol.mjs';
+import { MODEL, modelRequest, cleanConversation, sourcesFor, readJsonBounded, parseModelAnswer } from '../protocol.mjs';
 
 const sockets = [];
 const settings = () => ({ ...env, SECOND_ROLF_RATE: { limit: async () => ({ success: true }) } });
@@ -103,5 +103,7 @@ describe('local inference contract', () => {
   it('limits history and accepts only real source references', () => {
     expect(() => cleanConversation({ question: 'Hi there', history: Array.from({ length: 8 }, (_, i) => ({ role: i % 2 ? 'assistant' : 'user', content: 'x'.repeat(3000) })) })).toThrow();
     expect(sourcesFor('See [metaready], [metaready], [invented].')).toHaveLength(1);
+    expect(parseModelAnswer('{"answer":"MetaReady helps with metadata.","source_ids":["metaready"]}')).toContain('[metaready]');
+    expect(() => parseModelAnswer('{"answer":"Made up","source_ids":["invented"]}')).toThrow();
   });
 });

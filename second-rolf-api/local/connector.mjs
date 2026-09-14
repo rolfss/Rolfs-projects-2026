@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import WebSocket from 'ws';
-import { MODEL, modelRequest, MAX_ANSWER, readJsonBounded } from '../protocol.mjs';
+import { MODEL, modelRequest, MAX_ANSWER, readJsonBounded, parseModelAnswer } from '../protocol.mjs';
 
 const OLLAMA = 'http://127.0.0.1:11434';
 
@@ -14,7 +14,7 @@ export async function infer(conversation, signal) {
   if (!response.ok) throw new Error('Local inference failed');
   const data = await readJsonBounded(response, 100_000);
   if (data.model !== MODEL || data.done !== true || typeof data.message?.content !== 'string' || !data.message.content.trim()) throw new Error('Invalid local reply');
-  return data.message.content.trim().slice(0, MAX_ANSWER);
+  return parseModelAnswer(data.message.content).slice(0, MAX_ANSWER);
 }
 
 export async function probeModel(warm = false) {
