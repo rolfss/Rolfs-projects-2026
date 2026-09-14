@@ -1,4 +1,4 @@
-import { PROFILE_REVISION } from './interview.js?v=20260914-basic-public';
+import { PROFILE_REVISION } from './interview.js?v=20260914-professional-only';
 export const BACKEND_ORIGIN = 'https://second-rolf-api.rolfsselas.workers.dev';
 export async function getStatus() {
   try {

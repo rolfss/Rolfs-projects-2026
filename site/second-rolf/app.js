@@ -1,4 +1,4 @@
-import { rankKnowledge, PROFILE_REVISION } from './knowledge.js?v=20260914-basic-public';
+import { rankKnowledge, PROFILE_REVISION } from './knowledge.js?v=20260914-professional-only';
 import { BACKEND_ORIGIN, watchStatus } from './status.js';
 const els = Object.fromEntries(['messages', 'composer', 'question', 'send', 'clear', 'status', 'verification', 'chat-feedback'].map(id => [id, document.getElementById(id)]));
 let history = [], live = false, siteKey = '', turnstileToken = '', widgetId = null, scriptPromise, busy = false, generation = 0, controller;
@@ -7,7 +7,7 @@ function localAnswer(question) {
   const matches = rankKnowledge(question).slice(0, 2);
   const relevant = matches.filter(m => m.score >= matches[0].score * .75);
   return relevant.length ? { text: relevant.map(m => m.answer).join('\n\n'), sources: relevant.map(m => ({ title: m.source, url: new URL(m.url, 'https://rolfss.github.io/Rolfs-projects-2026/second-rolf/').href })) } : {
-    text: 'Jeg bruker en liten offentlig kunnskapsbase om prosjekter og enkle interesser. Spør gjerne om science fiction, bøker, musikk, spill eller digitale verktøy. Privatliv og personlighetstolkninger er utenfor denne profilen.', sources: []
+    text: 'Second Rolf er avgrenset til fag og teknologi. Spør om dokumentasjonsforvaltning, metadata, kildebasert AI, systemdesign eller prosjektene Noark-assistenten, Archive Assist, MetaReady og Arkivmuseet.', sources: []
   };
 }
 
@@ -40,11 +40,11 @@ function addMessage(role, text, sources = [], isLive = false) {
 }
 
 function setLive(status) {
-  // Also validate here: an older cached status module is not a privacy boundary.
+  // Also validate here: an older cached status module is not a scope boundary.
   live = status.available === true && status.profileRevision === PROFILE_REVISION;
   els.status.classList.toggle('live', live);
   els.status.querySelector('b').textContent = live ? (status.gpu ? 'Lokal AI · GPU tilgjengelig' : 'Lokal AI tilgjengelig') : 'Offentlig profilmodus';
-  els.status.title = live ? 'Ministral 3 14B · gjeldende offentlig kunnskapsbase bekreftet' : 'Live AI krever en tilgjengelig modell med gjeldende offentlig kunnskapsbase. Interesse- og prosjektoversikten er tilgjengelig.';
+  els.status.title = live ? 'Ministral 3 14B · gjeldende faglige kunnskapsbase bekreftet' : 'Live AI krever en tilgjengelig modell med gjeldende faglige kunnskapsbase. Prosjektoversikten er tilgjengelig.';
   if (typeof status.siteKey === 'string' && status.siteKey) siteKey = status.siteKey;
   if (live) void loadTurnstile().catch(() => { els['chat-feedback'].textContent = 'Sikkerhetskontrollen kunne ikke lastes. Prøv å laste siden på nytt.'; });
   else els.verification.hidden = true;

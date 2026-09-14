@@ -39,6 +39,15 @@ it('loads verification on a fresh page without a named element occupying the SDK
   expect(query('#messages').textContent).toContain('Live answer');
 });
 
+it('shows professional introductory text and only work-related suggested prompts', () => {
+  expect(query('.lede').textContent).toContain('dokumentasjonsforvaltning');
+  expect(query('#messages').textContent).toContain('faglig og teknisk');
+  const prompts = [...document.querySelectorAll('[data-prompt]')].map(b => b.dataset.prompt).join(' ');
+  expect(prompts).not.toMatch(/hobby|musikk|bøker|fritid|personlighet|mystikk/i);
+  expect(document.querySelector('a[href="./interview.html"]')).toBeNull();
+  expect(document.querySelector('a[href="./sources.html"]')).not.toBeNull();
+});
+
 it('keeps offline answers and source links, without falsely labelling them local AI', async () => {
   status({ available: false }); await submit('Hva er Arkivmuseet?');
   expect(query('#messages').textContent).toContain('offentlig profil');
@@ -51,15 +60,15 @@ it('turns the availability light on and off for the current profile', () => {
   status({ available: false }); expect(query('#status').classList.contains('live')).toBe(false);
 });
 
-it('does not call an old backend even if its availability light would be green', async () => {
+it('does not call an older backend, including the former basic-interest revision', async () => {
   const fetcher = vi.fn(); vi.stubGlobal('fetch', fetcher);
-  for (const profileRevision of [undefined, 'older-revision']) {
+  for (const profileRevision of [undefined, 'older-revision', '2026-09-14-basic-public-interests']) {
     harness.status({ available: true, gpu: true, siteKey: 'site', profileRevision });
-    await submit('Hvilken musikk liker Rolf?');
+    await submit('What is MetaReady?');
   }
   expect(fetcher).not.toHaveBeenCalled();
   expect(query('#status').classList.contains('live')).toBe(false);
-  expect(query('#messages').textContent).toContain('Metallica');
+  expect(query('#messages').textContent).toContain('proveniens');
   expect(window.turnstile.render).not.toHaveBeenCalled();
 });
 
@@ -100,9 +109,17 @@ it('uses an honest fallback and safe text rendering after a network failure', as
 
 it('discards stale response content instead of displaying it or retaining it in history', async () => {
   status({ available: true, siteKey: 'site' });
-  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(reply('STALE_CONTENT', 'older-revision')));
-  await submit('Hvilke bøker liker Rolf?');
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(reply('STALE_CONTENT', '2026-09-14-basic-public-interests')));
+  await submit('What is MetaReady?');
   expect(query('#messages').textContent).not.toContain('STALE_CONTENT');
-  expect(query('#messages').textContent).toContain('Ringenes herre');
+  expect(query('#messages').textContent).toContain('proveniens');
   expect(query('#status').classList.contains('live')).toBe(false);
+});
+
+it('returns only the professional scope for an unmatched non-work question', async () => {
+  status({ available: false });
+  await submit('A non-work preference question');
+  const answer = query('#messages').lastElementChild.textContent;
+  expect(answer).toContain('avgrenset til fag og teknologi');
+  expect(answer).not.toMatch(/hobby|musikk|bøker|science fiction|fantasy/i);
 });
