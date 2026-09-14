@@ -1,17 +1,13 @@
-import { knowledge } from './knowledge.js';
+import { rankKnowledge } from './knowledge.js';
 import { BACKEND_ORIGIN, watchStatus } from './status.js';
 const els = Object.fromEntries(['messages', 'composer', 'question', 'send', 'clear', 'status', 'verification', 'chat-feedback'].map(id => [id, document.getElementById(id)]));
 let history = [], live = false, siteKey = '', turnstileToken = '', widgetId = null, scriptPromise, busy = false, generation = 0, controller;
 
-function normalize(text) { return text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9æøå -]/g, ' '); }
 function localAnswer(question) {
-  const query = normalize(question);
-  const words = new Set(query.split(/\s+/).filter(w => w.length > 2));
-  const matches = knowledge.map(item => ({ ...item, score: item.terms.reduce((sum, term) => sum + (words.has(normalize(term)) ? 2 : query.includes(normalize(term)) ? 1 : 0), 0) }))
-    .filter(item => item.score > 0).sort((a, b) => b.score - a.score).slice(0, 2);
+  const matches = rankKnowledge(question).slice(0, 2);
   const relevant = matches.filter(m => m.score >= matches[0].score * .75);
   return relevant.length ? { text: relevant.map(m => m.answer).join('\n\n'), sources: relevant.map(m => ({ title: m.source, url: new URL(m.url, 'https://rolfss.github.io/Rolfs-projects-2026/second-rolf/').href })) } : {
-    text: 'Jeg bruker nå en liten offentlig kunnskapsbase. Spør gjerne om Rolfs prosjekter, dokumentasjonsforvaltning, AI-verktøy eller arbeidsmåte. Når den lokale modellen er tilgjengelig, kan jeg svare friere og følge opp samtalen.', sources: []
+    text: 'Jeg bruker nå en liten offentlig kunnskapsbase. Spør gjerne om Rolfs prosjekter, interesser, bøker, musikk, trening eller arbeidsmåte. Når den lokale modellen er tilgjengelig, kan jeg svare friere og følge opp samtalen.', sources: []
   };
 }
 
