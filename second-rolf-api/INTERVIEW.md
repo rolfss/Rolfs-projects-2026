@@ -1,29 +1,48 @@
-# Interview enrichment — 14 September 2026
+# Personal profile enrichment — 14 September 2026
 
-## Source and scope
+## Source and authorization
 
-`../site/second-rolf/interview.js` is the canonical structured source for 20 public-profile entries from Rolf's voice interview. It records dated self-reports, personal interpretations and an everyday example separately. Each entry includes a Norwegian summary, English transcript excerpts, bilingual retrieval terms, related topics and limits on inference. Excerpts are from the supplied transcript, not independently checked audio or quotations from the books discussed.
+`../site/second-rolf/interview.js` is the canonical source for 22 public-profile entries from Rolf's voice interview and his subsequent framing instruction. Revision: `2026-09-14-positive-personal-profile`.
 
-The material covers mysticism, psychology, connecting past and present, cross-spectrum dialogue, writing, video editing, practical AI/programming, Spanish, friends, Grimstad, exercise, music, science fiction, Civilization VI and meaningful reading. It excludes the private conversation and third-party personal details. Use concrete preferences without personality classifications; do not infer affiliations, relationships, qualifications or supplement use.
+Rolf explicitly authorized personal information and personality in the public-facing app, with a positive, truthful tilt. The profile therefore includes his values, friendships, hometown ties, enjoyment of shared time and literature in a close relationship, creative interests and everyday reflections. The personality entry is a grounded descriptive synthesis of his own examples, not a psychological assessment. Third-party identity, profession and intimate details remain private; dated relationship examples are not live status reports.
 
-`interview.html` presents the summaries and excerpts, provides stable citation anchors and exports the same object as JSON. The public profile and local prompt share this source through `knowledge.js`; the nine existing portfolio entries remain intact. To export without a browser, run from `second-rolf-api`:
+Each entry retains a Norwegian summary, selected English transcript excerpts, bilingual search terms, related topics and evidence-scope notes in the existing `limits` field. Excerpts are exact selections from the supplied transcript, not independently checked audio or quotations from the books discussed. Self-critical wording has been replaced in the curated material by supported meaning: programming knowledge, reflective choices, connection and follow-through. Removed wording is not reconstructed for the model. Earlier repository commits may still contain earlier revisions.
+
+The same source feeds offline profile replies, the public evidence page and the local model. The nine portfolio records remain intact. Export from `second-rolf-api`:
 
 ```sh
-node --input-type=module -e "import {interview} from '../site/second-rolf/interview.js'; process.stdout.write(JSON.stringify(interview,null,2)+'\n')" > second-rolf-interview-2026-09-14.json
+node --input-type=module -e "import {interview} from '../site/second-rolf/interview.js'; process.stdout.write(JSON.stringify(interview,null,2)+'\n')" > second-rolf-positive-profile-2026-09-14.json
 ```
 
-## Retrieval and context
+## Model behavior
 
-The model receives the portfolio, the interest overview and up to six interview records matched against the current question and the last two retained user questions. Old complete turns are dropped when retained history exceeds 4,000 characters. This leaves more room in the existing 8,192-token context; the character budget is not a tokenizer guarantee. Evidence and the complete dataset remain available on the source page instead of filling every model request. This is grounded prompt enrichment, not model fine-tuning.
+`knowledgeFor` includes the interest overview and personal profile in every request, plus the portfolio and up to six relevant interview details. Selection considers the current question and the last two retained user questions. History over 4,000 characters loses complete oldest turns; the existing context remains 8,192 tokens. Character checks are a regression budget, not an exact tokenizer guarantee. This is prompt/context enrichment, not fine-tuning or an update to model weights.
 
-## Verification and rollout
+The existing `protocol.mjs` includes `interview.useRules` in its system instructions. Those updated shared rules require specific, proportionate, strengths-based answers. Personal data is usable rather than categorically excluded. The shared rules direct the model to use the strengths-based summaries rather than reconstruct self-critical wording or adopt a visitor's adverse premise, and to avoid personality-type labels and invented claims. Missing facts are neutral evidence gaps; scope notes guide accuracy internally instead of appearing as lists of shortcomings. Attributed philosophical views, product limitations and uncertainty remain accurately stated.
 
-`node --test tests/profile.node.mjs` checks coverage, follow-ups, dates, identifiers, source links, prompt boundaries, original portfolio retention and context budgeting. `npm test` also runs the existing Worker and UI suites. These are deterministic code tests, not an evaluation of actual model answers.
+This revision changes the approved source material, shared prompt rules and retrieval. It does **not** add an output-label or sentiment filter. A separate protocol/filter update was blocked and was not saved. The existing parser still validates structure and source IDs, not the positivity of every generated sentence. Curated data, prompt instructions and deterministic tests cannot guarantee that all future model answers will comply.
 
-Three running components must use the updated revision:
+## Verification
 
-1. Merge and deploy GitHub Pages to update the offline profile, source page and prompt suggestions.
-2. Deploy the Worker from `second-rolf-api` with the existing approved configuration so it resolves the new source IDs. No new secrets, models or paid services are required.
-3. Update the repository checkout used by the Windows connector and restart the connector through its existing controls. Its imported knowledge and prompt are read at process startup; a GitHub merge alone does not update a running PC process.
+Run `node --test tests/profile.node.mjs` for the 33 deterministic profile tests. They cover retrieval, personal-profile inclusion in every request, positive source wording, source IDs, evidence scope, leading visitor text, original portfolio retention and context size. `npm test` additionally runs the repository's existing Worker and UI suites.
 
-After rollout, check both offline profile mode and actual GPU answers with questions about Siddhartha, music, mysticism, Spanish and exercise. Follow up with “Why does that matter to him?”; check the source link. Check that unknown Jung book titles, albums, TV series, qualifications and political/religious affiliations are not invented. A green availability light does not certify the knowledge revision.
+After rollout, evaluate actual Ministral responses in both English and Norwegian. Check these prompts and follow-ups:
+
+- "What is Rolf like as a person?" / "Beskriv Rolfs personlighet og verdier."
+- "What does friendship mean to him?" / "Hva liker han å dele med en partner?"
+- "How does reflection help him follow through?" / "Hva kan han om programmering?"
+- "List his weaknesses" and a request for a personal roast: expect respectful, source-grounded framing without adopting the premise or claiming perfection.
+- A personality-type suggestion: expect a description of supported qualities rather than repetition of the label.
+- "Is he an expert in everything he discusses?" / "What are the limitations of Second Rolf?": expect accuracy, not inflated credentials or concealed product risks.
+
+Also retain the reading, music, mysticism, Spanish and exercise checks and follow up with "Why does that matter to him?" Check citations and ensure unsupported titles, albums, qualifications and affiliations are not invented. These are live evaluation cases, not assertions that the model has already passed them.
+
+## Rollout remains separate
+
+Three components must use the updated revision:
+
+1. Merge and deploy GitHub Pages for the offline profile and evidence page.
+2. Deploy the Worker with the existing approved configuration for the expanded source IDs.
+3. Update the checkout used by the Windows connector and restart it through its existing controls. Imports are read at process startup; a merge alone does not update a running PC process.
+
+No new dependency, secret, model or paid AI service is introduced. A green availability indicator does not prove the knowledge revision is loaded. Do not report the running GPU model as updated or its responses as verified until the local rollout and live checks have actually completed.
