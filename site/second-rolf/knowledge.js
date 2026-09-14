@@ -31,13 +31,15 @@ export function rankKnowledge(question) {
   }, 0) })).filter(item => item.score > 0).sort((a, b) => b.score - a.score);
 }
 
-// Keep portfolio context available while retrieving bounded, relevant interview details.
+// Keep the personal profile in every request; retrieve up to six additional interview topics.
 export function knowledgeFor(question, history = []) {
   const current = new Map(rankKnowledge(question).map(item => [item.id, item.score]));
   const previousQuestions = history.filter(m => m.role === 'user').slice(-2).map(m => m.content).join(' ');
   const previous = new Map(rankKnowledge(previousQuestions).map(item => [item.id, item.score]));
-  const details = knowledge.filter(item => item.date && item.id !== 'interests')
+  const pinned = knowledge.filter(item => item.id === 'interests' || item.id === 'personality');
+  const pinnedIds = new Set(pinned.map(item => item.id));
+  const details = knowledge.filter(item => item.date && !pinnedIds.has(item.id))
     .map(item => ({ item, score: 3 * (current.get(item.id) || 0) + (previous.get(item.id) || 0) }))
     .filter(match => match.score > 0).sort((a, b) => b.score - a.score).slice(0, 6).map(match => match.item);
-  return [...portfolio, knowledge.find(item => item.id === 'interests'), ...details];
+  return [...portfolio, ...pinned, ...details];
 }
