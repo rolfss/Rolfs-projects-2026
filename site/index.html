@@ -9,6 +9,14 @@
   <title>Rolf Selås — digitale prosjekter</title>
   <link rel="stylesheet" href="./styles.css">
   <link rel="stylesheet" href="./support-hunt-card.css">
+  <style>
+    .model-note { max-width: 760px; margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid var(--line); color: var(--muted); font-size: 1rem; line-height: 1.6; }
+    .model-note h2 { margin-bottom: .65rem; color: var(--navy); font-size: 1rem; letter-spacing: normal; }
+    .model-note p { margin-bottom: .65rem; }
+    .model-note p:last-child { margin-bottom: 0; }
+    .model-note a { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .15em; }
+    .model-note a:hover, .model-note a:focus-visible { color: var(--teal); }
+  </style>
 </head>
 <body>
   <a class="skip-link" href="#main">Hopp til innhold</a>
@@ -38,6 +46,13 @@
       <p class="eyebrow">Dokumentasjonsforvaltning · digitale produkter · interaktive systemer</p>
       <h1>Kompliserte krav bør ende som verktøy folk kan bruke.</h1>
       <p class="hero-copy">Her ligger testede digitale produkter fra 2026 innen arkivkrav, dokumentanalyse, informasjonskvalitet, AI-beredskap og interaktive systemer. Fellesnevneren er å gjøre faglogikk om til verktøy folk faktisk kan bruke.</p>
+      <aside class="model-note" aria-labelledby="model-note-title">
+        <h2 id="model-note-title">Modellvalg i praksis</h2>
+        <p>Jeg bruker også prosjektene til å prøve ut ulike AI-modeller og se hva oppgaven faktisk trenger.</p>
+        <p>Små, lokale modeller som <a href="https://mistral.ai/news/mistral-3/" rel="noreferrer">Ministral 3</a> gir større kontroll over data og drift, men krever egen maskinvare og oppsett.</p>
+        <p>Rimelige skymodeller som <a href="https://developers.openai.com/api/docs/models/gpt-5.6-luna" rel="noreferrer">GPT-5.6 Luna</a> holder kostnadene nede, men har mindre kapasitet til krevende resonnering enn toppmodellene.</p>
+        <p>Toppmodeller som <a href="https://developers.openai.com/api/docs/models/gpt-6-astra" rel="noreferrer">GPT-6 Astra</a> gir større kapasitet til kompleks problemløsning, men til høyere pris.</p>
+      </aside>
     </section>
 
     <section class="project project-featured" id="prosjekter" aria-labelledby="noark-title">
