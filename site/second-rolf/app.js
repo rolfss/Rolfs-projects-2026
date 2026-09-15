@@ -7,7 +7,7 @@ function localAnswer(question) {
   const matches = rankKnowledge(question).slice(0, 2);
   const relevant = matches.filter(m => m.score >= matches[0].score * .75);
   return relevant.length ? { text: relevant.map(m => m.answer).join('\n\n'), sources: relevant.map(m => ({ title: m.source, url: new URL(m.url, 'https://rolfss.github.io/Rolfs-projects-2026/second-rolf/').href })) } : {
-    text: 'Second Rolf er avgrenset til profesjonelle og tekniske emner. Spør om Rolfs arbeidserfaring, utdanning, dokumentasjonsforvaltning, systemforvaltning, integrasjoner, AI eller offentlige prosjekter.', sources: []
+    text: 'Second Rolf er avgrenset til fag og teknologi. Spør om Rolfs arbeidserfaring, utdanning, dokumentasjonsforvaltning, systemforvaltning, integrasjoner, AI eller offentlige prosjekter.', sources: []
   };
 }
 
@@ -113,7 +113,7 @@ async function submit(question) {
           els.messages.lastElementChild?.remove(); return;
         }
         setLive({ available: false }); result = localAnswer(cleaned);
-        result.text += '\n\nLokal AI svarte ikke denne gangen. Dette svaret kommer fra den offentlige profesjonelle profilen.';
+        result.text += '\n\nLokal AI svarte ikke denne gangen. Dette svaret kommer fra den offentlige profilen.';
       }
     } else result = localAnswer(cleaned);
     if (thisGeneration !== generation) return;
