@@ -3,16 +3,21 @@ import path from 'node:path';
 import { beforeEach, afterEach, it, expect, vi } from 'vitest';
 import { PROFILE_REVISION } from '../../../site/second-rolf/interview.js';
 
-const harness = vi.hoisted(() => ({ status: null, token: null }));
-vi.mock('../../../site/second-rolf/status.js', () => ({ BACKEND_ORIGIN: 'https://second-rolf-api.rolfsselas.workers.dev', watchStatus: fn => { harness.status = fn; } }));
+const harness = vi.hoisted(() => ({ status: null, token: null, nextStatus: null }));
+vi.mock('../../../site/second-rolf/status.js?v=20260915-ministral-chat', async importOriginal => ({
+  ...await importOriginal(),
+  watchStatus: fn => { harness.status = fn; },
+  getStatus: async () => harness.nextStatus
+}));
 const flush = async () => { for (let i = 0; i < 12; i++) await Promise.resolve(); };
 const query = s => document.querySelector(s);
 const submit = async text => { query('#question').value = text; query('#composer').dispatchEvent(new Event('submit', { cancelable: true })); await flush(); };
-const reply = (text, profileRevision = PROFILE_REVISION) => new Response(JSON.stringify({ answer: text, profileRevision, mode: 'local-model', localOnly: true, sources: [] }), { status: 200 });
-const status = data => harness.status({ profileRevision: PROFILE_REVISION, ...data });
+const reply = (text, profileRevision = PROFILE_REVISION, model = 'ministral-3:14b') => new Response(JSON.stringify({ answer: text, model, profileRevision, mode: 'local-model', localOnly: true, sources: [] }), { status: 200 });
+const status = data => harness.status({ profileRevision: PROFILE_REVISION, model: 'ministral-3:14b', reason: data.available ? 'ready' : 'model_unavailable', ...data });
 
 beforeEach(async () => {
   vi.resetModules();
+  harness.nextStatus = null;
   const html = fs.readFileSync(path.resolve('../site/second-rolf/index.html'), 'utf8');
   document.body.innerHTML = html.match(/<body>([\s\S]*)<\/body>/)[1].replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, '');
   window.turnstile = { render: vi.fn((_, opts) => { harness.token = opts.callback; opts.callback('verified'); return 'widget'; }), reset: vi.fn() };
@@ -39,11 +44,13 @@ it('loads verification on a fresh page without a named element occupying the SDK
   expect(query('#messages').textContent).toContain('Live answer');
 });
 
-it('shows professional introductory text and only work-related suggested prompts', () => {
+it('allows general chat in the introduction without adding personal preferences about Rolf', () => {
   expect(query('.lede').textContent).toContain('dokumentasjonsforvaltning');
+  expect(query('.lede').textContent).toContain('andre emner');
   expect(query('#messages').textContent).toContain('faglig og teknisk');
   const prompts = [...document.querySelectorAll('[data-prompt]')].map(b => b.dataset.prompt).join(' ');
   expect(prompts).not.toMatch(/hobby|musikk|bøker|fritid|personlighet|mystikk/i);
+  expect(prompts).toContain('himmelen er blå');
   expect(document.querySelector('a[href="./interview.html"]')).toBeNull();
   expect(document.querySelector('a[href="./sources.html"]')).not.toBeNull();
 });
@@ -51,12 +58,17 @@ it('shows professional introductory text and only work-related suggested prompts
 it('keeps offline answers and source links, without falsely labelling them local AI', async () => {
   status({ available: false }); await submit('Hva er Arkivmuseet?');
   expect(query('#messages').textContent).toContain('offentlig profil');
+  expect(query('#messages').lastElementChild.textContent).toContain('ikke AI');
   expect(query('#messages .sources a').href).toContain('/arkivmuseet/');
   expect(query('#status').classList.contains('live')).toBe(false);
 });
 
-it('turns the availability light on and off for the current profile', () => {
-  status({ available: true, gpu: true, siteKey: 'site' }); expect(query('#status').classList.contains('live')).toBe(true);
+it('names Ministral and the verified GPU rather than just saying local AI', () => {
+  status({ available: true, gpu: true, siteKey: 'site' });
+  expect(query('#status').classList.contains('live')).toBe(true);
+  expect(query('#status').textContent).toContain('Ministral 3 14B · aktiv på GPU');
+  status({ available: true, gpu: false, siteKey: 'site' });
+  expect(query('#status').textContent).not.toContain('GPU');
   status({ available: false }); expect(query('#status').classList.contains('live')).toBe(false);
 });
 
@@ -116,10 +128,59 @@ it('discards stale response content instead of displaying it or retaining it in 
   expect(query('#status').classList.contains('live')).toBe(false);
 });
 
-it('returns only the professional scope for an unmatched non-work question', async () => {
+it('explains that only fallback mode is limited, rather than banning general questions', async () => {
   status({ available: false });
   await submit('A non-work preference question');
   const answer = query('#messages').lastElementChild.textContent;
-  expect(answer).toContain('avgrenset til fag og teknologi');
+  expect(answer).toContain('I profilmodus');
+  expect(answer).toContain('Vanlige spørsmål kan besvares av Ministral');
   expect(answer).not.toMatch(/hobby|musikk|bøker|science fiction|fantasy/i);
+});
+
+it('forwards general questions to the real chat route instead of the profile matcher', async () => {
+  status({ available: true, gpu: true, siteKey: 'site' });
+  const fetcher = vi.fn().mockResolvedValue(reply('Shorter wavelengths scatter more strongly.'));
+  vi.stubGlobal('fetch', fetcher);
+  await submit('Why is the sky blue?');
+  expect(JSON.parse(fetcher.mock.calls[0][1].body).question).toBe('Why is the sky blue?');
+  expect(query('#messages').lastElementChild.textContent).toContain('Shorter wavelengths');
+  expect(query('#messages').lastElementChild.textContent).toContain('Ministral 3 14B');
+  expect(query('#messages').lastElementChild.querySelector('.sources')).toBeNull();
+});
+
+it('does not display an answer from a different or unspecified model as Ministral', async () => {
+  for (const model of ['another-model', null]) {
+    status({ available: true, siteKey: 'site' }); harness.token('verified');
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(reply('WRONG_MODEL_OUTPUT', PROFILE_REVISION, model)));
+    await submit('Why is the sky blue?');
+    expect(query('#messages').textContent).not.toContain('WRONG_MODEL_OUTPUT');
+    expect(query('#status').classList.contains('live')).toBe(false);
+  }
+});
+
+it('distinguishes a connected legacy model from a disconnected PC without bypassing privacy', async () => {
+  status({ available: false, modelOnline: true, profileRevision: undefined, reason: 'backend_update_required' });
+  const fetcher = vi.fn(); vi.stubGlobal('fetch', fetcher);
+  await submit('Why is the sky blue?');
+  expect(query('#status').textContent).toContain('Ministral tilkoblet');
+  expect(query('#status').textContent).toContain('oppdatering kreves');
+  expect(query('#status-detail').textContent).toContain('Cloudflare');
+  expect(query('#status').classList.contains('live')).toBe(false);
+  expect(fetcher).not.toHaveBeenCalled();
+});
+
+it('rechecks readiness on request and recovers without reloading the page', async () => {
+  status({ available: false, reason: 'pc_disconnected' });
+  harness.nextStatus = { available: true, model: 'ministral-3:14b', profileRevision: PROFILE_REVISION, gpu: true, reason: 'ready', siteKey: 'site' };
+  query('#retry-status').click(); await flush();
+  expect(query('#status').classList.contains('live')).toBe(true);
+  expect(query('#retry-status').disabled).toBe(false);
+});
+
+it('does not feed an offline template into a later live conversation', async () => {
+  status({ available: false }); await submit('What is MetaReady?');
+  status({ available: true, siteKey: 'site' });
+  const fetcher = vi.fn().mockResolvedValue(reply('A general answer.')); vi.stubGlobal('fetch', fetcher);
+  await submit('Explain gravity.');
+  expect(JSON.parse(fetcher.mock.calls[0][1].body).history).toEqual([]);
 });

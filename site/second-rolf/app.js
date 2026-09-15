@@ -1,13 +1,13 @@
 import { rankKnowledge, PROFILE_REVISION } from './knowledge.js?v=20260915-technical-self-description';
-import { BACKEND_ORIGIN, watchStatus } from './status.js';
-const els = Object.fromEntries(['messages', 'composer', 'question', 'send', 'clear', 'status', 'verification', 'chat-feedback'].map(id => [id, document.getElementById(id)]));
+import { BACKEND_ORIGIN, LOCAL_MODEL, watchStatus, getStatus, statusDescription } from './status.js?v=20260915-ministral-chat';
+const els = Object.fromEntries(['messages', 'composer', 'question', 'send', 'clear', 'status', 'status-detail', 'retry-status', 'verification', 'chat-feedback'].map(id => [id, document.getElementById(id)]));
 let history = [], live = false, siteKey = '', turnstileToken = '', widgetId = null, scriptPromise, busy = false, generation = 0, controller;
 
 function localAnswer(question) {
   const matches = rankKnowledge(question).slice(0, 2);
   const relevant = matches.filter(m => m.score >= matches[0].score * .75);
   return relevant.length ? { text: relevant.map(m => m.answer).join('\n\n'), sources: relevant.map(m => ({ title: m.source, url: new URL(m.url, 'https://rolfss.github.io/Rolfs-projects-2026/second-rolf/').href })) } : {
-    text: 'Second Rolf er avgrenset til fag og teknologi. Spør om Rolfs arbeidserfaring, utdanning, dokumentasjonsforvaltning, systemforvaltning, integrasjoner, AI eller offentlige prosjekter.', sources: []
+    text: 'Ministral er ikke tilgjengelig for live-chat akkurat nå. I profilmodus er svarene avgrenset til fag og teknologi og Rolfs dokumenterte profesjonelle profil. Vanlige spørsmål kan besvares av Ministral når tilkoblingen er klar. Dette er en innebygd melding, ikke et modellsvar.', sources: []
   };
 }
 
@@ -17,7 +17,7 @@ function addMessage(role, text, sources = [], isLive = false) {
   const bubble = document.createElement('div');
   if (role === 'assistant') {
     const speaker = document.createElement('span'); speaker.className = 'speaker';
-    speaker.textContent = isLive ? 'Second Rolf · lokal AI' : 'Second Rolf · offentlig profil'; bubble.append(speaker);
+    speaker.textContent = isLive ? 'Second Rolf · Ministral 3 14B · lokal AI' : 'Second Rolf · offentlig profil · ikke AI'; bubble.append(speaker);
   }
   const p = document.createElement('p');
   for (const part of text.split(/(\*\*[^*\n]+\*\*)/g)) {
@@ -40,10 +40,16 @@ function addMessage(role, text, sources = [], isLive = false) {
 }
 
 function setLive(status) {
-  live = status.available === true && status.profileRevision === PROFILE_REVISION;
+  live = status.available === true && status.model === LOCAL_MODEL && status.profileRevision === PROFILE_REVISION;
   els.status.classList.toggle('live', live);
-  els.status.querySelector('b').textContent = live ? (status.gpu ? 'Lokal AI · GPU tilgjengelig' : 'Lokal AI tilgjengelig') : 'Offentlig profilmodus';
-  els.status.title = live ? 'Ministral 3 14B · gjeldende profesjonelle kunnskapsbase bekreftet' : 'Live AI krever en tilgjengelig modell med gjeldende profesjonelle kunnskapsbase.';
+  let label;
+  if (live) label = status.busy ? 'Ministral 3 14B · opptatt' : status.gpu ? 'Ministral 3 14B · aktiv på GPU' : 'Ministral 3 14B · aktiv';
+  else if (status.modelOnline) label = 'Ministral tilkoblet · oppdatering kreves';
+  else label = ['backend_update_required', 'connector_update_required'].includes(status.reason) ? 'Ministral · oppdatering kreves' : 'Ministral · live-chat utilgjengelig';
+  els.status.querySelector('b').textContent = label;
+  const detail = statusDescription(status);
+  els.status.title = detail;
+  if (els['status-detail']) els['status-detail'].textContent = detail;
   if (typeof status.siteKey === 'string' && status.siteKey) siteKey = status.siteKey;
   if (live) void loadTurnstile().catch(() => { els['chat-feedback'].textContent = 'Sikkerhetskontrollen kunne ikke lastes. Prøv å laste siden på nytt.'; });
   else els.verification.hidden = true;
@@ -78,7 +84,8 @@ async function askLive(question, signal) {
   });
   const data = await response.json();
   if (!response.ok) { const error = new Error(data.message || 'Tilkoblingen svarte ikke.'); error.code = data.error; throw error; }
-  if (data.profileRevision !== PROFILE_REVISION || data.mode !== 'local-model' || data.localOnly !== true || typeof data.answer !== 'string' || !data.answer.trim()) throw new Error('Ugyldig svar eller kunnskapsversjon.');
+  if (data.profileRevision !== PROFILE_REVISION) { const error = new Error('Kunnskapsversjonen er ikke gjeldende.'); error.code = 'profile_revision'; throw error; }
+  if (data.model !== LOCAL_MODEL || data.mode !== 'local-model' || data.localOnly !== true || typeof data.answer !== 'string' || !data.answer.trim()) { const error = new Error('Ikke et bekreftet Ministral-svar.'); error.code = 'model_mismatch'; throw error; }
   return { text: data.answer.slice(0, 6000), sources: Array.isArray(data.sources) ? data.sources.slice(0, 6) : [], isLive: true };
 }
 
@@ -112,14 +119,17 @@ async function submit(question) {
           els['chat-feedback'].textContent = error.message; els.question.value = cleaned;
           els.messages.lastElementChild?.remove(); return;
         }
-        setLive({ available: false }); result = localAnswer(cleaned);
+        setLive({ available: false, reason: error.code === 'profile_revision' ? 'backend_update_required' : error.code === 'model_mismatch' ? 'model_mismatch' : 'network_error' }); result = localAnswer(cleaned);
         result.text += '\n\nLokal AI svarte ikke denne gangen. Dette svaret kommer fra den offentlige profilen.';
       }
     } else result = localAnswer(cleaned);
     if (thisGeneration !== generation) return;
     addMessage('assistant', result.text, result.sources, result.isLive);
-    history.push({ role: 'user', content: cleaned }, { role: 'assistant', content: result.text.slice(0, 3000) });
-    while (history.length > 8 || history.reduce((sum, m) => sum + m.content.length, 0) > 12000) history.splice(0, 2);
+    // Do not feed offline templates or connection errors back as the model's own conversation.
+    if (result.isLive) {
+      history.push({ role: 'user', content: cleaned }, { role: 'assistant', content: result.text.slice(0, 3000) });
+      while (history.length > 8 || history.reduce((sum, m) => sum + m.content.length, 0) > 12000) history.splice(0, 2);
+    }
     els['chat-feedback'].textContent = '';
   } finally {
     if (thisGeneration === generation) {
@@ -137,5 +147,9 @@ els.clear.addEventListener('click', () => {
   els.messages.querySelectorAll('.message').forEach((message, index) => { if (index) message.remove(); });
   els['chat-feedback'].textContent = ''; els.question.value = ''; els.question.focus();
   if (widgetId !== null && window.turnstile) { window.turnstile.reset(widgetId); turnstileToken = ''; }
+});
+els['retry-status']?.addEventListener('click', async () => {
+  els['retry-status'].disabled = true;
+  try { setLive(await getStatus()); } finally { els['retry-status'].disabled = false; }
 });
 watchStatus(setLive);

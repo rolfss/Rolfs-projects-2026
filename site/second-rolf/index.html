@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Second Rolf er en faglig og teknisk AI-assistent om Rolfs profesjonelle bakgrunn, offentlige prosjekter, dokumentasjonsforvaltning, informasjonsstyring og digitale verktøy.">
+  <meta name="description" content="Chat med Ministral 3 14B på lokal GPU. Spør om fag, teknologi, Rolfs profesjonelle bakgrunn eller andre emner.">
   <meta name="theme-color" content="#0b2531">
-  <title>Second Rolf — fag og teknologi</title>
+  <title>Second Rolf — lokal Ministral-chat</title>
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
@@ -20,34 +20,36 @@
   </header>
   <main>
     <section class="intro">
-      <p class="eyebrow">Faglig og teknisk AI-assistent</p>
+      <p class="eyebrow">Lokal AI-chat · Ministral 3 14B</p>
       <h1>Second Rolf</h1>
-      <p class="lede">Spør om Rolfs profesjonelle bakgrunn, arbeidserfaring, utdanning, offentlige prosjekter, dokumentasjonsforvaltning, informasjonsstyring, AI og digitale verktøy. Svarene bygger på et avgrenset, dokumentert profesjonelt kildegrunnlag. Systemet er AI, ikke Rolf selv.</p>
+      <p class="lede">Spør om Rolfs profesjonelle bakgrunn, dokumentasjonsforvaltning, teknologi og prosjekter — eller ta en vanlig prat om andre emner. Ministral svarer lokalt på Rolfs PC når tilkoblingen er klar. Opplysninger om Rolf er begrenset til den dokumenterte profesjonelle profilen. Systemet er AI, ikke Rolf selv.</p>
       <div class="status-row">
-        <span class="status" id="status" role="status"><i aria-hidden="true"></i><b>Offentlig profilmodus</b></span>
-        <span class="privacy">Kun profesjonell og teknisk informasjon.</span>
+        <span class="status" id="status" role="status"><i aria-hidden="true"></i><b>Sjekker Ministral …</b></span>
+        <button class="clear" id="retry-status" type="button">Sjekk tilkobling</button>
       </div>
+      <p class="privacy" id="status-detail" role="status">Kontrollerer modell, PC-kobling og gjeldende offentlig kunnskapsbase.</p>
     </section>
     <section class="shell" id="chat" aria-label="Second Rolf chat">
       <aside class="side">
-        <h2>Fagområder</h2>
+        <h2>Spør om</h2>
         <ul>
           <li>Arbeidserfaring, utdanning og profesjonell bakgrunn</li>
           <li>Dokumentasjonsforvaltning og arkiv</li>
           <li>Systemforvaltning, integrasjoner og digitalisering</li>
           <li>AI, kildebaserte svar og lokal modellkjøring</li>
-          <li>Produktutvikling og interaksjonsdesign</li>
+          <li>Generelle spørsmål, forklaringer, kode og skrivehjelp</li>
         </ul>
         <p><a href="./sources.html">Se faglig kildegrunnlag</a></p>
         <div class="boundary" id="technical-setup">
           <strong>Slik er boten bygget</strong>
           <p>Ministral 3 14B via Ollama på en Windows-PC med RTX 5070 Ti (16 GB VRAM), Ryzen 7 9800X3D og 32 GB RAM. Nettsiden ligger på GitHub Pages; Cloudflare formidler live-chatten til PC-en.</p>
           <p><a href="./sources.html#ai">Oppbygning, modell og maskinvare</a></p>
-          <p>Dokumentert oppsett. Statuslyset viser om lokal AI er tilgjengelig nå.</p>
+          <p>Dokumentert oppsett. Grønt statuslys krever at lokal AI og gjeldende profesjonelle kunnskapsbase er bekreftet.</p>
         </div>
         <div class="boundary">
-          <strong>Avgrenset til fag og teknologi</strong>
-          <p>Kun dokumentert profesjonell informasjon og offentlig prosjektinformasjon. Ingen tilgang til private meldinger, interne arbeidsdata, passord eller Rolfs PC. Ingen fullmakt til å inngå avtaler. Ingen betalt sky-AI som fallback.</p>
+          <strong>Vanlig chat, tydelige grenser</strong>
+          <p>Generelle emner er tillatt, men private opplysninger om Rolf er ikke med. Ingen tilgang til private meldinger, interne arbeidsdata, passord, filer eller styring av PC-en. Ingen fullmakt til å inngå avtaler. Ingen betalt sky-AI som fallback.</p>
+          <p>Modellen kan ta feil. Den søker ikke på nettet og kan ikke bekrefte ferske hendelser. Profilsvar er kildebaserte; generelle svar bruker modellens kunnskap.</p>
         </div>
         <button class="clear" id="clear" type="button">Ny samtale</button>
       </aside>
@@ -57,7 +59,7 @@
             <div class="avatar">R2</div>
             <div>
               <span class="speaker">Second Rolf</span>
-              <p>Jeg er en faglig og teknisk AI-assistent for Rolfs profesjonelle profil og offentlige prosjektportefølje. Spør om arbeidserfaring, utdanning, dokumentasjonsforvaltning, systemforvaltning, AI eller hvordan verktøyene er bygget. Du kan også spørre hvilken modell og maskinvare jeg bruker. Jeg bruker bare det avgrensede profesjonelle kildegrunnlaget.</p>
+              <p>Jeg er en lokal AI-chatbot med en faglig og teknisk profil av Rolf. Du kan spørre om arbeidserfaring, utdanning, prosjekter, modellen og maskinvaren — eller om helt andre emner. Når statusen viser aktiv Ministral, kommer svarene fra den lokale modellen. I profilmodus vises bare innebygde profilsvar. Private opplysninger om Rolf er ikke tilgjengelige.</p>
             </div>
           </article>
         </div>
@@ -72,23 +74,24 @@
           <button type="button" data-prompt="Hvilken maskinvare kjører du på?">Maskinvaren bak</button>
           <button type="button" data-prompt="Er du fintrent, eller bruker du en kunnskapsbase?">Kunnskapsgrunnlaget</button>
           <button type="button" data-prompt="Hva er Arkivmuseet?">Arkivmuseet</button>
-          <button type="button" data-prompt="Hvilke prosjektprinsipper brukes for utvikling og testing?">Utvikling og testing</button>
+          <button type="button" data-prompt="Forklar hvorfor himmelen er blå, på en enkel måte.">Et vanlig spørsmål</button>
+          <button type="button" data-prompt="Vis en enkel Python-funksjon som sjekker om et tall er et primtall.">Litt kodehjelp</button>
         </div>
         <form class="composer" id="composer">
-          <label class="sr-only" for="question">Spør om fag, teknologi eller profesjonell bakgrunn</label>
-          <textarea id="question" name="question" rows="2" maxlength="1000" placeholder="Spør om fag, teknologi eller profesjonell bakgrunn …" required></textarea>
+          <label class="sr-only" for="question">Skriv et spørsmål til Ministral</label>
+          <textarea id="question" name="question" rows="2" maxlength="1000" placeholder="Spør om fag, teknologi eller noe helt annet …" required></textarea>
           <button type="submit" id="send">Send</button>
         </form>
         <p id="chat-feedback" class="chat-feedback" role="status" aria-live="polite"></p>
         <div id="verification" class="turnstile" hidden></div>
-        <p class="fineprint">Live AI brukes bare når modellen og den gjeldende profesjonelle kunnskapsbasen er bekreftet. Ellers brukes den innebygde profesjonelle profilen. Ingen betalt sky-modell kobles inn automatisk.</p>
+        <p class="fineprint">Live-svar må komme fra ministral-3:14b og gjeldende offentlig kunnskapsbase. Profilmodus er ikke AI-chat. Ingen betalt sky-modell kobles inn automatisk. Ikke skriv inn sensitive opplysninger.</p>
       </div>
     </section>
   </main>
   <footer>
-    <span>Second Rolf · faglig og teknisk beta</span>
+    <span>Second Rolf · lokal AI-beta</span>
     <span>AI-assistent — ikke personen selv</span>
   </footer>
-  <script type="module" src="./app.js?v=20260915-technical-self-description"></script>
+  <script type="module" src="./app.js?v=20260915-technical-self-description&amp;chat=20260915-ministral-chat"></script>
 </body>
 </html>
