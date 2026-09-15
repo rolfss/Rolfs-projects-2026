@@ -1,5 +1,5 @@
-import { rankKnowledge, PROFILE_REVISION } from './knowledge.js?v=20260914-professional-only';
-import { BACKEND_ORIGIN, watchStatus } from './status.js';
+import { rankKnowledge, PROFILE_REVISION } from './knowledge.js?v=20260915-cv-professional';
+import { BACKEND_ORIGIN, watchStatus } from './status.js?v=20260915-cv-professional';
 const els = Object.fromEntries(['messages', 'composer', 'question', 'send', 'clear', 'status', 'verification', 'chat-feedback'].map(id => [id, document.getElementById(id)]));
 let history = [], live = false, siteKey = '', turnstileToken = '', widgetId = null, scriptPromise, busy = false, generation = 0, controller;
 
@@ -7,7 +7,7 @@ function localAnswer(question) {
   const matches = rankKnowledge(question).slice(0, 2);
   const relevant = matches.filter(m => m.score >= matches[0].score * .75);
   return relevant.length ? { text: relevant.map(m => m.answer).join('\n\n'), sources: relevant.map(m => ({ title: m.source, url: new URL(m.url, 'https://rolfss.github.io/Rolfs-projects-2026/second-rolf/').href })) } : {
-    text: 'Second Rolf er avgrenset til fag og teknologi. Spør om dokumentasjonsforvaltning, metadata, kildebasert AI, systemdesign eller prosjektene Noark-assistenten, Archive Assist, MetaReady og Arkivmuseet.', sources: []
+    text: 'Second Rolf er avgrenset til profesjonelle og tekniske emner. Spør om Rolfs arbeidserfaring, utdanning, dokumentasjonsforvaltning, systemforvaltning, integrasjoner, AI eller offentlige prosjekter.', sources: []
   };
 }
 
@@ -40,11 +40,10 @@ function addMessage(role, text, sources = [], isLive = false) {
 }
 
 function setLive(status) {
-  // Also validate here: an older cached status module is not a scope boundary.
   live = status.available === true && status.profileRevision === PROFILE_REVISION;
   els.status.classList.toggle('live', live);
   els.status.querySelector('b').textContent = live ? (status.gpu ? 'Lokal AI · GPU tilgjengelig' : 'Lokal AI tilgjengelig') : 'Offentlig profilmodus';
-  els.status.title = live ? 'Ministral 3 14B · gjeldende faglige kunnskapsbase bekreftet' : 'Live AI krever en tilgjengelig modell med gjeldende faglige kunnskapsbase. Prosjektoversikten er tilgjengelig.';
+  els.status.title = live ? 'Ministral 3 14B · gjeldende profesjonelle kunnskapsbase bekreftet' : 'Live AI krever en tilgjengelig modell med gjeldende profesjonelle kunnskapsbase.';
   if (typeof status.siteKey === 'string' && status.siteKey) siteKey = status.siteKey;
   if (live) void loadTurnstile().catch(() => { els['chat-feedback'].textContent = 'Sikkerhetskontrollen kunne ikke lastes. Prøv å laste siden på nytt.'; });
   else els.verification.hidden = true;
@@ -114,7 +113,7 @@ async function submit(question) {
           els.messages.lastElementChild?.remove(); return;
         }
         setLive({ available: false }); result = localAnswer(cleaned);
-        result.text += '\n\nLokal AI svarte ikke denne gangen. Dette svaret kommer fra den offentlige profilen.';
+        result.text += '\n\nLokal AI svarte ikke denne gangen. Dette svaret kommer fra den offentlige profesjonelle profilen.';
       }
     } else result = localAnswer(cleaned);
     if (thisGeneration !== generation) return;
