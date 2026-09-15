@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Faglig kildegrunnlag — Second Rolf</title>
-  <meta name="description" content="Offentlig prosjektinformasjon som brukes av Second Rolf: dokumentasjonsforvaltning, metadata, AI og digital produktutvikling.">
+  <meta name="description" content="Profesjonelt kildegrunnlag brukt av Second Rolf: arbeidserfaring, utdanning, dokumentasjonsforvaltning, systemforvaltning, AI og digital produktutvikling.">
   <link rel="stylesheet" href="./style.css">
   <style>
     .source-page { max-width: 900px; margin: 0 auto; padding: 2rem 1.25rem; }
@@ -19,16 +19,16 @@
 <body>
   <a class="skip-link" href="#entries">Hopp til kildene</a>
   <main class="source-page">
-    <p class="eyebrow">Second Rolf · offentlig prosjektinformasjon</p>
+    <p class="eyebrow">Second Rolf · profesjonelt kildegrunnlag</p>
     <h1>Faglig kildegrunnlag</h1>
-    <p>Second Rolf svarer om dokumentasjonsforvaltning, informasjonsstyring, AI, systemdesign og digital produktutvikling. Kunnskapsbasen består utelukkende av offentlig informasjon om prosjektene og deres tekniske og faglige formål.</p>
+    <p>Second Rolf svarer om Rolfs dokumenterte profesjonelle bakgrunn og offentlige prosjektportefølje. Kunnskapsbasen omfatter arbeidserfaring, utdanning, dokumentasjons- og systemforvaltning, integrasjoner, AI, systemdesign og digital produktutvikling. Private interesser og privatliv er ikke del av grunnlaget.</p>
     <p><a href="./">Tilbake til Second Rolf</a></p>
-    <nav id="topics" class="source-nav" aria-label="Prosjektkilder"></nav>
+    <nav id="topics" class="source-nav" aria-label="Kilder og emner"></nav>
     <section id="entries" aria-label="Faglig kildegrunnlag"></section>
     <noscript><p><a href="../">Les prosjektoversikten.</a> <a href="https://github.com/rolfss/Rolfs-projects-2026/blob/main/site/second-rolf/knowledge.js">Les den faglige kunnskapsbasen.</a></p></noscript>
   </main>
   <script type="module">
-    import { knowledge } from './knowledge.js?v=20260914-professional-only';
+    import { knowledge } from './knowledge.js?v=20260915-cv-professional';
     const entries = document.getElementById('entries');
     const topics = document.getElementById('topics');
     for (const entry of knowledge) {
@@ -36,7 +36,7 @@
       const article = document.createElement('article'); article.id = entry.id; article.className = 'source-entry';
       const heading = document.createElement('h2'); heading.textContent = entry.source;
       const summary = document.createElement('p'); summary.textContent = entry.answer;
-      const source = document.createElement('a'); source.href = entry.url; source.textContent = 'Åpne prosjektkilden'; source.rel = 'noreferrer';
+      const source = document.createElement('a'); source.href = entry.url; source.textContent = 'Åpne kildehenvisning'; source.rel = 'noreferrer';
       article.append(heading, summary, source); entries.append(article);
     }
     document.getElementById(location.hash.slice(1))?.scrollIntoView();
