@@ -11,6 +11,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - name: Public model connection diagnostic (not a model inference test)
+        continue-on-error: true
+        run: |
+          curl --fail --silent --show-error --max-time 15 \
+            -H 'Origin: https://rolfss.github.io' \
+            -H 'Cache-Control: no-cache' \
+            -D - 'https://second-rolf-api.rolfsselas.workers.dev/api/second-rolf/health'
       - uses: actions/setup-node@v5
         with:
           node-version: 22
