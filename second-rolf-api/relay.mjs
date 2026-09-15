@@ -10,7 +10,7 @@ export class LocalRelay extends DurableObject {
     this.finishAll();
     const [client, server] = Object.values(new WebSocketPair());
     this.ctx.acceptWebSocket(server);
-    server.serializeAttachment({ available: false, gpu: false, checkedAt: 0, profileRevision: '' });
+    server.serializeAttachment({ available: false, modelReady: false, gpu: false, checkedAt: 0, profileRevision: '' });
     return new Response(null, { status: 101, webSocket: client });
   }
 
@@ -18,8 +18,11 @@ export class LocalRelay extends DurableObject {
     const socket = this.ctx.getWebSockets().find(s => s.readyState === 1);
     const state = socket?.deserializeAttachment();
     const current = state?.profileRevision === PROFILE_REVISION;
-    const available = Boolean(current && state?.available && Date.now() - state.checkedAt < 45_000);
-    return { available, gpu: Boolean(available && state?.gpu), busy: this.pending.size > 0, profileRevision: current ? PROFILE_REVISION : '' };
+    const fresh = Boolean(state?.checkedAt && Date.now() - state.checkedAt < 45_000);
+    const modelOnline = Boolean(fresh && state?.modelReady);
+    const available = Boolean(current && fresh && state?.available);
+    const reason = !socket ? 'pc_disconnected' : !state?.checkedAt ? 'model_starting' : !fresh ? 'heartbeat_expired' : !current ? 'connector_update_required' : !available ? 'model_unavailable' : this.pending.size ? 'busy' : 'ready';
+    return { available, modelOnline, connected: Boolean(socket), gpu: Boolean(modelOnline && state?.gpu), busy: this.pending.size > 0, reason, profileRevision: current ? PROFILE_REVISION : '', connectorRevision: state?.profileRevision || '', checkedAt: state?.checkedAt || 0 };
   }
 
   async chat(data) {
@@ -45,17 +48,19 @@ export class LocalRelay extends DurableObject {
     let data;
     try { data = JSON.parse(raw); } catch { socket.close(1003, 'Invalid JSON'); return; }
     if (data.type === 'health') {
-      const current = data.profileRevision === PROFILE_REVISION;
-      const available = current && data.available === true && data.model === MODEL;
-      socket.serializeAttachment({ available, gpu: available && data.gpu === true, checkedAt: Date.now(), profileRevision: current ? PROFILE_REVISION : '' });
+      const revision = typeof data.profileRevision === 'string' && data.profileRevision.length <= 100 ? data.profileRevision : '';
+      const current = revision === PROFILE_REVISION;
+      const modelReady = data.available === true && data.model === MODEL;
+      const available = current && modelReady;
+      socket.serializeAttachment({ available, modelReady, gpu: modelReady && data.gpu === true, checkedAt: Date.now(), profileRevision: revision });
       if (!available) this.finishAll(socket);
-      socket.send(JSON.stringify({ type: 'ack' }));
+      socket.send(JSON.stringify({ type: 'ack', profileRevision: PROFILE_REVISION, accepted: current }));
       return;
     }
     if (data.type === 'answer' && this.pending.get(data.id)?.socket === socket) {
       const current = data.profileRevision === PROFILE_REVISION && socket.deserializeAttachment()?.profileRevision === PROFILE_REVISION;
       const answer = current && typeof data.answer === 'string' ? data.answer.trim().slice(0, MAX_ANSWER) : '';
-      if (!answer) socket.serializeAttachment({ available: false, gpu: false, checkedAt: Date.now(), profileRevision: '' });
+      if (!answer) socket.serializeAttachment({ available: false, modelReady: false, gpu: false, checkedAt: Date.now(), profileRevision: '' });
       this.finish(data.id, answer ? { answer } : { error: 'local_model_unavailable' });
     }
   }

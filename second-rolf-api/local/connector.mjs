@@ -27,7 +27,7 @@ export async function probeModel(warm = false) {
     });
     if (!response.ok) throw new Error('Warmup failed');
     const result = await readJsonBounded(response, 8000);
-    if (!result.done || !result.response?.trim()) throw new Error('Model did not answer');
+    if (result.model !== MODEL || result.done !== true || !result.response?.trim()) throw new Error('Expected Ministral model did not answer');
   }
   const response = await fetch(`${OLLAMA}/api/ps`, { signal: AbortSignal.timeout(4000) });
   if (!response.ok) throw new Error('Ollama unavailable');
@@ -41,7 +41,7 @@ export function connect(config) {
   if (url.protocol !== 'https:' || url.hostname !== 'second-rolf-api.rolfsselas.workers.dev' || url.username || url.password) throw new Error('Unexpected Worker address');
   if (typeof config.key !== 'string' || config.key.length < 40) throw new Error('Missing connector key');
   url.protocol = 'wss:'; url.pathname = '/api/local/connect'; url.search = ''; url.hash = '';
-  let stopping = false, socket, timer, reconnectTimer, active, probing = false, lastAck = 0, verifiedAt = 0;
+  let stopping = false, socket, timer, reconnectTimer, active, probing = false, lastAck = 0, verifiedAt = 0, warnedRevision = false;
   const send = data => { if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify(data)); };
   async function heartbeat() {
     if (probing || socket?.readyState !== WebSocket.OPEN) return;
@@ -61,13 +61,21 @@ export function connect(config) {
     const ws = new WebSocket(url, { headers: { Authorization: `Bearer ${config.key}` }, handshakeTimeout: 15_000, maxPayload: 48_000 });
     socket = ws;
     ws.on('open', () => {
-      lastAck = Date.now(); console.log('Second Rolf connected. Model: ' + MODEL + '. Public profile: ' + PROFILE_REVISION);
+      lastAck = Date.now(); warnedRevision = false;
+      console.log('Second Rolf connected. Model: ' + MODEL + '. Public profile: ' + PROFILE_REVISION + '. General chat enabled.');
       void heartbeat(); timer = setInterval(() => { void heartbeat(); }, 15_000);
     });
     ws.on('message', async raw => {
       let data;
       try { data = JSON.parse(raw.toString()); } catch { return; }
-      if (data.type === 'ack') { lastAck = Date.now(); return; }
+      if (data.type === 'ack') {
+        lastAck = Date.now();
+        if (data.profileRevision !== PROFILE_REVISION && !warnedRevision) {
+          warnedRevision = true;
+          console.warn('Worker/profile version mismatch. Update the checkout, deploy the Worker and restart this connector. A PC reboot is not required.');
+        }
+        return;
+      }
       if (data.type === 'cancel' && active?.id === data.id) { active.controller.abort(); return; }
       if (data.type !== 'chat' || typeof data.id !== 'string') return;
       if (active) { ws.send(JSON.stringify({ type: 'answer', id: data.id, error: 'busy', profileRevision: PROFILE_REVISION })); return; }
