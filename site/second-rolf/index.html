@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Second Rolf er en faglig og teknisk AI-assistent om Rolfs offentlige prosjekter, dokumentasjonsforvaltning, informasjonsstyring og digitale verktøy.">
+  <meta name="description" content="Second Rolf er en faglig og teknisk AI-assistent om Rolfs profesjonelle bakgrunn, offentlige prosjekter, dokumentasjonsforvaltning, informasjonsstyring og digitale verktøy.">
   <meta name="theme-color" content="#0b2531">
   <title>Second Rolf — fag og teknologi</title>
   <link rel="stylesheet" href="./style.css">
@@ -22,25 +22,26 @@
     <section class="intro">
       <p class="eyebrow">Faglig og teknisk AI-assistent</p>
       <h1>Second Rolf</h1>
-      <p class="lede">Spør om Rolfs offentlige prosjekter, dokumentasjonsforvaltning, informasjonsstyring, AI og digitale verktøy. Svarene bygger på dokumentert prosjektinformasjon. Systemet er AI, ikke Rolf selv.</p>
+      <p class="lede">Spør om Rolfs profesjonelle bakgrunn, arbeidserfaring, utdanning, offentlige prosjekter, dokumentasjonsforvaltning, informasjonsstyring, AI og digitale verktøy. Svarene bygger på et avgrenset, dokumentert profesjonelt kildegrunnlag. Systemet er AI, ikke Rolf selv.</p>
       <div class="status-row">
         <span class="status" id="status" role="status"><i aria-hidden="true"></i><b>Offentlig profilmodus</b></span>
-        <span class="privacy">Kun faglig og teknisk prosjektinformasjon.</span>
+        <span class="privacy">Kun profesjonell og teknisk informasjon.</span>
       </div>
     </section>
     <section class="shell" id="chat" aria-label="Second Rolf chat">
       <aside class="side">
         <h2>Fagområder</h2>
         <ul>
+          <li>Arbeidserfaring, utdanning og profesjonell bakgrunn</li>
           <li>Dokumentasjonsforvaltning og arkiv</li>
-          <li>Metadata og informasjonsstyring</li>
+          <li>Systemforvaltning, integrasjoner og digitalisering</li>
           <li>AI, kildebaserte svar og lokal modellkjøring</li>
           <li>Produktutvikling og interaksjonsdesign</li>
         </ul>
         <p><a href="./sources.html">Se faglig kildegrunnlag</a></p>
         <div class="boundary">
           <strong>Avgrenset til fag og teknologi</strong>
-          <p>Kun offentlig prosjektinformasjon. Ingen tilgang til private meldinger, interne arbeidsdata, passord eller Rolfs PC. Ingen fullmakt til å inngå avtaler. Ingen betalt sky-AI som fallback.</p>
+          <p>Kun dokumentert profesjonell informasjon og offentlig prosjektinformasjon. Ingen tilgang til private meldinger, interne arbeidsdata, passord eller Rolfs PC. Ingen fullmakt til å inngå avtaler. Ingen betalt sky-AI som fallback.</p>
         </div>
         <button class="clear" id="clear" type="button">Ny samtale</button>
       </aside>
@@ -50,28 +51,28 @@
             <div class="avatar">R2</div>
             <div>
               <span class="speaker">Second Rolf</span>
-              <p>Jeg er en faglig og teknisk AI-assistent for Rolfs offentlige prosjektportefølje. Spør om dokumentasjonsforvaltning, metadata, AI, systemdesign eller hvordan verktøyene er bygget. Jeg viser kildene og skiller mellom dokumenterte prosjektfakta og generelle faglige forklaringer.</p>
+              <p>Jeg er en faglig og teknisk AI-assistent for Rolfs profesjonelle profil og offentlige prosjektportefølje. Spør om arbeidserfaring, utdanning, dokumentasjonsforvaltning, systemforvaltning, AI eller hvordan verktøyene er bygget. Jeg bruker bare det avgrensede profesjonelle kildegrunnlaget.</p>
             </div>
           </article>
         </div>
         <div class="suggestions" aria-label="Forslag">
-          <button type="button" data-prompt="Hvilke prosjekter viser Rolf her?">Prosjektoversikt</button>
+          <button type="button" data-prompt="Hva jobber Rolf med i dag?">Nåværende rolle</button>
+          <button type="button" data-prompt="Hvilken arbeidserfaring har Rolf?">Arbeidserfaring</button>
+          <button type="button" data-prompt="Hvilken utdanning har Rolf?">Utdanning</button>
+          <button type="button" data-prompt="Hvilken erfaring har Rolf med Public 360 og integrasjoner?">Systemforvaltning</button>
           <button type="button" data-prompt="Hvordan bruker Noark-assistenten kilder?">Kildebasert AI</button>
-          <button type="button" data-prompt="Hvordan arbeider MetaReady med informasjonsstyring?">Informasjonsstyring</button>
-          <button type="button" data-prompt="Hvordan støtter Archive Assist dokumentanalyse?">Dokumentanalyse</button>
           <button type="button" data-prompt="Hvordan er den lokale AI-arkitekturen i Second Rolf bygget?">Lokal AI</button>
           <button type="button" data-prompt="Hva er Arkivmuseet?">Arkivmuseet</button>
           <button type="button" data-prompt="Hvilke prosjektprinsipper brukes for utvikling og testing?">Utvikling og testing</button>
-          <button type="button" data-prompt="Hvilke prosjekter demonstrerer interaksjonsdesign?">Interaksjonsdesign</button>
         </div>
         <form class="composer" id="composer">
-          <label class="sr-only" for="question">Spør om fag, teknologi eller prosjekter</label>
-          <textarea id="question" name="question" rows="2" maxlength="1000" placeholder="Spør om fag, teknologi eller prosjekter …" required></textarea>
+          <label class="sr-only" for="question">Spør om fag, teknologi eller profesjonell bakgrunn</label>
+          <textarea id="question" name="question" rows="2" maxlength="1000" placeholder="Spør om fag, teknologi eller profesjonell bakgrunn …" required></textarea>
           <button type="submit" id="send">Send</button>
         </form>
         <p id="chat-feedback" class="chat-feedback" role="status" aria-live="polite"></p>
         <div id="verification" class="turnstile" hidden></div>
-        <p class="fineprint">Live AI brukes bare når modellen og den gjeldende faglige kunnskapsbasen er bekreftet. Ellers brukes den innebygde prosjektoversikten. Ingen betalt sky-modell kobles inn automatisk.</p>
+        <p class="fineprint">Live AI brukes bare når modellen og den gjeldende profesjonelle kunnskapsbasen er bekreftet. Ellers brukes den innebygde profesjonelle profilen. Ingen betalt sky-modell kobles inn automatisk.</p>
       </div>
     </section>
   </main>
@@ -79,6 +80,6 @@
     <span>Second Rolf · faglig og teknisk beta</span>
     <span>AI-assistent — ikke personen selv</span>
   </footer>
-  <script type="module" src="./app.js?v=20260914-professional-only"></script>
+  <script type="module" src="./app.js?v=20260915-cv-professional"></script>
 </body>
 </html>
