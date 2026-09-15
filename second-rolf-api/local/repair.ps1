@@ -40,7 +40,8 @@ $config = Get-Content -LiteralPath $ConfigPath -Raw | ConvertFrom-Json
 if ($config.workerUrl.TrimEnd('/') -ne $workerOrigin -or $config.key.Length -lt 40) {
     throw 'This is not a valid private Second Rolf connector config. Do not paste secrets into chat or GitHub.'
 }
-$major = [int](& $node -p 'process.versions.node.split(".")[0]')
+$nodeVersion = [string](& $node --version)
+$major = [int]$nodeVersion.Trim().TrimStart('v').Split('.')[0]
 if ($major -lt 22) { throw 'Node.js 22 or later is required.' }
 
 Push-Location $apiRoot
@@ -49,6 +50,9 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Dependency installation failed; existing connector was not stopped.' }
     & $npm run check
     if ($LASTEXITCODE -ne 0) { throw 'Source validation failed; existing connector was not stopped.' }
+    # Single quotes inside JavaScript also survive Windows PowerShell 5 native argument handling.
+    $expected = & $node --input-type=module -e "import('./protocol.mjs').then(m=>console.log(m.PROFILE_REVISION))"
+    if ($LASTEXITCODE -ne 0 -or -not $expected) { throw 'Could not read the current public profile revision.' }
 
     if ($DeployWorker) {
         & $npm run deploy
@@ -76,7 +80,9 @@ try {
     & $node local/doctor.mjs --local-only
     if ($LASTEXITCODE -ne 0) { throw 'Local Ministral did not answer. Ensure ollama pull ministral-3:14b has completed. No existing connector was stopped.' }
 
-    # Restart only connectors using this exact, validated config. Never stop unrelated Node/Ollama processes.
+    # Refresh PIDs after installation/warmup; restart only this exact validated config.
+    # Never stop unrelated Node/Ollama processes or modify startup tasks.
+    $processes = @(Get-CimInstance Win32_Process -Filter "Name = 'node.exe'" -ErrorAction SilentlyContinue)
     foreach ($process in $processes) {
         $oldConfig = Read-ConnectorConfigPath $process.CommandLine
         if ($oldConfig -and $oldConfig -eq $ConfigPath) {
@@ -90,7 +96,6 @@ try {
         Start-Sleep -Seconds 3
         try {
             $health = Invoke-RestMethod ($workerOrigin + '/api/second-rolf/health') -TimeoutSec 6
-            $expected = & $node --input-type=module -e 'import { PROFILE_REVISION } from "./protocol.mjs"; console.log(PROFILE_REVISION)'
             if ($health.available -eq $true -and $health.model -eq 'ministral-3:14b' -and $health.profileRevision -eq $expected) {
                 & $node local/doctor.mjs --public-only
                 if ($LASTEXITCODE -eq 0) { Write-Host 'Public readiness confirmed. Reload the page and complete its security check.'; return }
