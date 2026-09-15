@@ -2,7 +2,7 @@
 export const interview = {
   schemaVersion: 4,
   id: 'second-rolf-professional-profile',
-  revision: '2026-09-15-cv-professional',
+  revision: '2026-09-15-technical-self-description',
   publicationScope: 'Public professional, educational and technical profile only.',
   useRules: [
     'Discuss only documented professional experience, education, public portfolio projects, technical implementation, documentation and information management, AI and product development.',

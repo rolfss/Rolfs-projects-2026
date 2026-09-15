@@ -3,17 +3,20 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { interview } from '../../site/second-rolf/interview.js';
 import { knowledge, rankKnowledge, knowledgeFor } from '../../site/second-rolf/knowledge.js';
-import { PROFILE_REVISION, modelRequest, parseModelAnswer, sourcesFor, cleanConversation } from '../protocol.mjs';
+import { PROFILE_REVISION, MODEL, modelRequest, parseModelAnswer, sourcesFor, cleanConversation } from '../protocol.mjs';
 
-const allowed = ['profile','current-role','public-access','integrations-operations','testing-procurement','leadership','agder','nrbr-nittedal','karmoy','kartverket','records-management','technology','ai-automation-professional','communication','education','education-details','civic-background','principles','noark','archive-assist','metaready','arkivmuseet','games','ai','contact'];
+const allowed = ['profile','current-role','public-access','integrations-operations','testing-procurement','leadership','agder','nrbr-nittedal','karmoy','kartverket','records-management','technology','ai-automation-professional','communication','education','education-details','civic-background','principles','noark','archive-assist','metaready','arkivmuseet','games','ai','ai-model','ai-hardware','ai-knowledge','ai-privacy','contact'];
 const removed = ['interests','science-fiction','books','music','civilization','creative-work','exercise','personality','mysticism','past-and-present','psychology-links','integrity-example','dialogue','technical-background','spanish','friendship','close-relationships','grimstad','hesse','jung','julian','formative-reading'];
+
+const revision = '2026-09-15-technical-self-description';
+const assetVersion = '20260915-technical-self-description';
 
 test('professional CV and project records are supplied; the compatibility dataset remains empty', () => {
   assert.deepEqual(interview.entries, []);
   assert.deepEqual(knowledge.map(k => k.id), allowed);
   assert.equal(new Set(knowledge.map(k => k.id)).size, knowledge.length);
   assert.equal(interview.revision, PROFILE_REVISION);
-  assert.equal(PROFILE_REVISION, '2026-09-15-cv-professional');
+  assert.equal(PROFILE_REVISION, revision);
   for (const entry of knowledge) assert.ok(entry.answer && entry.source && entry.terms.length && entry.url);
 });
 
@@ -116,12 +119,12 @@ test('all public entry points show only professional content and no export contr
     assert.match(html, /[Ff]aglig/);
   }
   const home = fs.readFileSync(new URL('../../site/second-rolf/index.html', import.meta.url), 'utf8');
-  assert.match(home, /app\.js\?v=20260915-cv-professional/);
+  assert.ok(home.includes(`app.js?v=${assetVersion}`));
   assert.doesNotMatch(home, /href="\.\/interview\.html"/);
   const legacy = fs.readFileSync(new URL('../../site/second-rolf/interview.html', import.meta.url), 'utf8');
   assert.match(legacy, /url=\.\/sources\.html/);
   const sources = fs.readFileSync(new URL('../../site/second-rolf/sources.html', import.meta.url), 'utf8');
-  assert.match(sources, /knowledge\.js\?v=20260915-cv-professional/);
+  assert.ok(sources.includes(`knowledge.js?v=${assetVersion}`));
   assert.doesNotMatch(sources, /interview\.entries/);
 });
 
@@ -134,4 +137,50 @@ test('the connector checks revision before starting local inference', () => {
 test('accurate technical limitations remain allowed', () => {
   const answer = 'The local model can make mistakes. This assistant covers professional and technical subjects only.';
   assert.equal(parseModelAnswer(JSON.stringify({ answer, source_ids: [] })), answer);
+});
+
+for (const [question, id, text] of [
+  ['Hvordan er Second Rolf bygd opp?', 'ai', 'Cloudflare Worker'],
+  ['How are you built?', 'ai', 'Node.js'],
+  ['Hvilken modell bruker du?', 'ai-model', 'ministral-3:14b'],
+  ['Which model do you use?', 'ai-model', 'Q4_K_M'],
+  ['Hvilken maskinvare kjører du på?', 'ai-hardware', 'RTX 5070 Ti'],
+  ['What hardware do you run on?', 'ai-hardware', '32 GB RAM'],
+  ['Hvilken prosessor har PC-en?', 'ai-hardware', 'Ryzen 7 9800X3D'],
+  ['Hvor mye VRAM har du?', 'ai-hardware', '16 GB VRAM'],
+  ['Er du fintrent, eller bruker du en kunnskapsbase?', 'ai-knowledge', 'ikke en egenfintrent'],
+  ['Bruker du RAG?', 'ai-knowledge', 'ikke en vektordatabase'],
+  ['Hvordan fungerer ditt personvern?', 'ai-privacy', 'gjennom Cloudflare']
+]) test(`self-description works in profile mode and model context: ${question}`, () => {
+  const matches = rankKnowledge(question).slice(0, 2);
+  const visible = matches.filter(m => m.score >= matches[0].score * .75);
+  assert.ok(visible.some(k => k.id === id && k.answer.includes(text)));
+  const request = modelRequest({ question, history: [] });
+  assert.ok(request.messages[0].content.includes(text));
+  assert.ok(request.format.properties.source_ids.items.enum.includes(id));
+  const result = sourcesFor(parseModelAnswer(JSON.stringify({ answer: text, source_ids: [id] })));
+  assert.equal(new URL(result[0].url).hostname, 'github.com');
+});
+
+test('technical self-description matches runtime configuration and preserves scope', () => {
+  const request = modelRequest({ question: 'Describe your implementation', history: [] });
+  const model = knowledge.find(k => k.id === 'ai-model').answer;
+  assert.ok(model.includes(MODEL));
+  assert.ok(model.includes(request.options.num_ctx.toLocaleString('nb-NO').replace(/\u00a0/g, ' ')));
+  assert.ok(model.includes(request.options.num_predict.toLocaleString('nb-NO').replace(/\u00a0/g, ' ')));
+  assert.match(request.messages[0].content, /SELF-DESCRIPTION:/);
+  assert.match(request.messages[0].content, /Distinguish documented configuration from live telemetry/);
+  assert.match(request.messages[0].content, /Employment and education may be described only/);
+  assert.doesNotMatch(request.messages[0].content, /education, clients and private contact details are not established/);
+  const aiFacts = knowledge.filter(k => ['ai','ai-model','ai-hardware','ai-knowledge','ai-privacy'].includes(k.id));
+  for (const fact of aiFacts) assert.ok(knowledgeFor('').some(k => k.id === fact.id));
+});
+
+test('technical intro, source page and cached module graph use the same revision', () => {
+  const home = fs.readFileSync(new URL('../../site/second-rolf/index.html', import.meta.url), 'utf8');
+  for (const text of ['id="technical-setup"','Ministral 3 14B','RTX 5070 Ti','16 GB VRAM','9800X3D','32 GB RAM','Dokumentert oppsett']) assert.ok(home.includes(text), text);
+  for (const file of ['app.js','knowledge.js']) {
+    const code = fs.readFileSync(new URL(`../../site/second-rolf/${file}`, import.meta.url), 'utf8');
+    assert.ok(code.includes(`?v=${assetVersion}`));
+  }
 });

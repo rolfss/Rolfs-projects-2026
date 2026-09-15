@@ -39,6 +39,12 @@
           <li>Produktutvikling og interaksjonsdesign</li>
         </ul>
         <p><a href="./sources.html">Se faglig kildegrunnlag</a></p>
+        <div class="boundary" id="technical-setup">
+          <strong>Slik er boten bygget</strong>
+          <p>Ministral 3 14B via Ollama på en Windows-PC med RTX 5070 Ti (16 GB VRAM), Ryzen 7 9800X3D og 32 GB RAM. Nettsiden ligger på GitHub Pages; Cloudflare formidler live-chatten til PC-en.</p>
+          <p><a href="./sources.html#ai">Oppbygning, modell og maskinvare</a></p>
+          <p>Dokumentert oppsett. Statuslyset viser om lokal AI er tilgjengelig nå.</p>
+        </div>
         <div class="boundary">
           <strong>Avgrenset til fag og teknologi</strong>
           <p>Kun dokumentert profesjonell informasjon og offentlig prosjektinformasjon. Ingen tilgang til private meldinger, interne arbeidsdata, passord eller Rolfs PC. Ingen fullmakt til å inngå avtaler. Ingen betalt sky-AI som fallback.</p>
@@ -51,7 +57,7 @@
             <div class="avatar">R2</div>
             <div>
               <span class="speaker">Second Rolf</span>
-              <p>Jeg er en faglig og teknisk AI-assistent for Rolfs profesjonelle profil og offentlige prosjektportefølje. Spør om arbeidserfaring, utdanning, dokumentasjonsforvaltning, systemforvaltning, AI eller hvordan verktøyene er bygget. Jeg bruker bare det avgrensede profesjonelle kildegrunnlaget.</p>
+              <p>Jeg er en faglig og teknisk AI-assistent for Rolfs profesjonelle profil og offentlige prosjektportefølje. Spør om arbeidserfaring, utdanning, dokumentasjonsforvaltning, systemforvaltning, AI eller hvordan verktøyene er bygget. Du kan også spørre hvilken modell og maskinvare jeg bruker. Jeg bruker bare det avgrensede profesjonelle kildegrunnlaget.</p>
             </div>
           </article>
         </div>
@@ -61,7 +67,10 @@
           <button type="button" data-prompt="Hvilken utdanning har Rolf?">Utdanning</button>
           <button type="button" data-prompt="Hvilken erfaring har Rolf med Public 360 og integrasjoner?">Systemforvaltning</button>
           <button type="button" data-prompt="Hvordan bruker Noark-assistenten kilder?">Kildebasert AI</button>
-          <button type="button" data-prompt="Hvordan er den lokale AI-arkitekturen i Second Rolf bygget?">Lokal AI</button>
+          <button type="button" data-prompt="Hvordan er Second Rolf bygd opp?">Slik er boten bygget</button>
+          <button type="button" data-prompt="Hvilken modell bruker du?">Modellen bak</button>
+          <button type="button" data-prompt="Hvilken maskinvare kjører du på?">Maskinvaren bak</button>
+          <button type="button" data-prompt="Er du fintrent, eller bruker du en kunnskapsbase?">Kunnskapsgrunnlaget</button>
           <button type="button" data-prompt="Hva er Arkivmuseet?">Arkivmuseet</button>
           <button type="button" data-prompt="Hvilke prosjektprinsipper brukes for utvikling og testing?">Utvikling og testing</button>
         </div>
@@ -80,6 +89,6 @@
     <span>Second Rolf · faglig og teknisk beta</span>
     <span>AI-assistent — ikke personen selv</span>
   </footer>
-  <script type="module" src="./app.js?v=20260915-cv-professional"></script>
+  <script type="module" src="./app.js?v=20260915-technical-self-description"></script>
 </body>
 </html>
