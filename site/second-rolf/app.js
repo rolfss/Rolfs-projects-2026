@@ -1,5 +1,5 @@
 import { rankKnowledge, PROFILE_REVISION } from './knowledge.js?v=20260915-cv-professional';
-import { BACKEND_ORIGIN, watchStatus } from './status.js?v=20260915-cv-professional';
+import { BACKEND_ORIGIN, watchStatus } from './status.js';
 const els = Object.fromEntries(['messages', 'composer', 'question', 'send', 'clear', 'status', 'verification', 'chat-feedback'].map(id => [id, document.getElementById(id)]));
 let history = [], live = false, siteKey = '', turnstileToken = '', widgetId = null, scriptPromise, busy = false, generation = 0, controller;
 
