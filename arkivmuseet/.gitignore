@@ -2,3 +2,5 @@ node_modules/
 dist/
 *.tsbuildinfo
 qa-output/
+qa-investigation/
+public/sak17.html
