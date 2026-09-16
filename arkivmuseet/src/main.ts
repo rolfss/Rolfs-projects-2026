@@ -1,3 +1,4 @@
+import {Investigation} from './investigation';
 import './style.css';
 import './journey.css';
 import records from '../cases/cases.json';
@@ -75,7 +76,13 @@ document.querySelectorAll<HTMLButtonElement>('[data-key]').forEach(b=>{b.addEven
 document.addEventListener('visibilitychange',()=>{sound.pause(document.hidden||viewOpen||($('#dialog') as HTMLDialogElement).open);});
 document.addEventListener('museum-render-error',()=>{showDialog('3D-visningen ble avbrutt',`<p>Nettleseren mistet tilgangen til grafikken. Historiene og kildene er fortsatt tilgjengelige.</p><button id="recover-flat" class="primary">Fortsett reisen uten 3D →</button><p><a href="${import.meta.env.BASE_URL}tekst.html">Åpne tekstversjonen</a></p><p><a href="${import.meta.env.BASE_URL}">Last museet på nytt</a></p>`);$('#recover-flat').onclick=()=>{closeDialog();begin(true);};});
 async function initialize(){try{const {MuseumWorld}=await import('./world');world=new MuseumWorld($('#world'),cases,{near:nearChanged,activate:openStory,step:()=>sound.step(),menu});try{const p=JSON.parse(localStorage.getItem('arkivmuseet-preferences')||'{}');if(typeof p.reduced==='boolean')world.settings.reduced=p.reduced;if(Number.isFinite(p.sensitivity))world.settings.sensitivity=Math.max(.3,Math.min(2,p.sensitivity));if(['1','1.15','1.3'].includes(p.textsize))document.documentElement.style.setProperty('--text-scale',p.textsize);if(Number.isFinite(p.volume))sound.volume=Math.max(0,Math.min(.7,p.volume));if(p.quality===.75){world.settings.quality=.75;world.renderer.setPixelRatio(Math.min(devicePixelRatio,1.6)*.75);world.renderer.shadowMap.enabled=false;}}catch{}
- await world.init();if(flatMode)world.setPaused(true);($('#enter') as HTMLButtonElement).disabled=false;$('#loading').innerHTML='<span class="ready-dot"></span> Museet er åpent · Besøk i ditt eget tempo';
+ await world.init();await investigation.attachWorld(world);if(flatMode)world.setPaused(true);($('#enter') as HTMLButtonElement).disabled=false;$('#loading').innerHTML='<span class="ready-dot"></span> Museet er åpent · Besøk i ditt eget tempo';
  Object.defineProperty(window,'museumDiagnostics',{value:()=>world?.diagnostics(),writable:false});
  }catch(e){console.error(e);$('#loading').innerHTML=`3D-visningen kunne ikke åpnes. Velg «Spill uten 3D» ovenfor, eller <a href="${import.meta.env.BASE_URL}tekst.html">Les hele utstillingen som tekst ↗</a>`;}}
+const investigation=new Investigation({
+ dialog:showDialog,close:closeDialog,
+ visit:async id=>{if(cases.some(c=>c.id===id))await navigate(id,flatMode);},
+ read:async id=>{if(!cases.some(c=>c.id===id))return;await navigate(id,true);current=cases.find(c=>c.id===id)!;step=0;renderStory();},
+ announce,sound:()=>sound.enabled,volume:()=>sound.volume
+});
 void initialize();
