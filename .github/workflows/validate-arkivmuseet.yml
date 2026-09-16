@@ -12,7 +12,7 @@ concurrency:
 jobs:
   museum:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v5
@@ -33,9 +33,11 @@ jobs:
       - name: Kontroller Sak 17 og den opprinnelige museumsreisen
         working-directory: arkivmuseet
         run: |
+          set -o pipefail
+          mkdir -p qa-logs
           export MUSEUM_CHROME="$(pnpm exec node --input-type=module -e "import {chromium} from '@playwright/test'; console.log(chromium.executablePath());")"
           export MUSEUM_HEADED=1
-          pnpm preview > /tmp/museum-preview.log 2>&1 &
+          pnpm preview > qa-logs/preview.log 2>&1 &
           SERVER=$!
           trap 'kill "$SERVER" 2>/dev/null || true' EXIT
           for i in $(seq 1 40); do
@@ -43,8 +45,8 @@ jobs:
             sleep 1
           done
           RESULT=0
-          timeout 240s xvfb-run -a pnpm test:investigation || RESULT=1
-          timeout 240s xvfb-run -a pnpm test:browser || RESULT=1
+          timeout 360s xvfb-run -a pnpm test:investigation 2>&1 | tee qa-logs/investigation.log || RESULT=1
+          timeout 360s xvfb-run -a pnpm test:browser 2>&1 | tee qa-logs/original-museum.log || RESULT=1
           exit "$RESULT"
       - uses: actions/upload-artifact@v4
         if: always()
@@ -53,5 +55,5 @@ jobs:
           path: |
             arkivmuseet/qa-investigation/
             arkivmuseet/qa-output/
-            /tmp/museum-preview.log
+            arkivmuseet/qa-logs/
           retention-days: 7

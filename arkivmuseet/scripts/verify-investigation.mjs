@@ -6,7 +6,7 @@ const out=process.env.MUSEUM_QA_DIR||'qa-investigation';await mkdir(out,{recursi
 const data=JSON.parse(await readFile(new URL('../cases/investigation.json',import.meta.url)));
 const browser=await chromium.launch({executablePath:process.env.MUSEUM_CHROME||undefined,headless:process.env.MUSEUM_HEADED!=='1',args:['--enable-webgl','--ignore-gpu-blocklist','--enable-unsafe-swiftshader']});
 const checks=[],errors=[],missing=[];
-const openPage=async options=>{const page=await browser.newPage(options);page.setDefaultTimeout(30000);return page;};
+const openPage=async options=>{const page=await browser.newPage(options);page.setDefaultTimeout(30000);await page.bringToFront();return page;};
 const check=(value,name)=>{assert.ok(value,name);checks.push(name);console.log('PASS: '+name);};
 const diagnostics=p=>p.evaluate(()=>window.museumCaseDiagnostics());
 const action=(p,a,v)=>p.locator(`[data-c17="${a}"]${v!==undefined?`[data-value="${v}"]`:''}`).first();
@@ -59,16 +59,18 @@ try{
  // Key F opens the same room investigation, rather than an inaccessible pointer-only easter egg.
  await page.locator('#world').focus();await page.keyboard.press('KeyF');check(await page.locator('.case17-evidence-list').isVisible(),'Keyboard F opens the nearby desk');await page.locator('#dialog-close').click();
  await page.locator('#home').click();await page.screenshot({path:out+'/06-hall-restored.png'});
+ // Release the completed GPU session before creating the mobile window.
+ await page.close();
  const mobile=await openPage({...devices['Pixel 7'],viewport:{width:390,height:844},reducedMotion:'reduce'});
  mobile.on('pageerror',e=>errors.push('mobile: '+e.message));await enter(mobile);await mobile.locator('#case17-open').click();await action(mobile,'start').click();
  check(await mobile.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Mobile board has no horizontal overflow');await mobile.screenshot({path:out+'/07-mobile-board.png'});
  await action(mobile,'access').click();await action(mobile,'access-next').click();await action(mobile,'redaction','a2').click();await mobile.screenshot({path:out+'/08-mobile-redaction.png'});
  await mobile.setViewportSize({width:320,height:700});check(await mobile.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'320px layout has no horizontal overflow');
  await mobile.evaluate(()=>document.documentElement.style.setProperty('--text-scale','1.3'));check(await mobile.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Enlarged mobile text has no horizontal overflow');
- await mobile.keyboard.press('Escape');check(await mobile.locator('#dialog').isHidden(),'Escape closes the investigation');
- const flat=await openPage({viewport:{width:390,height:844}});await flat.goto(url);await flat.locator('#flat-enter').click();await flat.locator('#case17-open').click();await action(flat,'start').click();await action(flat,'room','tokke').click();check(await flat.locator('.case17-evidence-list').isVisible(),'Investigation works in the non-3D mode');
+ await mobile.keyboard.press('Escape');check(await mobile.locator('#dialog').isHidden(),'Escape closes the investigation');await mobile.close();
+ const flat=await openPage({viewport:{width:390,height:844}});await flat.goto(url);await flat.locator('#flat-enter').click();await flat.locator('#case17-open').click();await action(flat,'start').click();await action(flat,'room','tokke').click();check(await flat.locator('.case17-evidence-list').isVisible(),'Investigation works in the non-3D mode');await flat.close();
  const privatePage=await openPage();await privatePage.addInitScript(()=>{Storage.prototype.getItem=()=>{throw new DOMException('Blocked','SecurityError')};Storage.prototype.setItem=()=>{throw new DOMException('Blocked','QuotaExceededError')};});
- await privatePage.goto(url);await privatePage.locator('#flat-enter').click();await privatePage.locator('#case17-open').click();check(await privatePage.locator('.case17-warning').isVisible(),'Storage failure is disclosed without blocking play');
+ await privatePage.goto(url);await privatePage.locator('#flat-enter').click();await privatePage.locator('#case17-open').click();check(await privatePage.locator('.case17-warning').isVisible(),'Storage failure is disclosed without blocking play');await privatePage.close();
  const text=await openPage({javaScriptEnabled:false,viewport:{width:390,height:844}});const textResponse=await text.goto(url+'sak17.html');check(textResponse.ok(),'No-JavaScript investigation text is deployed');check(await text.locator('article').count()===26,'All 10 evidence, 6 triage, 4 access and 6 decision items have a text equivalent');
  check(errors.length===0,'No JavaScript exceptions');check(missing.length===0,'No missing investigation assets');
  await writeFile(out+'/results.json',JSON.stringify({checked:new Date().toISOString(),checks,errors,missing},null,2));console.log(JSON.stringify({passed:checks.length,errors,missing}));
