@@ -1,0 +1,36 @@
+name: Kontroller Arkivmuseet
+on:
+  pull_request:
+    paths:
+      - 'arkivmuseet/**'
+      - '.github/workflows/validate-arkivmuseet.yml'
+permissions:
+  contents: read
+concurrency:
+  group: museum-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  museum:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - name: Installer, test og bygg
+        working-directory: arkivmuseet
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm test
+          pnpm build
+      - name: Pakk testgrunnlaget
+        run: tar -czf /tmp/museum-workspace.tar.gz arkivmuseet
+      - uses: actions/upload-artifact@v4
+        with:
+          name: museum-workspace
+          path: /tmp/museum-workspace.tar.gz
+          retention-days: 1
