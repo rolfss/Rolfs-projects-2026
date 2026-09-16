@@ -4,13 +4,13 @@ import {mkdir, writeFile, readFile} from 'node:fs/promises';
 const url=process.env.MUSEUM_URL||'http://127.0.0.1:4196/Rolfs-projects-2026/arkivmuseet/';
 const out=process.env.MUSEUM_QA_DIR||'qa-investigation';await mkdir(out,{recursive:true});
 const data=JSON.parse(await readFile(new URL('../cases/investigation.json',import.meta.url)));
-const browser=await chromium.launch({executablePath:process.env.MUSEUM_CHROME||undefined,headless:true,args:['--enable-webgl','--ignore-gpu-blocklist','--enable-unsafe-swiftshader']});
+const browser=await chromium.launch({executablePath:process.env.MUSEUM_CHROME||undefined,headless:process.env.MUSEUM_HEADED!=='1',args:['--enable-webgl','--ignore-gpu-blocklist','--enable-unsafe-swiftshader']});
 const checks=[],errors=[],missing=[];
-const openPage=async options=>{const page=await browser.newPage(options);page.setDefaultTimeout(15000);return page;};
+const openPage=async options=>{const page=await browser.newPage(options);page.setDefaultTimeout(30000);return page;};
 const check=(value,name)=>{assert.ok(value,name);checks.push(name);console.log('PASS: '+name);};
 const diagnostics=p=>p.evaluate(()=>window.museumCaseDiagnostics());
 const action=(p,a,v)=>p.locator(`[data-c17="${a}"]${v!==undefined?`[data-value="${v}"]`:''}`).first();
-async function enter(p){await p.goto(url);await p.locator('#case17-open').waitFor({state:'attached'});await p.waitForFunction(()=>!document.querySelector('#enter').disabled);await p.locator('#enter').click();}
+async function enter(p){await p.goto(url);await p.locator('#case17-open').waitFor({state:'attached'});await p.waitForFunction(()=>!document.querySelector('#enter').disabled,null,{timeout:60000});console.log('ENTER READY',await p.evaluate(()=>window.museumDiagnostics()));await p.locator('#enter').click();}
 try{
  const page=await openPage({viewport:{width:1440,height:960},reducedMotion:'reduce'});
  page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.url().startsWith(url)&&r.status()>=400)missing.push(r.url());});

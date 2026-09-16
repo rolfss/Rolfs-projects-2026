@@ -9,7 +9,7 @@
       "id": "osen",
       "title": "Det første hullet",
       "question": "Når ble avviket en oppgave ingen eide?",
-      "role": "Arkivaren",
+      "role": "Arkivar",
       "voice": "Jeg kan finne det som er fanget opp. Jeg kan ikke journalføre en beslutning jeg aldri får vite om.",
       "prop": "journal"
     },
@@ -17,7 +17,7 @@
       "id": "tokke",
       "title": "Grønt er ikke det samme som lesbart",
       "question": "Hva har den grønne driftsmeldingen egentlig bevist?",
-      "role": "Systemforvalteren",
+      "role": "Systemforvalter",
       "voice": "Flyttingen er ferdig. Men hvem har prøvd å åpne dokumentene etterpå?",
       "prop": "server"
     },
@@ -25,7 +25,7 @@
       "id": "innsyn",
       "title": "Mappen med et tomrom",
       "question": "Har den som skal behandle saken fått hele grunnlaget?",
-      "role": "Journalisten",
+      "role": "Journalist",
       "voice": "Jeg spør ikke bare hva dere bestemte. Jeg spør hva beslutningen bygget på.",
       "prop": "folder"
     },
@@ -33,7 +33,7 @@
       "id": "hanekleiv",
       "title": "Signaturen som mangler",
       "question": "Har noen dokumentert at kontrollen faktisk skjedde?",
-      "role": "Kontrolløren",
+      "role": "Kontrollør",
       "voice": "Utkastet viser hva vi skulle gjøre. Hvor er sporet av det som ble gjort?",
       "prop": "clipboard"
     },
@@ -41,7 +41,7 @@
       "id": "npe",
       "title": "Det ordner vi senere",
       "question": "Hva står igjen når senere er blitt seks måneder?",
-      "role": "Innbyggeren",
+      "role": "Innbygger",
       "voice": "Jeg trenger ikke alle systemene deres. Jeg trenger et svar som kan forklares.",
       "prop": "phone"
     }

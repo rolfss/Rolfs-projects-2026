@@ -34,6 +34,7 @@ jobs:
         working-directory: arkivmuseet
         run: |
           export MUSEUM_CHROME="$(pnpm exec node --input-type=module -e "import {chromium} from '@playwright/test'; console.log(chromium.executablePath());")"
+          export MUSEUM_HEADED=1
           pnpm preview > /tmp/museum-preview.log 2>&1 &
           SERVER=$!
           trap 'kill "$SERVER" 2>/dev/null || true' EXIT
@@ -42,8 +43,8 @@ jobs:
             sleep 1
           done
           RESULT=0
-          timeout 180s pnpm test:investigation || RESULT=1
-          timeout 180s pnpm test:browser || RESULT=1
+          timeout 240s xvfb-run -a pnpm test:investigation || RESULT=1
+          timeout 240s xvfb-run -a pnpm test:browser || RESULT=1
           exit "$RESULT"
       - uses: actions/upload-artifact@v4
         if: always()

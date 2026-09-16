@@ -23,7 +23,7 @@ export class MuseumWorld {
  startTime=performance.now(); lastTime=performance.now(); sun!:T.DirectionalLight; nearest:string|null=null; doors:T.Group[]=[];
  target:T.Vector3|null=null; targetYaw=0; targetPitch=0; flight=0; from=new T.Vector3(); fromYaw=0; fromPitch=0;
  pointer:{id:number;x:number;y:number}|null=null; onNear:(id:string|null)=>void; onActivate:(id:string)=>void; onStep:()=>void; onMenu:()=>void;
- dragDistance=0; disposed=false; stepAt=0; frameCount=0; fps=60;
+ dragDistance=0; disposed=false; stepAt=0; frameCount=0; fps=60; lastRenderAt=-Infinity;
  constructor(canvas:HTMLCanvasElement,cases:MuseumCase[],callbacks:{near:(id:string|null)=>void;activate:(id:string)=>void;step:()=>void;menu:()=>void}){
   this.onNear=callbacks.near;this.onActivate=callbacks.activate;this.onStep=callbacks.step;this.onMenu=callbacks.menu;this.cases=cases;
   this.renderer=new T.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});this.renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));this.renderer.setSize(innerWidth,innerHeight);
@@ -182,7 +182,10 @@ export class MuseumWorld {
    if(!this.settings.reduced)this.sun.position.z=8+Math.sin((now-this.startTime)/600000)*9;
   }
   if(this.active){let nearest:string|null=null;let min=8;for(const c of this.cases){const dist=Math.hypot(c.position[0]-this.camera.position.x,c.position[1]-this.camera.position.z);if(dist<22)this.loadRoom(c);if(this.artifacts.has(c.id))this.artifacts.get(c.id)!.visible=dist<37;if(dist<min){nearest=c.id;min=dist;}}if(Math.hypot(19-this.camera.position.x,45-this.camera.position.z)<22)this.loadLeader();if(Math.hypot(19-this.camera.position.x,45-this.camera.position.z)<min)nearest='leader';if(nearest!==this.nearest){this.nearest=nearest;this.onNear(nearest);}}
-  this.renderer.render(this.scene,this.camera);this.frameCount++;if(dt>0)this.fps=this.fps*.97+(1/dt)*.03;
+  // A static entrance or reading panel needs only occasional background redraws.
+  // Keep movement and input processing independent of the rendering budget.
+  if((!this.active||this.paused)&&now-this.lastRenderAt<500)return;
+  this.lastRenderAt=now;this.renderer.render(this.scene,this.camera);this.frameCount++;if(dt>0)this.fps=this.fps*.97+(1/dt)*.03;
  };
  diagnostics(){return {position:this.camera.position.toArray(),yaw:this.yaw,fps:Math.round(this.fps),drawCalls:this.renderer.info.render.calls,triangles:this.renderer.info.render.triangles,rooms:[...this.loaded],frameCount:this.frameCount,paused:this.paused};}
 }

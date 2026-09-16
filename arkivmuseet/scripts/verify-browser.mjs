@@ -2,7 +2,7 @@ import {chromium,devices} from '@playwright/test';
 import assert from 'node:assert/strict';import {mkdir,writeFile} from 'node:fs/promises';
 const url=process.env.MUSEUM_URL||'http://127.0.0.1:4196/Rolfs-projects-2026/arkivmuseet/';
 const out=process.env.MUSEUM_QA_DIR||'qa-output';await mkdir(out,{recursive:true});
-const browser=await chromium.launch({executablePath:process.env.MUSEUM_CHROME||undefined,headless:true,args:['--enable-webgl','--ignore-gpu-blocklist']});
+const browser=await chromium.launch({executablePath:process.env.MUSEUM_CHROME||undefined,headless:process.env.MUSEUM_HEADED!=='1',args:['--enable-webgl','--ignore-gpu-blocklist']});
 const log=[],errors=[],badResponses=[];const check=(x,s)=>{assert.ok(x,s);log.push(s);};
 const page=await browser.newPage({viewport:{width:1440,height:960}});page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});page.on('response',r=>{if(r.url().startsWith(url)&&r.status()>=400)badResponses.push([r.status(),r.url()]);});
 async function enterRoom(page,id){
