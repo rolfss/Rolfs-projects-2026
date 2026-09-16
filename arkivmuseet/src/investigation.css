@@ -53,7 +53,7 @@ dialog:has(.case17){max-width:950px}
 .case17-warning{padding:1rem;border:1px solid #92794a;background:#e9dec6}
 .case17-footer{display:flex;gap:1rem;justify-content:space-between;flex-wrap:wrap;border-top:1px solid var(--c17-line);padding-top:1.2rem;margin-top:1.8rem}
 .case17-sensitive{display:inline!important;padding:.15rem .3rem!important;min-height:44px!important;color:#534222;background:#e1cd91;border:1px dashed #816a2e!important;font:inherit!important}
-.case17-sensitive.is-redacted{color:#eee7d6;background:#293a33!important;border-style:solid!important;letter-spacing:.03em;max-width:100%;overflow:hidden;vertical-align:middle}
+.case17-sensitive.is-redacted{color:#293a33;background:#293a33!important;border-style:solid!important;letter-spacing:.03em;max-width:100%;overflow:hidden;vertical-align:middle}
 .case17-clockbar{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;padding:.8rem;background:#e2e7dc}
 #case17-clock{font-variant-numeric:tabular-nums;font-size:.95rem;min-width:7rem}#case17-clock-toggle{font-size:.85rem}
 .case17-message{padding:1.2rem 1.5rem;background:#f6f0e3;border-left:4px solid #a08851;margin:1.3rem 0}.case17-message>span{font-size:.75rem;letter-spacing:.08em}

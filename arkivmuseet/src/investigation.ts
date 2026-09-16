@@ -50,7 +50,18 @@ export class Investigation {
       const el = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-c17]');
       if (el && this.root.contains(el)) this.act(el.dataset.c17!, el.dataset.value ?? '');
     });
-    document.querySelector('#dialog')!.addEventListener('close', () => {this.pauseClock();this.stopVoice();});
+    const dialog = document.querySelector<HTMLDialogElement>('#dialog')!;
+    const stop = () => {this.pauseClock();this.stopVoice();};
+    // Native close events are queued; pause at the closing gesture, not a later frame.
+    document.querySelector('#dialog-close')!.addEventListener('click', stop, true);
+    dialog.addEventListener('cancel', stop, true);
+    dialog.addEventListener('close', stop);
+    dialog.addEventListener('click', event => {
+      const rect = dialog.getBoundingClientRect();
+      if (event.target === dialog && (event.clientX < rect.left || event.clientX > rect.right ||
+        event.clientY < rect.top || event.clientY > rect.bottom)) stop();
+    }, true);
+    new MutationObserver(() => {if (!dialog.open) stop();}).observe(dialog, {attributes: true, attributeFilter: ['open']});
     document.addEventListener('visibilitychange', () => {if (document.hidden) {this.pauseClock();this.stopVoice();}});
     window.addEventListener('blur', () => {this.pauseClock();this.stopVoice();});
     window.addEventListener('keydown', event => {
@@ -81,6 +92,7 @@ export class Investigation {
     this.openButton.setAttribute('aria-label', `Sak 17. ${this.state.found.length} av 10 spor samlet. Åpne bevismappen.`);
     this.roomButton.textContent = this.room === 'leader' ? 'Sak 17 · Se hva som står igjen →' : `Sak 17 · Undersøk bordet (${roomEvidence(this.state, this.room)}/2) · F`;
     this.scenery?.reflect(this.state);
+    this.world?.invalidate();
   }
   show(route: Route, value = '') {
     if (route !== 'crisis') this.pauseClock();
