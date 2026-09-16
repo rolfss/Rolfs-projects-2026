@@ -12,11 +12,21 @@
     "test:browser": "node scripts/verify-browser.mjs"
   },
   "dependencies": {
-    "three": "0.185.1"
+    "@dimforge/rapier3d": "0.20.0",
+    "@theatre/core": "0.7.2",
+    "postprocessing": "6.39.5",
+    "three": "0.185.1",
+    "three-mesh-bvh": "0.9.15",
+    "xstate": "5.33.0"
   },
   "devDependencies": {
+    "@gltf-transform/cli": "4.5.0",
     "@playwright/test": "1.63.0",
+    "@theatre/studio": "0.7.2",
     "@types/three": "0.183.1",
+    "spectorjs": "0.9.30",
+    "three-bvh-csg": "0.0.18",
+    "tweakpane": "4.0.5",
     "typescript": "5.9.3",
     "vite": "8.2.2"
   }
