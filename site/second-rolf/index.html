@@ -6,7 +6,7 @@
   <meta name="description" content="Chat med Ministral 3 14B på lokal GPU. Spør om fag, teknologi, Rolfs profesjonelle bakgrunn eller andre emner.">
   <meta name="theme-color" content="#0b2531">
   <title>Second Rolf — lokal Ministral-chat</title>
-  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./style.css?v=20260917-waiting">
 </head>
 <body>
   <a class="skip-link" href="#chat">Hopp til chat</a>
@@ -79,9 +79,15 @@
         </div>
         <form class="composer" id="composer">
           <label class="sr-only" for="question">Skriv et spørsmål til Ministral</label>
-          <textarea id="question" name="question" rows="2" maxlength="1000" placeholder="Spør om fag, teknologi eller noe helt annet …" required></textarea>
+          <textarea id="question" name="question" rows="2" maxlength="1000" aria-describedby="response-time" placeholder="Spør om fag, teknologi eller noe helt annet …" required></textarea>
           <button type="submit" id="send">Send</button>
         </form>
+        <p id="response-time" class="response-time"><strong>Svar kan ta litt tid.</strong> Lange svar kan ta ekstra tid. Hele svaret vises når det er ferdig, så det kan bli en pause mellom spørsmålene.</p>
+        <div id="reply-wait" class="reply-wait" hidden>
+          <span class="wait-dot" aria-hidden="true"></span>
+          <span id="reply-wait-message" role="status" aria-live="polite"></span>
+          <span id="reply-elapsed" class="reply-elapsed" aria-hidden="true"></span>
+        </div>
         <p id="chat-feedback" class="chat-feedback" role="status" aria-live="polite"></p>
         <div id="verification" class="turnstile" hidden></div>
         <p class="fineprint">Live-svar må komme fra ministral-3:14b og gjeldende offentlig kunnskapsbase. Profilmodus er ikke AI-chat. Ingen betalt sky-modell kobles inn automatisk. Ikke skriv inn sensitive opplysninger.</p>
@@ -92,6 +98,6 @@
     <span>Second Rolf · lokal AI-beta</span>
     <span>AI-assistent — ikke personen selv</span>
   </footer>
-  <script type="module" src="./app.js?v=20260915-technical-self-description&amp;chat=20260915-ministral-chat"></script>
+  <script type="module" src="./app.js?v=20260915-technical-self-description&amp;chat=20260915-ministral-chat&amp;ui=20260917-waiting"></script>
 </body>
 </html>

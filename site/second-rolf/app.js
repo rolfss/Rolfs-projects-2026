@@ -1,7 +1,7 @@
 import { rankKnowledge, PROFILE_REVISION } from './knowledge.js?v=20260915-technical-self-description';
 import { BACKEND_ORIGIN, LOCAL_MODEL, watchStatus, getStatus, statusDescription } from './status.js?v=20260915-ministral-chat';
-const els = Object.fromEntries(['messages', 'composer', 'question', 'send', 'clear', 'status', 'status-detail', 'retry-status', 'verification', 'chat-feedback'].map(id => [id, document.getElementById(id)]));
-let history = [], live = false, siteKey = '', turnstileToken = '', widgetId = null, scriptPromise, busy = false, generation = 0, controller;
+const els = Object.fromEntries(['messages', 'composer', 'question', 'send', 'clear', 'status', 'status-detail', 'retry-status', 'verification', 'chat-feedback', 'reply-wait', 'reply-wait-message', 'reply-elapsed'].map(id => [id, document.getElementById(id)]));
+let history = [], live = false, siteKey = '', turnstileToken = '', widgetId = null, scriptPromise, busy = false, generation = 0, controller, waitingTimer;
 
 function localAnswer(question) {
   const matches = rankKnowledge(question).slice(0, 2);
@@ -89,8 +89,31 @@ async function askLive(question, signal) {
   return { text: data.answer.slice(0, 6000), sources: Array.isArray(data.sources) ? data.sources.slice(0, 6) : [], isLive: true };
 }
 
+function stopWaiting() {
+  clearInterval(waitingTimer); waitingTimer = undefined;
+  els['reply-wait'].hidden = true;
+  els['reply-wait-message'].textContent = ''; els['reply-elapsed'].textContent = '';
+}
+
+function startWaiting() {
+  stopWaiting();
+  const startedAt = performance.now();
+  els['reply-wait'].hidden = false;
+  const update = () => {
+    const seconds = Math.floor((performance.now() - startedAt) / 1000);
+    const message = seconds >= 15
+      ? 'Dette tar litt tid. Spørsmålet er sendt, og vi venter fortsatt på svaret.'
+      : 'Venter på svar fra Ministral …';
+    // Announce only a change of state, not every second of elapsed time.
+    if (els['reply-wait-message'].textContent !== message) els['reply-wait-message'].textContent = message;
+    els['reply-elapsed'].textContent = `${seconds} s`;
+  };
+  update(); waitingTimer = setInterval(update, 1000);
+}
+
 function setBusy(value) {
   busy = value; els.send.disabled = value;
+  if (!value) stopWaiting();
   els.send.textContent = value ? 'Svarer …' : 'Send';
   els.messages.setAttribute('aria-busy', String(value));
   document.querySelectorAll('[data-prompt]').forEach(button => { button.disabled = value; });
@@ -107,7 +130,8 @@ async function submit(question) {
   }
   const thisGeneration = generation;
   controller = new AbortController();
-  setBusy(true); els['chat-feedback'].textContent = live ? 'Ministral tenker …' : '';
+  setBusy(true); els['chat-feedback'].textContent = '';
+  if (live) startWaiting();
   addMessage('user', cleaned); els.question.value = '';
   try {
     let result;

@@ -23,7 +23,7 @@ beforeEach(async () => {
   window.turnstile = { render: vi.fn((_, opts) => { harness.token = opts.callback; opts.callback('verified'); return 'widget'; }), reset: vi.fn() };
   await import('../../../site/second-rolf/app.js');
 });
-afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); document.body.innerHTML = ''; });
+afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); vi.restoreAllMocks(); document.body.innerHTML = ''; });
 
 it('loads verification on a fresh page without a named element occupying the SDK global', async () => {
   const sdk = window.turnstile;
@@ -61,6 +61,7 @@ it('keeps offline answers and source links, without falsely labelling them local
   expect(query('#messages').lastElementChild.textContent).toContain('ikke AI');
   expect(query('#messages .sources a').href).toContain('/arkivmuseet/');
   expect(query('#status').classList.contains('live')).toBe(false);
+  expect(query('#reply-wait').hidden).toBe(true);
 });
 
 it('names Ministral and the verified GPU rather than just saying local AI', () => {
@@ -103,6 +104,61 @@ it('preserves the question when verification is not ready', async () => {
   const fetcher = vi.fn(); vi.stubGlobal('fetch', fetcher); await submit('Please keep this question');
   expect(fetcher).not.toHaveBeenCalled(); expect(query('#question').value).toBe('Please keep this question');
   expect(query('#messages').children).toHaveLength(1);
+  expect(query('#reply-wait').hidden).toBe(true);
+});
+
+it('explains the pause and shows elapsed time until a slow answer completes', async () => {
+  vi.useFakeTimers();
+  status({ available: true, siteKey: 'site' });
+  let resolve;
+  const fetcher = vi.fn(() => new Promise(r => { resolve = r; })); vi.stubGlobal('fetch', fetcher);
+  expect(query('#question').getAttribute('aria-describedby')).toBe('response-time');
+  expect(query('#response-time').textContent).toContain('Hele svaret vises når det er ferdig');
+  await submit('A slower question');
+  expect(query('#reply-wait').hidden).toBe(false);
+  expect(query('#reply-wait-message').textContent).toContain('Venter på svar');
+  expect(query('#reply-elapsed').getAttribute('aria-hidden')).toBe('true');
+  expect(query('#send').disabled).toBe(true);
+  await vi.advanceTimersByTimeAsync(16000);
+  expect(query('#reply-elapsed').textContent).toBe('16 s');
+  expect(query('#reply-wait-message').textContent).toContain('vi venter fortsatt');
+  await submit('Duplicate'); expect(fetcher).toHaveBeenCalledTimes(1);
+  resolve(reply('The completed answer')); await flush();
+  expect(query('#reply-wait').hidden).toBe(true);
+  expect(query('#send').disabled).toBe(false);
+  await vi.advanceTimersByTimeAsync(5000);
+  expect(query('#reply-elapsed').textContent).toBe('');
+});
+
+it('does not let a cancelled request stop the next question’s waiting indicator', async () => {
+  vi.useFakeTimers();
+  status({ available: true, siteKey: 'site' });
+  const resolvers = [];
+  vi.stubGlobal('fetch', () => new Promise(r => { resolvers.push(r); }));
+  await submit('Old question'); await vi.advanceTimersByTimeAsync(3000);
+  query('#clear').click();
+  expect(query('#reply-wait').hidden).toBe(true);
+  harness.token('new-verification'); await submit('New question');
+  resolvers[0](reply('Old answer')); await flush();
+  await vi.advanceTimersByTimeAsync(2000);
+  expect(query('#reply-wait').hidden).toBe(false);
+  expect(query('#reply-elapsed').textContent).toBe('2 s');
+  expect(query('#messages').textContent).not.toContain('Old answer');
+  resolvers[1](reply('New answer')); await flush();
+  expect(query('#reply-wait').hidden).toBe(true);
+});
+
+it('stops waiting on a busy response and preserves the retry message and question', async () => {
+  vi.useFakeTimers();
+  status({ available: true, siteKey: 'site' });
+  let resolve; vi.stubGlobal('fetch', () => new Promise(r => { resolve = r; }));
+  await submit('Please keep my question'); await vi.advanceTimersByTimeAsync(16000);
+  resolve(new Response(JSON.stringify({ error: 'busy', message: 'Modellen er opptatt. Prøv igjen om litt.' }), { status: 429 }));
+  await flush(); await vi.advanceTimersByTimeAsync(5000);
+  expect(query('#reply-wait').hidden).toBe(true);
+  expect(query('#chat-feedback').textContent).toContain('Modellen er opptatt');
+  expect(query('#question').value).toBe('Please keep my question');
+  expect(query('#send').disabled).toBe(false);
 });
 
 it('ignores a late reply after starting a new conversation', async () => {
