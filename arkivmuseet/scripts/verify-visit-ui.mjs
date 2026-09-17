@@ -31,6 +31,12 @@ try {
   for(const [width,height,scale] of [[390,760,'1'],[360,640,'1'],[320,568,'1.3'],[430,932,'1'],[844,390,'1']]) {
     const tag=`${width}x${height}-${scale}`;
     await page.setViewportSize({width,height});
+    // Chromium delivers the resize event asynchronously. Measure the rendered
+    // viewport, not the preceding canvas size during a synthetic orientation change.
+    await page.waitForFunction(() => {
+      const rect=document.querySelector('#world').getBoundingClientRect();
+      return Math.abs(rect.width-innerWidth)<1 && Math.abs(rect.height-innerHeight)<1;
+    });
     await page.evaluate(scale=>document.documentElement.style.setProperty('--text-scale',scale),scale);
     const hud=await page.locator('.journey-hud').boundingBox();
     const toolbar=await page.locator('.masthead').boundingBox();
