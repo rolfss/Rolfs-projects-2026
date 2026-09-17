@@ -14,6 +14,7 @@ import {
   searchRecords,
   sourceUrl,
 } from "./engine.mjs";
+import { bindQualityConsent } from "./quality-consent.mjs";
 import { buildDecisionNote } from "./decision-note.mjs";
 import { fallbackAnswer, lunaFailureAnswer, retrieveConversation, MAX_HISTORY as CHAT_HISTORY } from "./rag-shared.mjs";
 import { askLuna, loadLunaStatus, mountBotCheck, resetBotCheck, needsUpdatedCorpus } from "./luna-client.mjs";
@@ -28,7 +29,7 @@ const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 const state = {
   latestAnswer: null,
   turns: [], busy: false, runId: 0, controller: null,
-  luna: { configured: false }, botToken: "", botWidget: null,
+  luna: { configured: false }, botToken: "", botWidget: null, qualityConsent: null,
   libraryLimit: LIBRARY_PAGE_SIZE,
   libraryResults: [],
 };
@@ -313,7 +314,7 @@ async function runQuestion(question, { save = true, updateUrl = true, allowAI = 
   try {
     if (useAI) answer = await askLuna(clean, previous, state.botToken, state.controller.signal, {
       corpusVersion: state.luna.corpusVersion,
-      qualityConsent: state.luna.questionLogging?.enabled === true && $("#quality-consent").checked,
+      qualityConsent: state.qualityConsent?.granted() === true,
     });
   } catch (error) {
     answer = lunaFailureAnswer(clean, previous, error.name === "AbortError" ? "Luna-forespørselen ble avbrutt." : error.name === "TimeoutError" ? "Luna brukte for lang tid. Prøv igjen; det er ikke sendt noen automatisk ny forespørsel." : error.message);
@@ -343,6 +344,7 @@ async function runQuestion(question, { save = true, updateUrl = true, allowAI = 
 }
 
 function resetConversation() {
+  state.qualityConsent?.clear();
   state.controller?.abort();
   state.runId++;
   state.busy = false;
@@ -514,15 +516,31 @@ function bindEvents() {
   });
 }
 
-async function initializeLuna() {
+async function refreshLunaStatus() {
+  const previousSiteKey = state.luna.siteKey;
   state.luna = await loadLunaStatus();
   $("#model-status").textContent = state.luna.message;
   $("#use-luna").disabled = !state.luna.configured;
-  $("#quality-consent").disabled = state.luna.questionLogging?.enabled !== true;
-  $("#quality-status").textContent = state.luna.questionLogging?.enabled === true
-    ? "For godkjente Luna-forespørsler registreres dato, kilde-ID-er, treffskårer og utfall. Spørsmålstekst lagres bare med ditt separate samtykke nedenfor."
-    : "Spørsmålsloggen er ikke aktiv på den tilkoblede bakenden. Lokale søk blir ikke sendt inn til forbedringsloggen.";
-  $("#model-badge").textContent = state.luna.configured ? "Luna-backend klar" : "Lokalt søk · Luna ikke aktivert";
+  if (!state.luna.configured || (previousSiteKey && previousSiteKey !== state.luna.siteKey)) {
+    $("#use-luna").checked = false;
+    $("#bot-check").hidden = true;
+    state.botToken = "";
+    if (state.botWidget !== null && window.turnstile) window.turnstile.remove(state.botWidget);
+    state.botWidget = null;
+  }
+  const active = $("#use-luna").checked;
+  $("#model-badge").textContent = active ? "GPT-5.6 Luna · medium" : state.luna.configured ? "Luna-backend klar" : "Lokalt søk · Luna ikke aktivert";
+  $("#question-form button[type=submit]").textContent = active ? "Spør Luna" : "Søk i kildene";
+  return state.luna;
+}
+
+async function initializeLuna() {
+  const retryButton = element("button", { className: "quiet-button", attrs: { id: "quality-retry", type: "button" } });
+  $("#quality-status").after(retryButton);
+  state.qualityConsent = bindQualityConsent({
+    checkbox: $("#quality-consent"), status: $("#quality-status"),
+    lunaToggle: $("#use-luna"), retryButton, loadStatus: refreshLunaStatus,
+  });
   $("#use-luna").addEventListener("change", async () => {
     const active = $("#use-luna").checked;
     $("#bot-check").hidden = !active;
@@ -533,6 +551,7 @@ async function initializeLuna() {
         state.botWidget = await mountBotCheck(state.luna.siteKey, $("#bot-widget"), (token) => { state.botToken = token; });
       } catch {
         $("#use-luna").checked = false;
+        state.qualityConsent.clear();
         $("#bot-check").hidden = true;
         $("#model-badge").textContent = "Lokalt kildesøk";
         $("#question-form button[type=submit]").textContent = "Søk i kildene";
@@ -540,6 +559,7 @@ async function initializeLuna() {
       }
     }
   });
+  await state.qualityConsent.refresh();
 }
 
 function initialize() {
