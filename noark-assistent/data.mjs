@@ -5,14 +5,15 @@ import { RECORDS_2 } from './data-records-2.mjs';
 import { RECORDS_3 } from './data-records-3.mjs';
 import { RECORDS_4 } from './data-records-4.mjs';
 import { GUIDANCE_SOURCES, GUIDANCE_RECORDS, FORMAT_RECORDS } from './guidance-data.mjs';
+import { PRESERVATION_PLAN_SOURCES, PRESERVATION_PLAN_RECORDS } from './preservation-plan-data.mjs';
 
-export const BUILD_INFO = Object.freeze({ ...BASE_BUILD, version: '1.2.0', corpusVersion: '2026-09-07' });
+export const BUILD_INFO = Object.freeze({ ...BASE_BUILD, version: '1.3.0', corpusVersion: '2026-09-17' });
 // Explicit, temporary compatibility for the already-deployed Worker. Never accept arbitrary versions.
 export const LEGACY_CORPUS_VERSION = '2026-09-02';
 const originalRecords = [...RECORDS_1, ...RECORDS_2, ...RECORDS_3, ...RECORDS_4];
 export const LEGACY_RECORD_IDS = new Set(originalRecords.map((r) => r.id));
-export const SOURCES = Object.freeze([...BASE_SOURCES, ...GUIDANCE_SOURCES]);
-export const RECORDS = Object.freeze([...originalRecords, ...GUIDANCE_RECORDS, ...FORMAT_RECORDS]);
+export const SOURCES = Object.freeze([...BASE_SOURCES, ...GUIDANCE_SOURCES, ...PRESERVATION_PLAN_SOURCES]);
+export const RECORDS = Object.freeze([...originalRecords, ...GUIDANCE_RECORDS, ...FORMAT_RECORDS, ...PRESERVATION_PLAN_RECORDS]);
 export const TOPICS = Object.freeze([...BASE_TOPICS, 'Internkontroll', 'Dokumentasjonsplan', 'Mediekonvertering']);
 export const SUGGESTED_QUESTIONS = Object.freeze([
   'Kan DOCX og XLSX avleveres til Nasjonalarkivet?',

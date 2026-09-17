@@ -12,13 +12,13 @@ Når Luna er valgt, erstattes ikke feil med et ferdig lokalt standardsvar. Appen
 
 Den offentlige Worker-adressen er konfigurert i `api-config.mjs`; ingen hemmelighet ligger i klientkoden. Grensesnittet kontrollerer faktisk tilgjengelighet og faller tilbake til lokalt søk ved feil eller oppbrukt appbudsjett.
 
-**Versjon 1.2:** GitHub Pages og Cloudflare må oppdateres separat. Inntil Worker er redeployet med kildegrunnlaget fra 07.09.2026, merkes gamle Luna-svar med sin korpusdato. Spørsmål som trenger de nye veilederne besvares med oppdatert lokalt søk. Se [utrulling og privat kvalitetsgjennomgang](../noark-api/GUIDANCE_AND_REVIEW.md).
+**Versjon 1.3:** GitHub Pages og Cloudflare må oppdateres separat med kildegrunnlaget fra 17.09.2026. En vellykket Pages-publisering alene bekrefter ikke at Luna-serveren er oppdatert. Ved versjonskonflikt viser klienten feil for spørsmål som trenger nyere kilder. Se [vedlikeholdsregelen](SOURCE_MAINTENANCE.md) og [utrulling og privat kvalitetsgjennomgang](../noark-api/GUIDANCE_AND_REVIEW.md).
 
 ## Kildegrunnlag
 
 **Fast vedlikeholdsregel:** Søk etter nye og reviderte, relevante dokumenter hver tirsdag og torsdag kl. 09.00 norsk tid. Kunnskapsbasen endres bare når **GPT-6 Astra med ultra** vurderer det nødvendig. Kontrollen kjøres via eierens Codex og krever at maskinen er på og appen kjører. Regelen vises i brukergrensesnittet. Se [fremgangsmåte, vurderingskrav og publisering](SOURCE_MAINTENANCE.md).
 
-154 kildeposter fra 17 offisielle kilder: de opprinnelige 71 postene, 18 nye veiledningssammendrag og 65 formatoppføringer. Nytt materiale omfatter avleveringsformater og avtalevilkår, internkontroll, dokumentasjonskartlegging, bevaringskriterier, mediekonvertering, kassasjon av enkeltopplysninger og Arkade-verktøyet.
+158 kildeposter fra 18 offisielle kilder: de opprinnelige 71 postene, 22 veiledningssammendrag og 65 formatoppføringer. Materialet omfatter avleveringsformater og avtalevilkår, internkontroll, dokumentasjonskartlegging, bevaringskriterier, mediekonvertering, kassasjon av enkeltopplysninger og Arkade-verktøyet. Fire poster om bevaringsplaner for statlige fagsaker er lagt til etter [Astra Ultra-vurderingen 17.09.2026](maintenance/2026-09-17-assessment.md). Veilederens publiseringsdato er ubekreftet; 17.09.2026 er kontrolltidspunktet for disse postene, ikke en ny kontroll av alle kilder.
 
 Formatoppføringene bevarer filendelser, PRONOM-identifikatorer og eksplisitte versjoner fra Nasjonalarkivets liste. Nye kilder har kontrolltidspunkt, virkeområde og seksjon. Akseptert format er ikke godkjenning av hele avleveringen; kravene gjelder ikke automatisk alle kommunale depot. Eldre veiledere merket utdaterte brukes ikke som gjeldende regelgrunnlag.
 
@@ -52,7 +52,7 @@ npm run validate
 python3 -m http.server 8000
 ```
 
-Åpne `http://localhost:8000`. Lokalkjøringen trenger ingen API-nøkkel. De 79 testene dekker blant annet kildeintegritet, formatvarianter, søk, relevans, henvisninger, gammel/ny korpuskompatibilitet, misbruksvern, budsjettreservasjoner og privat logging. Modell- og Turnstile-kall i testene er simulerte; live modellkvalitet og full nettlesertest må vurderes separat.
+Åpne `http://localhost:8000`. Lokalkjøringen trenger ingen API-nøkkel. Testene dekker blant annet kildeintegritet, bevaringsplaner, formatvarianter, søk, relevans, henvisninger, gammel/ny korpuskompatibilitet, misbruksvern, budsjettreservasjoner og privat logging. Modell- og Turnstile-kall i testene er simulerte; live modellkvalitet og full nettlesertest må vurderes separat.
 
 ## Viktige filer
 
