@@ -50,3 +50,16 @@ Lenkene er kontrollert som henvisninger fra originalen. Selve regnearkfilene er 
 Behold `published: 'Publiseringsdato ikke bekreftet'`, `verifiedAt: '2026-09-17'`, eksplisitt statlig virkeområde og klassifiseringen som offisiell veiledning. Postene er veiledningsparafraser og må ikke merkes som nye Noark-krav. Det skal ikke utledes en generell plikt for kommuner til å følge statens planprosess.
 
 Etter disse presiseringene er de fire kandidatpostene **faglig godkjent for integrasjon**. Teknisk validering og kontroll av selve integrasjonen inngår ikke i denne rapporten.
+
+## Oppfølging og publiseringskontroll fra hovedagenten
+
+Begge redaksjonelle presiseringer er gjennomført. Kilden og de fire postene er integrert i kunnskapsbasen: **158 poster, 18 kilder, appversjon 1.3.0 og korpusversjon 2026-09-17**. De eldre kildenes kontrolltidspunkter er beholdt.
+
+- Alle **98 tester** og syntakskontrollene i `npm run validate` bestod. De nye testene kontrollerer kildeintegritet, innlemming og faktiske spørsmål om godkjenning, skjemaer, metode og revisjon.
+- Vedlikeholdsregelen ble publisert i [32c01ed](https://github.com/rolfss/Rolfs-projects-2026/commit/32c01ed14be0eab61d58109433b8637f310f3739), og kildeutvidelsen i [4df47ec](https://github.com/rolfss/Rolfs-projects-2026/commit/4df47eca455ad18c58bf67bdbdedfaaef25e56e7). [GitHub Pages-publiseringen](https://github.com/rolfss/Rolfs-projects-2026/actions/runs/35204947970) fullførte med `success`.
+- Den offentlige nettsiden ble åpnet og viste 158 poster, 18 kilder, riktig korpusdato og vedlikeholdsregelen. Et lokalt søk på nettsiden etter «Hvilke skjemaer bruker vi til bevaringsplanen?» ga svar fra de nye postene med henvisning til originalveilederen. Regelknappen var tidligere kontrollert i nettleseren og åpnet riktig fane med fokus på forklaringen.
+- Eksisterende Cloudflare Worker `noark-luna-api` ble publisert som versjon `bd3f5316-7072-4a74-a0d2-4f119ce26b76`. Den offentlige `/api/health`-kontrollen bekreftet `configured: true`, `corpusVersion: 2026-09-17`, `answerVersion: 2026-09-08-context-v2`, modell `gpt-5.6-luna` og resonneringsnivå `medium`.
+- Dagsbudsjett USD 2, månedsbudsjett USD 6 og samlet prøvebudsjett USD 6 er bevart. Spørsmålslogging var avslått og forble avslått (`questionLogging.enabled: false`); publiseringen brukte `--var QUESTION_LOG_ENABLED:false`. Ingen hemmeligheter eller budsjettregistre ble byttet ut.
+- Den faste Codex-kontrollen `noark-kildekontroll-tirsdag-og-torsdag` er aktiv for tirsdag og torsdag kl. 09.00 norsk tid. Instruksen krever en separat vurderingsagent med `gpt-6-astra` og `ultra` før faglige endringer.
+
+**Publiseringsstatus: fullført og kontrollert for både klient og Worker.** Ingen betalte Luna-testspørsmål ble sendt; den tekniske kontrollen bekrefter publisering og kildeversjon, ikke modellens faktiske svarkvalitet. Den faglige beslutningen ovenfor gjelder fortsatt bare denne ene kandidatveilederen, ikke en full revisjon av alle kilder.
