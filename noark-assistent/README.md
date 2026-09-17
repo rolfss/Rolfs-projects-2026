@@ -16,6 +16,8 @@ Den offentlige Worker-adressen er konfigurert i `api-config.mjs`; ingen hemmelig
 
 ## Kildegrunnlag
 
+**Fast vedlikeholdsregel:** Søk etter nye og reviderte, relevante dokumenter hver tirsdag og torsdag kl. 09.00 norsk tid. Kunnskapsbasen endres bare når **GPT-6 Astra med ultra** vurderer det nødvendig. Kontrollen kjøres via eierens Codex og krever at maskinen er på og appen kjører. Regelen vises i brukergrensesnittet. Se [fremgangsmåte, vurderingskrav og publisering](SOURCE_MAINTENANCE.md).
+
 154 kildeposter fra 17 offisielle kilder: de opprinnelige 71 postene, 18 nye veiledningssammendrag og 65 formatoppføringer. Nytt materiale omfatter avleveringsformater og avtalevilkår, internkontroll, dokumentasjonskartlegging, bevaringskriterier, mediekonvertering, kassasjon av enkeltopplysninger og Arkade-verktøyet.
 
 Formatoppføringene bevarer filendelser, PRONOM-identifikatorer og eksplisitte versjoner fra Nasjonalarkivets liste. Nye kilder har kontrolltidspunkt, virkeområde og seksjon. Akseptert format er ikke godkjenning av hele avleveringen; kravene gjelder ikke automatisk alle kommunale depot. Eldre veiledere merket utdaterte brukes ikke som gjeldende regelgrunnlag.

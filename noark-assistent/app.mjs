@@ -481,7 +481,10 @@ function bindEvents() {
     }
 
     const tab = event.target.closest("[data-tab]");
-    if (tab) setActiveTab(tab.dataset.tab);
+    if (tab) {
+      setActiveTab(tab.dataset.tab);
+      if (tab.dataset.focus) document.getElementById(tab.dataset.focus)?.focus({ preventScroll: true });
+    }
 
     const action = event.target.closest("[data-action]");
     const selectedAnswer = action?.closest(".answer-message")?.answer ?? state.latestAnswer;
