@@ -4,16 +4,16 @@
 
 [Besøk museet](https://rolfss.github.io/Rolfs-projects-2026/arkivmuseet/) · [Full tekstversjon](https://rolfss.github.io/Rolfs-projects-2026/arkivmuseet/tekst.html)
 
-Fem kildebelagte utstillinger: Osen kommune, Tokke kommune, Sivilombudsmannens sak 2008/171, Hanekleivtunnelen og Norsk pasientskadeerstatning. Fem interaktive lederoppdrag knytter kildefunnene til hverdagen: undersøk dokumentasjon, velg handling, spol frem til mulige følger og prøv igjen. Reisepasset viser fem læringsmerker; merkene måler bare gjennomførte øvelser. Lederens rom har også de fire opprinnelige scenarioene. Ingen konto, server, analyseverktøy eller runtime-KI.
+Fem kildebelagte utstillinger: Osen kommune, Tokke kommune, Sivilombudsmannens sak 2008/171, Hanekleivtunnelen og Norsk pasientskadeerstatning. Fem interaktive lederoppdrag knytter kildefunnene til hverdagen: undersøk dokumentasjon, velg handling, spol frem til mulige følger og prøv igjen. Øvelsesoversikten viser fem læringsmerker; merkene måler bare gjennomførte øvelser. Lederens rom tilbyr først en praktisk lederbestilling. Fire ekstra scenarioer kan åpnes frivillig. Ingen konto, server, analyseverktøy eller runtime-KI.
 
 ## Besøket
 
 - **Gå inn i museet:** besøket starter i den store hovedhallen med fri bevegelse, også når du har lagret fremdrift. Gå gjennom portalene eller velg et rom fra romoversikten. Åpne utstillingen når du er klar til å lese og prøve et oppdrag. Omvisning velges inne i museet.
 - **Utforsk rommene:** fem oppdrag med 20 undersøkbare sporkort og 15 ulike handlingsforløp. Konsekvensene er tydelig merket som tenkte; historiske funn og forbehold finnes ved siden av.
 - **Prøv valgene:** hvert forløp har tre tidspunkt. Spol frem, sammenlign med et alternativ og gå tilbake. Ingen tidsfrist eller poeng for fart.
-- **Reisepass:** fremdrift og valg lagres bare i denne nettleseren. Skadet eller utilgjengelig lagring blokkerer ikke besøket. Reisen kan nullstilles etter bekreftelse.
+- **Øvelser:** fremdrift og valg lagres bare i denne nettleseren. Skadet eller utilgjengelig lagring blokkerer ikke besøket. Reisen kan nullstilles etter bekreftelse.
 - **Min lederbestilling:** velg tiltak, ansvarlig rolle og oppfølgingsdato. Last ned tekst eller skriv ut / lagre PDF. Ingen opplysninger sendes til en server.
-- **Spill uten 3D:** alle oppdrag og lederbestillingen kan brukes uten WebGL. Den fullstendige tekstversjonen har også oppdrag, alle alternativer, bilder og kilder uten JavaScript.
+- **Besøk uten 3D:** alle oppdrag og lederbestillingen kan brukes uten WebGL. Den fullstendige tekstversjonen har også oppdrag, alle alternativer, bilder og kilder uten JavaScript.
 - Fotografier fra Hanekleivtunnelen og Dalen i Tokke og faksimiler fra Osen- og NPE-rapportene er inkludert lokalt. Stedsbilder er merket som stedsbilder. Se `public/assets/cases/credits.json`.
 
 - WASD: gå. Dra på rommet: se. Piltaster: gå/snu. E eller klikk på installasjonen: åpne.
@@ -24,9 +24,17 @@ Fem kildebelagte utstillinger: Osen kommune, Tokke kommune, Sivilombudsmannens s
 - Lyden er valgfri. Ingen faglig informasjon formidles bare gjennom lyd. Tekst beskriver romlyd og fottrinn.
 - Tekstversjonen virker uten WebGL og JavaScript og har alle historier, kildeavgrensninger, regler og lederscenarioer.
 
+## En tydeligere museumsreise
+
+Hovedruten er **virkelige saker → valgfrie lederøvelser → ett praktisk tiltak**. Et rom åpner den kildebaserte utstillingen først. «Neste rom» følger museumsruten uavhengig av øvelsesmerker. Besøkende kan nå avslutningen uten å svare på en quiz.
+
+Besøksplanen er en sammenfoldet bunnlinje, ikke et kort midt i 3D-rommet. Den viser én kontekstuell hovedhandling. Utvid planen for omvisning, lyd, fremdrift og fordypning. Menyen er alltid tilgjengelig. Bevegelsesknappene beholder trykkflater på minst 44 × 44 CSS-piksler og forsvinner ikke uten at en annen flate tar over.
+
+**Det manglende grunnlaget** er en valgfri, fiktiv etterforskning av prosjekt Aurora. Den har egen fremdrift og forklares før oppstart. Det tidligere navnet «Sak 17» var et internt fiksjonsnummer, ikke en historisk sak eller nummereringen av museets rom. Lagringsnøkler og gamle tekstlenker beholdes. Se [SAK17.md](./SAK17.md) og [UX-NOTES.md](./UX-NOTES.md).
+
 ## Utvikling
 
-Node 22.12+ eller 24+, pnpm 11.19.0. Installer med `pnpm install --frozen-lockfile`. Start med `pnpm dev`. Kjør `pnpm test` og `pnpm build`. Produksjonen kan prøves med `pnpm preview`.
+Node 22.12+ eller 24+, pnpm 11.19.0. Installer med `pnpm install --frozen-lockfile`. Start med `pnpm dev`. Kjør `pnpm test` og `pnpm build`. Produksjonen kan prøves med `pnpm preview`. Mens forhåndsvisningen kjører, tester `pnpm test:browser`, `pnpm test:investigation` og `pnpm test:visit-ui` den virkelige nettleseropplevelsen. Den siste kontrollerer blant annet sammenfolding, tastaturfokus, leserute uten quizkrav, 320–430 piksler brede telefoner, landskap og større tekst. Resultater og skjermbilder lagres i GitHub Actions som `museum-qa`; se siste kjøring for faktisk status.
 
 Basepath er `/Rolfs-projects-2026/arkivmuseet/`. GitHub Pages-arbeidsflyten installerer avhengigheter fra låsefil, tester, bygger og kopierer bare `dist/` til `_site/arkivmuseet/`. De øvrige prosjektene beholder sine vanlige løp.
 
@@ -44,6 +52,6 @@ Legg til data etter samme skjema, velg en installasjonstype og angi romposisjon.
 
 Modellpakken er ca. 582 kB ukomprimert. 3D-koden lastes som separat modul; samlet komprimert JavaScript er ca. 180 kB. Kolonner og gulv er instansierte; statisk geometri slås sammen per materiale. Rominstallasjoner bygges ved nærhet og skjules på avstand. Bildeoppløsning begrenses; skygger kan slås av med lavere bildekvalitet. Materialdetaljer og lyd genereres lokalt. De fire bildene er lokale WebP-filer på til sammen omtrent 750 kB. Ingen bilde-CDN eller ekstern forespørsel trengs under besøket. Fototeksturer lastes ved rombesøk.
 
-Automatisk maskinvaremåling er ikke en garanti for alle telefoner. Første utgave ble testet i berøringsemulering; den nye oppdragsreisen er ikke nettlesertestet i denne endringen; fysisk iOS/Safari er ikke sertifisert. Full tekst gir et varig alternativ ved manglende grafikkstøtte.
+Automatisk maskinvaremåling og nettleseremulering er ikke en garanti for alle telefoner. Kontrollene kjøres i Chromium med berørings- og skjermemulering; fysisk iOS/Safari må prøves separat. Full tekst gir et varig alternativ ved manglende grafikkstøtte.
 
 Se [SOURCES.md](./SOURCES.md), [LEGAL-NOTES.md](./LEGAL-NOTES.md), [CREDITS.md](./CREDITS.md) og [VALIDATION.md](./VALIDATION.md).

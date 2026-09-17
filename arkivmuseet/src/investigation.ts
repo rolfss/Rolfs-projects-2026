@@ -24,7 +24,7 @@ export class Investigation {
   private route: Route = 'brief';
   private value = '';
   private index = 0;
-  private room = 'osen';
+  private room: string | null = null;
   private timer: ReturnType<typeof setInterval> | null = null;
   private remaining = 30000;
   private deadline = 0;
@@ -37,15 +37,11 @@ export class Investigation {
     try {this.state = restoreCase(localStorage.getItem(CASE_STORAGE));} catch {this.storageAvailable = false;}
     this.root = document.querySelector('#dialog-body')!;
     this.openButton = document.createElement('button');this.openButton.id = 'case17-open';
-    document.querySelector('#toolbar')!.prepend(this.openButton);
+    document.querySelector('#visit-optional')!.append(this.openButton);
     this.openButton.onclick = () => this.show(this.state.started ? 'board' : 'brief');
     this.roomButton = document.createElement('button');this.roomButton.id = 'case17-room';
-    document.querySelector('#near-card')!.append(this.roomButton);
-    this.roomButton.onclick = () => this.show(this.room === 'leader' ? 'ending' : 'room', this.room);
-    document.querySelector('.entry-note')!.insertAdjacentHTML('afterend', '<p class="case17-entry">Nytt: Sak 17 · Finn ti spor. Prøv valgene. Se hva som står igjen.</p>');
-    const hint = document.createElement('button');hint.id = 'case17-hint';hint.textContent = 'Sak 17: En overlevering uten forklart grunnlag →';
-    hint.onclick = () => this.show(this.state.started ? 'board' : 'brief');
-    document.querySelector('.journey-hud')!.append(hint);
+    document.querySelector('#visit-optional')!.append(this.roomButton);
+    this.roomButton.onclick = () => {if (this.room) this.show(this.room === 'leader' ? 'ending' : 'room', this.room);};
     this.root.addEventListener('click', event => {
       const el = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-c17]');
       if (el && this.root.contains(el)) this.act(el.dataset.c17!, el.dataset.value ?? '');
@@ -79,7 +75,7 @@ export class Investigation {
     const {InvestigationWorld} = await import('./investigation-world');
     this.scenery = new InvestigationWorld(world, id => this.show('room', id), () => this.show('secret'));
     const old = world.onNear;
-    world.onNear = id => {old(id);this.room = id ?? 'osen';this.update();};
+    world.onNear = id => {old(id);this.room = id;this.update();};
     this.update();
   }
   private summary() {return workSummary(this.state, data.triage, data.access);}
@@ -88,9 +84,10 @@ export class Investigation {
     this.update();
   }
   private update() {
-    this.openButton.innerHTML = `Sak 17 <small>${this.state.found.length}/10</small>`;
-    this.openButton.setAttribute('aria-label', `Sak 17. ${this.state.found.length} av 10 spor samlet. Åpne bevismappen.`);
-    this.roomButton.textContent = this.room === 'leader' ? 'Sak 17 · Se hva som står igjen →' : `Sak 17 · Undersøk bordet (${roomEvidence(this.state, this.room)}/2) · F`;
+    this.openButton.innerHTML = `${this.state.started ? 'Fortsett etterforskningen' : 'Start etterforskningen'} <small>${this.state.found.length}/10 spor</small>`;
+    this.openButton.setAttribute('aria-label', `Det manglende grunnlaget. ${this.state.found.length} av 10 spor samlet. Åpne etterforskningen.`);
+    this.roomButton.hidden = !this.room;
+    this.roomButton.textContent = this.room === 'leader' ? 'Se etterforskningens avslutning →' : `Undersøk sporene i dette rommet (${roomEvidence(this.state, this.room ?? '')}/2) · F`;
     this.scenery?.reflect(this.state);
     this.world?.invalidate();
   }
@@ -100,22 +97,22 @@ export class Investigation {
     const content = route === 'brief' ? this.brief() : route === 'board' ? this.board() : route === 'room' ? this.roomView(value) :
       route === 'evidence' ? this.evidenceView(value) : route === 'triage' ? this.triageView() : route === 'access' ? this.accessView() :
       route === 'crisis' ? this.crisisView() : route === 'secret' ? this.secretView() : this.ending();
-    this.hooks.dialog('Sak 17 · Etterforskningen', `<section class="case17" aria-label="Den fiktive etterforskningen">
-      <nav class="case17-nav" aria-label="Sak 17">${button('brief', 'Oppdraget')}${button('board', `Spor ${this.state.found.length}/10`)}${button('triage', 'Arbeidsbord')}${button('ending', 'Etterpå')}</nav>
+    this.hooks.dialog('Det manglende grunnlaget', `<section class="case17" aria-label="Den fiktive etterforskningen">
+      <nav class="case17-nav" aria-label="Etterforskningen">${button('brief', 'Oppdraget')}${button('board', `Spor ${this.state.found.length}/10`)}${button('triage', 'Arbeidsbord')}${button('ending', 'Etterpå')}</nav>
       <p class="case17-fiction">${esc(data.fiction)}</p>
       ${!this.storageAvailable ? '<p class="case17-warning" role="status">Lagring er ikke tilgjengelig. Du kan spille, men fremdriften forsvinner når siden lukkes.</p>' : ''}
       <div id="case17-focus" tabindex="-1">${content}</div>
       <p id="case17-status" class="case17-status" role="status" aria-live="polite"></p>
-      <footer class="case17-footer"><span>Ingen innlogging. Bare fiktivt materiale.</span><a href="${import.meta.env.BASE_URL}sak17.html">Les hele øvelsen som tekst ↗</a></footer></section>`);
+      <footer class="case17-footer"><span>Ingen innlogging. Bare fiktivt materiale.</span><a href="${import.meta.env.BASE_URL}etterforskning.html">Les hele øvelsen som tekst ↗</a></footer></section>`);
     this.root.closest('dialog')!.scrollTop = 0;
     this.root.querySelector<HTMLElement>('#case17-focus')!.focus({preventScroll: true});
     this.clockDisplay();
   }
   private brief() {
-    return `<div class="case17-cover"><span class="case17-folio">SAK / 17</span><p class="case17-overline">EN ETTERFORSKNING I FEM ROM</p><h3>${esc(data.subtitle)}</h3><p class="case17-lead">${esc(data.brief)}</p>
+    return `<div class="case17-cover"><span class="case17-folio">AURORA</span><p class="case17-overline">VALGFRI ETTERFORSKNING · FEM ROM</p><h3>${esc(data.title)}</h3><p class="case17-motif">«${esc(data.subtitle)}»</p><p class="case17-lead">${esc(data.brief)}</p>
       <div class="case17-path"><span>01 · Finn spor</span><span>02 · Prøv arbeidet</span><span>03 · Se følgene</span></div>
       ${button('start', this.state.started ? 'Fortsett undersøkelsen →' : 'Åpne saksmappen →', '', 'class="primary"')}
-      <p>Du trenger ikke løse Sak 17 for å besøke museet. Alle rom og virkelige saker er åpne. Tidsfristen er valgfri.</p></div>`;
+      <p>Denne sammenhengende fiksjonen er et eget fordypningsspor. De virkelige utstillingene, lederøvelsene og besøket ditt er uavhengige av etterforskningen. Ingen rom er låst. Tidsfristen er valgfri.</p></div>`;
   }
   private board() {
     const s = this.summary();
@@ -135,7 +132,7 @@ export class Investigation {
   }
   private evidenceView(id: string) {
     const e = data.evidence.find(e => e.id === id) ?? data.evidence[0];
-    return `${button('room', '← Til undersøkelsesbordet', e.room)}<article class="case17-document"><div class="case17-document-meta"><span>${esc(e.kind)}</span><span>SAK 17 / ${esc(e.id.toUpperCase())}</span></div><h3>${esc(e.title)}</h3><pre>${esc(e.body)}</pre><span class="case17-stamp">FIKTIVT MATERIALE</span></article>
+    return `${button('room', '← Til undersøkelsesbordet', e.room)}<article class="case17-document"><div class="case17-document-meta"><span>${esc(e.kind)}</span><span>AURORA / ${esc(e.id.toUpperCase())}</span></div><h3>${esc(e.title)}</h3><pre>${esc(e.body)}</pre><span class="case17-stamp">FIKTIVT MATERIALE</span></article>
       <div class="case17-interpretation"><strong>Hva kan sporet si oss?</strong><p>${esc(e.meaning)}</p></div>
       ${button('collect', this.state.found.includes(e.id) ? '✓ Samlet · Tilbake til bordet' : 'Legg sporet i bevismappen +', e.id, 'class="primary"')}`;
   }
@@ -179,9 +176,10 @@ export class Investigation {
       <div class="case17-conclusion"><h4>${esc(data.reconstruction.question)}</h4><p>Se særlig på utkastet og den siste overleveringen. Fravær av bevis er ikke automatisk bevis på fravær.</p><div class="case17-options">${data.reconstruction.options.map((o, i) => button('conclude', esc(o), String(i), `aria-pressed="${this.state.reconstruction === i}" ${this.state.found.length < 10 ? 'disabled' : ''}`)).join('')}</div>
       ${this.state.found.length < 10 ? '<p>Samle de ti sporene før du trekker konklusjonen. Museet og alle arbeidsbord er fortsatt åpne.</p>' : this.state.reconstruction !== null ? `<p class="case17-feedback" role="status">${this.state.reconstruction === 1 ? 'Du har skilt det dokumenterte fra det uavklarte. ' : 'Konklusjonen går lenger enn sporene gir grunnlag for. '}${esc(data.reconstruction.explanation)}</p>` : ''}</div>
       <blockquote class="case17-final-line">«Når noen spør hvorfor, skal svaret finnes uten oss.»</blockquote><p class="case17-small">Museets egen formulering.</p>
-      ${s.complete ? '<p class="case17-complete" role="status">✓ Sak 17 er oppsummert. Du kan fortsatt prøve andre valg.</p>' : '<p>Fremdriften blir værende. Du kan gå tilbake, endre vurderinger og sammenligne følgene uten å starte på nytt.</p>'}
+      ${s.complete ? '<p class="case17-complete" role="status">✓ Etterforskningen er oppsummert. Du kan fortsatt prøve andre valg.</p>' : '<p>Fremdriften blir værende. Du kan gå tilbake, endre vurderinger og sammenligne følgene uten å starte på nytt.</p>'}
       <div class="case17-actions">${button('board', 'Til bevismappen')}${button('report', 'Lagre min oppsummering ↓', '', 'class="primary"')}</div>
-      <details class="case17-detail"><summary>Start Sak 17 på nytt</summary><p>Dette sletter bare fremdriften i Sak 17 i denne nettleseren. Reisepass, lederbestilling og innstillinger beholdes.</p>${button('reset', 'Nullstill bare Sak 17')}</details>`;
+      <p class="case17-return">Samme spørsmål følger hele museet: Hva må en etterfølger kunne finne? ${button('leader', 'Ta med ett tiltak til Lederens rom →')}</p>
+      <details class="case17-detail"><summary>Start etterforskningen på nytt</summary><p>Dette sletter bare etterforskningens fremdrift i denne nettleseren. Lederøvelser, lederbestilling og innstillinger beholdes.</p>${button('reset', 'Nullstill bare etterforskningen')}</details>`;
   }
   private secretView() {
     return `<p class="case17-overline">ET VALGFRITT FUNN · UTENFOR DE TI SPORENE</p><h3>${esc(data.secret.title)}</h3><article class="case17-document"><pre>${esc(data.secret.body)}</pre><span class="case17-stamp">FIKTIVT NOTAT</span></article><p class="case17-lead">${esc(data.secret.meaning)}</p>${button('keep-secret', this.state.secret ? '✓ Notatet er tatt vare på' : 'Ta vare på notatet +', '', 'class="primary"')}`;
@@ -193,7 +191,8 @@ export class Investigation {
       if (action === 'crisis') this.index = Math.max(0, this.state.crisis.findIndex(c => c === null));
       this.show(action as Route, value);return;
     }
-    if (action === 'start') {this.state.started = true;this.save();this.show('board');}
+    if (action === 'leader') {this.hooks.close();void this.hooks.visit('leader');}
+    else if (action === 'start') {this.state.started = true;this.save();this.show('board');}
     else if (action === 'collect') {
       const e = data.evidence.find(e => e.id === value);if (!e) return;
       const added = collectEvidence(this.state, value);this.save();this.show('room', e.room);
@@ -222,8 +221,8 @@ export class Investigation {
     else if (action === 'keep-secret') {this.state.secret = true;this.save();this.show('secret');this.status('Et lite spor til etterfølgeren er tatt vare på.');this.cue('paper');}
     else if (action === 'report') {
       const blob = new Blob([caseReport(this.state, this.summary())], {type: 'text/plain;charset=utf-8'});
-      const url = URL.createObjectURL(blob), link = document.createElement('a');link.href = url;link.download = 'arkivmuseet-sak17.txt';link.click();setTimeout(() => URL.revokeObjectURL(url), 1000);
-    } else if (action === 'reset') {this.pauseClock();this.state = freshCase();this.remaining = 30000;this.index = 0;this.save();this.show('brief');this.status('Sak 17 er nullstilt. Resten av museet er uendret.');}
+      const url = URL.createObjectURL(blob), link = document.createElement('a');link.href = url;link.download = 'arkivmuseet-etterforskning.txt';link.click();setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } else if (action === 'reset') {this.pauseClock();this.state = freshCase();this.remaining = 30000;this.index = 0;this.save();this.show('brief');this.status('Etterforskningen er nullstilt. Resten av museet er uendret.');}
   }
   private status(text: string) {const el = this.root.querySelector('#case17-status');if (el) el.textContent = text;this.hooks.announce(text);}
   private startClock() {

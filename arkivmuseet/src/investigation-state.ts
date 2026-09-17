@@ -53,7 +53,7 @@ export function workSummary(state: CaseState, triage: AnswerCard[], access: Answ
     complete: state.found.length === 10 && classified === triage.length && disclosed === access.length && decisions === 6 && state.reconstruction === 1};
 }
 export function caseReport(state: CaseState, summary: ReturnType<typeof workSummary>): string {
-  return ['ARKIVMUSEET — SAK 17', 'Fiktiv øvelse. Ikke en vurdering av en virkelig virksomhet.', '',
+  return ['ARKIVMUSEET — DET MANGLENDE GRUNNLAGET', 'Fiktiv øvelse. Ikke en vurdering av en virkelig virksomhet.', '',
     `Spor samlet: ${state.found.length}/10`, `Dokumentflyt avklart: ${summary.classified}/6`,
     `Innsynsoppgaver avklart: ${summary.disclosed}/4`, `Ledervalg undersøkt: ${summary.decisions}/6`, '',
     state.reconstruction === 1 ? 'Konklusjon: Overleveringen er dokumentert, men sporene bekrefter ikke utført sluttkontroll.' : 'Konklusjonen er ikke ferdig avklart.', '',
