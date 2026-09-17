@@ -30,7 +30,7 @@ jobs:
       - name: Installer testnettleser
         working-directory: arkivmuseet
         run: pnpm exec playwright install --with-deps chromium
-      - name: Kontroller Sak 17 og den opprinnelige museumsreisen
+      - name: Kontroller etterforskningen og museumsreisen
         working-directory: arkivmuseet
         run: |
           set -o pipefail
@@ -48,6 +48,11 @@ jobs:
           timeout 360s xvfb-run -a pnpm test:investigation 2>&1 | tee qa-logs/investigation.log || RESULT=1
           timeout 360s xvfb-run -a pnpm test:browser 2>&1 | tee qa-logs/original-museum.log || RESULT=1
           exit "$RESULT"
+      - name: Behold testet kildegrunnlag for etterprøvbar visuell kontroll
+        if: always()
+        run: |
+          git archive --format=tar HEAD arkivmuseet | gzip > arkivmuseet/qa-source.tar.gz
+          git rev-parse HEAD > arkivmuseet/qa-revision.txt
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -56,4 +61,7 @@ jobs:
             arkivmuseet/qa-investigation/
             arkivmuseet/qa-output/
             arkivmuseet/qa-logs/
+            arkivmuseet/qa-source.tar.gz
+            arkivmuseet/qa-revision.txt
+            arkivmuseet/dist/
           retention-days: 7
