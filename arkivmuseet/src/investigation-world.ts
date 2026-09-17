@@ -47,7 +47,7 @@ export class InvestigationWorld {
     this.box(g, [.8, .13, .75], [0, .93, .25], this.oak);
     this.box(g, [.25, .04, .06], [0, .95, .67], this.brass);
     this.world.mergeStatic(g);
-    this.world.label('SAK 17 · FIKTIV ØVELSE', 'Undersøk sporene · Klikk bordet', 0, 1.9, -.4, 2.65, 0, '#c8b889', g);
+    this.world.label('AURORA · FIKTIV ØVELSE', 'Undersøk sporene · Klikk bordet', 0, 1.9, -.4, 2.65, 0, '#c8b889', g);
     const lamp = new T.MeshBasicMaterial({color: 0xc8a477});
     const light = new T.Mesh(new T.SphereGeometry(.065, 10, 8), lamp);
     light.position.set(-1.05, 1.2, .32);g.add(light);
@@ -77,7 +77,7 @@ export class InvestigationWorld {
         new T.Vector3(Math.sin(angle) * 2.45, .125, 20 + Math.cos(angle) * 2.45)]),
         new T.LineBasicMaterial({color: 0x9d8755}));g.add(curve);
     }
-    this.world.label('TI SPOR. EN SAMMENHENG.', 'Sak 17 · Lysene følger din fiktive undersøkelse', 0, 1.12, 18.72, 2.5, Math.PI, '#c9b27f', g);
+    this.world.label('TI SPOR. EN SAMMENHENG.', 'Etterforskningen · Ett lys for hvert samlet spor', 0, 1.12, 18.72, 2.5, Math.PI, '#c9b27f', g);
     for (let i = 0; i < 6; i++) {
       const mat = new T.MeshBasicMaterial({color: 0x51655c});this.decisions.push(mat);
       this.box(g, [.12, .06, .1], [-.55 + i * .22, .87, 18.68], mat);
