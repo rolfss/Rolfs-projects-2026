@@ -11,3 +11,10 @@ Validated 18 September 2026 before publication.
 The named characters are original fictional mascots. Source material was checked on 17 September 2026. Gamepad behavior is simulated in tests; no physical gamepad was available for a hardware test.
 
 Local browser progress does not automatically transfer to the public GitHub Pages origin. Public play stores progress in the browser for that origin.
+
+## Version 1.2 validation
+
+- 21 dedicated finish tests across all courses: unchanged timed course geometry; continuous 420 m road extension; independent terrain and mountain clearance; venue props outside the driving corridor; coast-down and actual game result transition.
+- Maximum-speed finish stops 209.1 m past the line, leaving over 210 m of road. Records and the race clock freeze at the line; results appear after 2.4 seconds.
+- Added permanent runoff, plaza, scenery clearance and finite-transform checks to the package test suite.
+- Visually inspected the finish approach and open corridor on all three courses, plus flags and spectators in the running game.

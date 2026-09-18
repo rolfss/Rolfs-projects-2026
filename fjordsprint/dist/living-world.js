@@ -19,7 +19,7 @@ export function buildLivingWorld({scene,track,terrainGeometry,seed=741}){
  function makeRoot(x,y,z,yaw=0,scale=1){temp.position.set(x,y,z);temp.rotation.set(0,yaw,0);temp.scale.setScalar(scale);temp.updateMatrix();return temp.matrix.clone();}
  // Use every centreline segment, including neighbouring hairpins. Scenery must
  // never spill onto a different section of road at a switchback.
- const road=track.samples.map(f=>f.p),clearance=track.config.width*.5+7;
+ const road=(track.roadSamples||track.samples).map(f=>f.p),clearance=track.config.width*.5+7;
  function roadDistance(x,z){let best=Infinity;for(let i=1;i<road.length;i++){const a=road[i-1],b=road[i],dx=b.x-a.x,dz=b.z-a.z,t=Math.max(0,Math.min(1,((x-a.x)*dx+(z-a.z)*dz)/(dx*dx+dz*dz||1))),xx=a.x+dx*t-x,zz=a.z+dz*t-z;const d=xx*xx+zz*zz;if(d<best)best=d;}return Math.sqrt(best);}
  function land(x,z,margin=0){const y=groundHeight(terrainGeometry,x,z);if(y<2||roadDistance(x,z)<clearance+margin)return null;return y;}
  function slope(x,z,r=3){const y=groundHeight(terrainGeometry,x,z);return Math.max(Math.abs(groundHeight(terrainGeometry,x+r,z)-y),Math.abs(groundHeight(terrainGeometry,x-r,z)-y),Math.abs(groundHeight(terrainGeometry,x,z+r)-y),Math.abs(groundHeight(terrainGeometry,x,z-r)-y))/r;}

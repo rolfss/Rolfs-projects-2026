@@ -62,3 +62,9 @@ Three.js 0.160.1 is included under its MIT license; see `dist/vendor/THREE-LICEN
 Version 1.1 includes presentation interpolation at a fixed 120 Hz physics rate, stable shadow anchoring and a cached minimap. Run `npm test` for physics, source, terrain, encounter, progression and interpolation checks.
 
 The named mascots are fictional. Arkivverket became Nasjonalarkivet in 2026; the Riksrevisjonen mascot asks about other public bodies. This game does not represent either institution.
+
+## Version 1.2 — scenic finish update
+
+All three courses now have a 420-metre road beyond the timing line. The finish forecourt is cleared of mountain geometry and terrain intrusions, with a checkered stripe, spectators, reception tents, lanterns and a podium. The car coasts down after finishing; the race clock and record stop at the timing line, preserving existing race distances and records.
+
+The route also includes picnic overlooks and benches, hikers and rally spectators, wind-animated Norwegian flags, trail signs, painted cairns, timber shelters and log stacks, bunting and circling birds. Static scenery is instanced to keep rendering overhead modest.

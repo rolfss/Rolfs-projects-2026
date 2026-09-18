@@ -15,10 +15,10 @@ export function carveRoadClearance(geometry,track){
   const u=((B.z-C.z)*(x-C.x)+(C.x-B.x)*(z-C.z))/den,v=((C.z-A.z)*(x-C.x)+(A.x-C.x)*(z-C.z))/den;
   return {ids,height:u*A.y+v*B.y+(1-u-v)*C.y};
  };
- const steps=Math.ceil(track.length/3);
+ const length=track.roadLength||track.length,steps=Math.ceil(length/3);
  for(let pass=0;pass<2;pass++)for(let i=0;i<=steps;i++){
-  const f=track.at(i*track.length/steps);
-  for(const offset of [-half,0,half]){
+  const s=i*length/steps,f=track.at(s),plaza=s>=track.length-45&&s<=track.length+195,w=track.config.width/2+26;
+  for(const offset of plaza?[-w,-half,0,half,w]:[-half,0,half]){
    const hit=triangle(f.p.x+f.r.x*offset,f.p.z+f.r.z*offset);if(!hit)continue;
    const excess=hit.height-(f.p.y-clearance);
    if(excess>.001){for(const id of hit.ids)a.setY(id,a.getY(id)-excess-.002);adjustments++;}

@@ -7,6 +7,8 @@ import * as THREE from '../dist/vendor/three.module.js';
 import {courses,Track} from '../dist/tracks.js';
 import {initialState,stepCar,recoverCar} from '../dist/physics.js';
 import {createDemoDriver} from '../dist/demo.js';
+import {finishPose,buildFinishVenue} from '../dist/finish.js';
+import {buildRoadsideDetails} from '../dist/roadside-details.js';
 import {World} from '../dist/world.js';
 import {carveRoadClearance,groundHeight} from '../dist/terrain.js';
 const root=fileURLToPath(new URL('../',import.meta.url));
@@ -34,6 +36,13 @@ for(const c of courses){
  const boosted=initialState();boosted.s=track.pads[0]-.01;boosted.speed=99;boosted.boost=100;const hit=stepCar(boosted,{throttle:true,boost:true},1/120,track,{assist:true});assert.ok(hit.includes('pad'));assert.equal(boosted.speed,100);const speed=boosted.speed;stepCar(boosted,{throttle:true},1/120,track,{assist:true});assert.ok(boosted.speed>speed-1);
  // Audit the actual terrain triangles under every metre of asphalt and shoulders.
  const world=Object.create(World.prototype);world.track=track;const len=-Math.min(...c.points.map(p=>p[2]))+1600,geo=new THREE.PlaneGeometry(6000,len,170,Math.round(len/32));geo.rotateX(-Math.PI/2);geo.translate(100,0,-len/2+650);const attr=geo.attributes.position;for(let i=0;i<attr.count;i++)attr.setY(i,world.terrainHeight(attr.getX(i),attr.getZ(i)));carveRoadClearance(geo,track);let minimum=Infinity;
- for(let s=0;s<=track.length;s+=1)for(let lateral=0;lateral<=28;lateral++){const half=c.width/2+1.3,p=track.position(s,-half+2*half*lateral/28),clearance=p.y-groundHeight(geo,p.x,p.z);minimum=Math.min(minimum,clearance);assert.ok(clearance>0,`${c.id} terrain intrusion at ${s}`);}geo.dispose();console.log(`${c.name}: road clearance ${minimum.toFixed(3)} m minimum`);
+ for(let s=0;s<=track.length;s+=1)for(let lateral=0;lateral<=28;lateral++){const half=c.width/2+1.3,p=track.position(s,-half+2*half*lateral/28),clearance=p.y-groundHeight(geo,p.x,p.z);minimum=Math.min(minimum,clearance);assert.ok(clearance>0,`${c.id} terrain intrusion at ${s}`);}// Inspect the complete runoff and wide forecourt, not only the timed road.
+ for(let d=0;d<=track.runoffLength;d++)for(let i=0;i<=28;i++){const half=c.width/2+1.3,p=track.position(track.length+d,-half+half*2*i/28);assert.ok(p.y-groundHeight(geo,p.x,p.z)>.05,c.id+' runoff obstruction');}
+ for(let d=-40;d<=190;d++)for(let i=0;i<=60;i++){const half=c.width/2+25,p=track.position(track.length+d,-half+half*2*i/60);assert.ok(p.y-.07-groundHeight(geo,p.x,p.z)>.05,c.id+' forecourt obstruction');}
+ assert.ok(track.at(track.length).p.distanceTo(track.at(track.length+.00001).p)<.000011);assert.ok(Math.abs(track.at(track.roadLength).t.y)<.001);
+ const finished={...initialState(),s:track.length,speed:112,time:90,finished:true},stopped=finishPose(finished,8,track);assert.equal(stopped.speed,0);assert.equal(stopped.time,90);assert.ok(stopped.s<track.roadLength-200);assert.equal(finished.s,track.length);
+ const scene=new THREE.Scene(),venue=buildFinishVenue({scene,track}),details=buildRoadsideDetails({scene,track,terrainGeometry:geo,seed:1221});assert.equal(venue.stats.spectators,28);assert.ok(details.stats.drawCalls<=35);assert.ok(details.stats.flags>0&&details.stats.overlooks>0);for(const site of details.placedSites)assert.ok(track.distanceToRoad(site.x,site.z)>c.width/2+site.radius+6);
+ for(const t of [0,1,30,300]){details.update(t,track.length*.5);scene.traverse(o=>{if(o.isInstancedMesh)assert.ok(o.instanceMatrix.array.every(Number.isFinite));});}
+ geo.dispose();console.log(`${c.name}: road clearance ${minimum.toFixed(3)} m minimum`);
 }
-console.table(summary);console.log('PASS: assets, source references, all 42 questions, six complete physics races, boost momentum, checkpoint recovery, medals and road clearance.');
+console.table(summary);console.log('PASS: assets, source references, all 42 questions, six complete physics races, boost momentum, checkpoint recovery, medals, road/runout/plaza clearance, coast-down and instanced scenery.');
