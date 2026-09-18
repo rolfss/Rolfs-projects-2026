@@ -4,7 +4,7 @@
 
 ## [Se og prøv de nyeste prosjektene →](https://rolfss.github.io/Rolfs-projects-2026/)
 
-**Nyest:** [VEDTAK!](https://rolfss.github.io/Rolfs-projects-2026/vedtak/) · [Second Rolf](https://rolfss.github.io/Rolfs-projects-2026/second-rolf/) · Arkivmuseet · Noark 5-arkivassistent · Archive Assist · MetaReady · Lumen Relay · Brukerstøttejakten
+**Nyest:** [FJORDSPRINT](https://rolfss.github.io/Rolfs-projects-2026/fjordsprint/) · [VEDTAK!](https://rolfss.github.io/Rolfs-projects-2026/vedtak/) · [Second Rolf](https://rolfss.github.io/Rolfs-projects-2026/second-rolf/) · Arkivmuseet · Noark 5-arkivassistent · Archive Assist · MetaReady · Lumen Relay · Brukerstøttejakten
 
 ## VEDTAK! — Felles sak
 
@@ -81,3 +81,9 @@ Et 90-sekunders arkadespill laget med Canvas 2D, Web Audio og vanlige JavaScript
 [Spill Brukerstøttejakten](https://rolfss.github.io/Rolfs-projects-2026/brukerstottejakten/) · [Kildekode](./brukerstottejakten/)
 
 Et femminutters kaffepausespill med 10 nivåer og 80 saker. Service Manager Mk V bygges ut med moduler underveis; skjermede saker og hovedhendelsen tåler flere treff. Noark 5-spørsmål dukker opp sjeldnere, og musikk/lydeffekter kan styres separat. Unødvendig blinkende feedback er fjernet.
+
+## FJORDSPRINT — Archive Run
+
+Norsk 3D-fjellrally med tre etapper, cupfremgang, medaljer, spøkelsesbil og 42 kildebaserte arkivspørsmål. Flyvende maskoter slipper pakker som kan unngås; riktige ekspertsvar gir automatisk turbo. Spillet har lokal lagring, egne figurer og syntetisert musikk, uten innlogging eller eksterne spillressurser.
+
+[Spill FJORDSPRINT](https://rolfss.github.io/Rolfs-projects-2026/fjordsprint/) · [Dokumentasjon](fjordsprint/READ-ME.md). Tester: `cd fjordsprint && npm test`.
