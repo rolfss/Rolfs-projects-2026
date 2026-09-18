@@ -7,6 +7,7 @@
   <meta name="theme-color" content="#0b2339">
   <title>MetaReady — informasjonsstyring og AI-beredskap</title>
   <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./workbench.css">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Hopp til hovedinnhold</a>
@@ -53,9 +54,13 @@
       </div>
     </aside>
 
+    <div class="main-column">
+    <div id="catalog-announcement" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+    <p id="storage-warning" class="storage-warning" role="status" hidden></p>
     <main id="main-content" tabindex="-1">
       <noscript>MetaReady krever JavaScript for den interaktive demoen.</noscript>
     </main>
+    </div>
   </div>
 
   <dialog id="asset-dialog" aria-labelledby="asset-dialog-title">
@@ -92,14 +97,16 @@
       </div>
       <div class="dialog-actions">
         <button class="button button-quiet" type="button" data-action="close-dialog">Avbryt</button>
-        <button class="button button-primary" type="submit">Registrer og valider</button>
+        <button class="button primary" type="submit">Registrer og valider</button>
       </div>
     </form>
   </dialog>
 
   <section id="demo-guide" class="demo-guide" hidden aria-labelledby="demo-guide-title">
     <div class="demo-guide-head"><div><p class="eyebrow">Styrt demonstrasjon</p><h2 id="demo-guide-title">MetaReady på tre minutter</h2></div><button class="icon-button" type="button" data-action="close-guide" aria-label="Lukk demoguiden">×</button></div>
-    <p id="demo-guide-status">Velg et trinn for å se hvordan funn går fra portefølje til styringsspor.</p>
+    <p id="demo-guide-status" role="status" aria-live="polite" aria-atomic="true">Velg et trinn for å se hvordan funn går fra portefølje til styringsspor.</p>
+    <div class="guide-controls"><button type="button" class="button secondary" data-action="demo-previous" disabled>← Forrige</button><button type="button" class="button primary" data-action="demo-next">Neste →</button></div>
+    <details class="guide-all-steps"><summary>Alle seks trinn</summary>
     <ol>
       <li><button type="button" data-action="demo-step" data-step="1"><b>01</b><span>Porteføljebilde</span></button></li>
       <li><button type="button" data-action="demo-step" data-step="2"><b>02</b><span>Dokumenter mangler</span></button></li>
@@ -108,6 +115,7 @@
       <li><button type="button" data-action="demo-step" data-step="5"><b>05</b><span>Prioriter tiltak</span></button></li>
       <li><button type="button" data-action="demo-step" data-step="6"><b>06</b><span>Styringsspor</span></button></li>
     </ol>
+    </details>
   </section>
 
   <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
