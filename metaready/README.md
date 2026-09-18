@@ -37,6 +37,22 @@ MetaReady gjør disse spørsmålene til en arbeidsflyt i stedet for et dokument 
 - Lokal lagring og enkel nullstilling.
 - Automatiske tester av validering, poengberegning, versjonering, måltall og eksport.
 
+## Nytt i arbeidsflaten
+
+Katalogen har fått en oppfølgingskø: søk også på eier, forvalter og norske typenavn,
+velg ressurser med åpne profilkrav, manglende ansvar eller revisjon, og sorter etter
+flest åpne krav eller tittel. Tallene følger søk, type og status. Detaljpanelet viser
+bare en ressurs som finnes i trefflisten; et tomt søk viser ikke en gammel diagnose.
+Fra panelet kan du gå rett til AI-vurderingen av samme ressurs.
+
+Demoguiden har fått Forrige/Neste og en sammenleggbar trinnliste. Den tar mindre
+plass på mobil, og kan lukkes med Escape. Lokal lagring er valgfri: ved blokkert
+lagring eller full kvote fortsetter appen i fanen og viser et varsel. Uleselige
+lagrede data blir ikke overskrevet før du velger å nullstille demoen.
+
+Vurderingsdatoen er fortsatt **28. august 2026**, slik at eksempeldata og
+regelresultater er stabile. Dette er ikke en vurdering mot dagens dato.
+
 ## Kjør lokalt
 
 ```bash
@@ -50,6 +66,7 @@ Kjør testene:
 
 ```bash
 npm test
+npm run check
 ```
 
 Node.js 20 eller nyere er nok for testene.
@@ -63,6 +80,9 @@ Den publiserte versjonen er en statisk app uten eksterne avhengigheter:
 - `data.mjs` — syntetisk katalog, relasjoner, tiltak og revisjonsspor.
 - `engine.mjs` — validering, kvalitet, AI-beredskap, prioritering, versjonering og eksport.
 - `views.mjs` — visningene i appen.
+- `catalog-model.mjs` — søk, filtermigrering, oppfølging og deterministisk sortering.
+- `state-store.mjs` — validering av lagret tilstand og feil som ikke stopper demoen.
+- `workbench.css` — katalog, kompakt demoguide og responsiv arbeidsflate.
 - `app.mjs` — tilstand, demoroller, hendelser, lokal lagring og eksport.
 - `tests/` — tester av den deterministiske domenelogikken.
 
