@@ -25,13 +25,15 @@ jobs:
         working-directory: second-rolf-api
       - run: npm test && npm run check && npx wrangler deploy --dry-run
         working-directory: second-rolf-api
-      - name: Parse Windows repair script without executing it
+      - name: Parse Windows repair and supervisor scripts without executing them
         shell: pwsh
         run: |
-          $tokens = $null
-          $parseErrors = $null
-          [System.Management.Automation.Language.Parser]::ParseFile("$PWD/second-rolf-api/local/repair.ps1", [ref]$tokens, [ref]$parseErrors) | Out-Null
-          if ($parseErrors.Count -gt 0) { $parseErrors | ForEach-Object { Write-Error $_.Message }; exit 1 }
+          foreach ($name in @('repair.ps1', 'supervise.ps1')) {
+            $tokens = $null
+            $parseErrors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile("$PWD/second-rolf-api/local/$name", [ref]$tokens, [ref]$parseErrors) | Out-Null
+            if ($parseErrors.Count -gt 0) { $parseErrors | ForEach-Object { Write-Error $_.Message }; exit 1 }
+          }
       - name: Deploy Worker on main when authorized deployment credentials exist
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         working-directory: second-rolf-api

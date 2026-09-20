@@ -4,7 +4,7 @@ import { beforeEach, afterEach, it, expect, vi } from 'vitest';
 import { PROFILE_REVISION } from '../../../site/second-rolf/interview.js';
 
 const harness = vi.hoisted(() => ({ status: null, token: null, nextStatus: null }));
-vi.mock('../../../site/second-rolf/status.js?v=20260915-ministral-chat', async importOriginal => ({
+vi.mock('../../../site/second-rolf/status.js?v=20260920-bonsai-private-notes', async importOriginal => ({
   ...await importOriginal(),
   watchStatus: fn => { harness.status = fn; },
   getStatus: async () => harness.nextStatus
@@ -12,8 +12,8 @@ vi.mock('../../../site/second-rolf/status.js?v=20260915-ministral-chat', async i
 const flush = async () => { for (let i = 0; i < 12; i++) await Promise.resolve(); };
 const query = s => document.querySelector(s);
 const submit = async text => { query('#question').value = text; query('#composer').dispatchEvent(new Event('submit', { cancelable: true })); await flush(); };
-const reply = (text, profileRevision = PROFILE_REVISION, model = 'ministral-3:14b') => new Response(JSON.stringify({ answer: text, model, profileRevision, mode: 'local-model', localOnly: true, sources: [] }), { status: 200 });
-const status = data => harness.status({ profileRevision: PROFILE_REVISION, model: 'ministral-3:14b', reason: data.available ? 'ready' : 'model_unavailable', ...data });
+const reply = (text, profileRevision = PROFILE_REVISION, model = 'Bonsai-2-27B-PQ2_0') => new Response(JSON.stringify({ answer: text, model, profileRevision, mode: 'local-model', localOnly: true, sources: [] }), { status: 200 });
+const status = data => harness.status({ profileRevision: PROFILE_REVISION, model: 'Bonsai-2-27B-PQ2_0', reason: data.available ? 'ready' : 'model_unavailable', ...data });
 
 beforeEach(async () => {
   vi.resetModules();
@@ -64,10 +64,10 @@ it('keeps offline answers and source links, without falsely labelling them local
   expect(query('#reply-wait').hidden).toBe(true);
 });
 
-it('names Ministral and the verified GPU rather than just saying local AI', () => {
+it('names Bonsai and the verified GPU rather than just saying local AI', () => {
   status({ available: true, gpu: true, siteKey: 'site' });
   expect(query('#status').classList.contains('live')).toBe(true);
-  expect(query('#status').textContent).toContain('Ministral 3 14B · aktiv på GPU');
+  expect(query('#status').textContent).toContain('Bonsai 2 27B · aktiv på GPU');
   status({ available: true, gpu: false, siteKey: 'site' });
   expect(query('#status').textContent).not.toContain('GPU');
   status({ available: false }); expect(query('#status').classList.contains('live')).toBe(false);
@@ -189,7 +189,7 @@ it('explains that only fallback mode is limited, rather than banning general que
   await submit('A non-work preference question');
   const answer = query('#messages').lastElementChild.textContent;
   expect(answer).toContain('I profilmodus');
-  expect(answer).toContain('Vanlige spørsmål kan besvares av Ministral');
+  expect(answer).toContain('Vanlige spørsmål kan besvares av Bonsai');
   expect(answer).not.toMatch(/hobby|musikk|bøker|science fiction|fantasy/i);
 });
 
@@ -200,12 +200,12 @@ it('forwards general questions to the real chat route instead of the profile mat
   await submit('Why is the sky blue?');
   expect(JSON.parse(fetcher.mock.calls[0][1].body).question).toBe('Why is the sky blue?');
   expect(query('#messages').lastElementChild.textContent).toContain('Shorter wavelengths');
-  expect(query('#messages').lastElementChild.textContent).toContain('Ministral 3 14B');
+  expect(query('#messages').lastElementChild.textContent).toContain('Bonsai 2 27B');
   expect(query('#messages').lastElementChild.querySelector('.sources')).toBeNull();
 });
 
-it('does not display an answer from a different or unspecified model as Ministral', async () => {
-  for (const model of ['another-model', null]) {
+it('does not display an answer from a different or unspecified model as Bonsai', async () => {
+  for (const model of ['another-model', 'ministral-3:14b', null]) {
     status({ available: true, siteKey: 'site' }); harness.token('verified');
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(reply('WRONG_MODEL_OUTPUT', PROFILE_REVISION, model)));
     await submit('Why is the sky blue?');
@@ -218,7 +218,7 @@ it('distinguishes a connected legacy model from a disconnected PC without bypass
   status({ available: false, modelOnline: true, profileRevision: undefined, reason: 'backend_update_required' });
   const fetcher = vi.fn(); vi.stubGlobal('fetch', fetcher);
   await submit('Why is the sky blue?');
-  expect(query('#status').textContent).toContain('Ministral tilkoblet');
+  expect(query('#status').textContent).toContain('Bonsai tilkoblet');
   expect(query('#status').textContent).toContain('oppdatering kreves');
   expect(query('#status-detail').textContent).toContain('Cloudflare');
   expect(query('#status').classList.contains('live')).toBe(false);
@@ -227,7 +227,7 @@ it('distinguishes a connected legacy model from a disconnected PC without bypass
 
 it('rechecks readiness on request and recovers without reloading the page', async () => {
   status({ available: false, reason: 'pc_disconnected' });
-  harness.nextStatus = { available: true, model: 'ministral-3:14b', profileRevision: PROFILE_REVISION, gpu: true, reason: 'ready', siteKey: 'site' };
+  harness.nextStatus = { available: true, model: 'Bonsai-2-27B-PQ2_0', profileRevision: PROFILE_REVISION, gpu: true, reason: 'ready', siteKey: 'site' };
   query('#retry-status').click(); await flush();
   expect(query('#status').classList.contains('live')).toBe(true);
   expect(query('#retry-status').disabled).toBe(false);

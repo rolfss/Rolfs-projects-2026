@@ -1,107 +1,108 @@
 [CmdletBinding()]
 param(
+    [Parameter(Mandatory=$true)][string]$RuntimeRoot,
     [string]$ConfigPath = $env:SECOND_ROLF_CONFIG,
+    [string]$InstallationPath = (Join-Path $env:LOCALAPPDATA 'LocalModelLab\Bonsai-2-27B\installation.json'),
     [switch]$DeployWorker
 )
-
-$ErrorActionPreference = 'Stop'
+$ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
-$apiRoot = Split-Path -Parent $PSScriptRoot
-$workerOrigin = 'https://second-rolf-api.rolfsselas.workers.dev'
-$node = (Get-Command node.exe -ErrorAction Stop).Source
-$npm = (Get-Command npm.cmd -ErrorAction Stop).Source
-
-function Read-ConnectorConfigPath([string]$CommandLine) {
-    if (-not $CommandLine) { return $null }
-    $match = [regex]::Match($CommandLine, '(?i)(?:"[^"]*connector\.mjs"|\S*connector\.mjs)\s+(?:"([^"]+\.json)"|(\S+\.json))')
-    if (-not $match.Success) { return $null }
-    $candidate = $match.Groups[1].Value
-    if (-not $candidate) { $candidate = $match.Groups[2].Value }
-    if (-not [IO.Path]::IsPathRooted($candidate)) { $candidate = Join-Path $apiRoot $candidate }
-    if (-not (Test-Path -LiteralPath $candidate -PathType Leaf)) { return $null }
-    try {
-        $config = Get-Content -LiteralPath $candidate -Raw | ConvertFrom-Json
-        if ($config.workerUrl.TrimEnd('/') -ne $workerOrigin) { return $null }
-        return (Resolve-Path -LiteralPath $candidate).Path
-    } catch { return $null }
+$apiRoot=Split-Path -Parent $PSScriptRoot
+$repoRoot=Split-Path -Parent $apiRoot
+$RuntimeRoot=[IO.Path]::GetFullPath($RuntimeRoot)
+$privateRoot=Join-Path $RuntimeRoot '.private'
+$paused=Join-Path $RuntimeRoot '.paused'
+$wrapper=Join-Path $RuntimeRoot 'Supervise-Second-Rolf.ps1'
+$startScript=Join-Path $RuntimeRoot 'Start-Second-Rolf.ps1'
+$node=(Get-Command node.exe -ErrorAction Stop).Source
+$npm=(Get-Command npm.cmd -ErrorAction Stop).Source
+$utf8=New-Object Text.UTF8Encoding($false)
+if (-not (Test-Path -LiteralPath $wrapper) -or -not (Test-Path -LiteralPath $startScript)) { throw 'RuntimeRoot must be the existing Second Rolf runtime folder with its Start and Supervise scripts.' }
+if (-not $ConfigPath) { $ConfigPath=Join-Path $privateRoot 'config.json' }
+$ConfigPath=(Resolve-Path -LiteralPath $ConfigPath).Path
+$config=Get-Content -LiteralPath $ConfigPath -Raw | ConvertFrom-Json
+if ($config.workerUrl.TrimEnd('/') -ne 'https://second-rolf-api.rolfsselas.workers.dev' -or $config.key.Length -lt 40) { throw 'Invalid existing connector configuration. Never paste its secret into chat or source.' }
+$runtimeConfig=Join-Path $privateRoot 'config.json'
+if ($ConfigPath -ne $runtimeConfig) { throw 'Use the existing .private\config.json inside RuntimeRoot; no credentials are copied or replaced by this repair.' }
+if (-not (Test-Path -LiteralPath $InstallationPath)) { throw 'Install the pinned PrismML Bonsai package first.' }
+$InstallationPath=(Resolve-Path -LiteralPath $InstallationPath).Path
+if ([int]((& $node --version).TrimStart('v').Split('.')[0]) -lt 22) { throw 'Node.js 22 or later is required.' }
+function Wait-SupervisorExit {
+    for ($attempt=0; $attempt -lt 30; $attempt++) {
+        try { $existing=[Threading.Mutex]::OpenExisting('Local\SecondRolfPC'); $existing.Dispose() }
+        catch [Threading.WaitHandleCannotBeOpenedException] { return }
+        Start-Sleep -Seconds 1
+    }
+    throw 'The existing supervisor did not stop; no unrelated processes were terminated.'
 }
-
-# Discover only a running connector's explicitly named JSON config. Do not scan private folders.
-$processes = @(Get-CimInstance Win32_Process -Filter "Name = 'node.exe'" -ErrorAction SilentlyContinue)
-if (-not $ConfigPath) {
-    $paths = @($processes | ForEach-Object { Read-ConnectorConfigPath $_.CommandLine } | Where-Object { $_ } | Select-Object -Unique)
-    if ($paths.Count -eq 1) { $ConfigPath = $paths[0] }
-}
-if (-not $ConfigPath) {
-    $ConfigPath = Read-Host 'Path to the existing private Second Rolf JSON config (NOT the secret key)'
-}
-$ConfigPath = (Resolve-Path -LiteralPath $ConfigPath).Path
-$config = Get-Content -LiteralPath $ConfigPath -Raw | ConvertFrom-Json
-if ($config.workerUrl.TrimEnd('/') -ne $workerOrigin -or $config.key.Length -lt 40) {
-    throw 'This is not a valid private Second Rolf connector config. Do not paste secrets into chat or GitHub.'
-}
-$nodeVersion = [string](& $node --version)
-$major = [int]$nodeVersion.Trim().TrimStart('v').Split('.')[0]
-if ($major -lt 22) { throw 'Node.js 22 or later is required.' }
-
 Push-Location $apiRoot
 try {
     & $npm ci --no-fund
-    if ($LASTEXITCODE -ne 0) { throw 'Dependency installation failed; existing connector was not stopped.' }
+    if ($LASTEXITCODE -ne 0) { throw 'Dependency installation failed; existing runtime was not stopped.' }
     & $npm run check
-    if ($LASTEXITCODE -ne 0) { throw 'Source validation failed; existing connector was not stopped.' }
-    # Single quotes inside JavaScript also survive Windows PowerShell 5 native argument handling.
-    $expected = & $node --input-type=module -e "import('./protocol.mjs').then(m=>console.log(m.PROFILE_REVISION))"
-    if ($LASTEXITCODE -ne 0 -or -not $expected) { throw 'Could not read the current public profile revision.' }
-
+    if ($LASTEXITCODE -ne 0) { throw 'Source validation failed; existing runtime was not stopped.' }
+    $stamp=Get-Date -Format 'yyyyMMdd-HHmmss-fff'
+    $snapshot=Join-Path $RuntimeRoot ('releases\bonsai-'+$stamp)
+    $snapshotApi=Join-Path $snapshot 'second-rolf-api'
+    $snapshotLocal=Join-Path $snapshotApi 'local'
+    $snapshotSite=Join-Path $snapshot 'site\second-rolf'
+    $null=New-Item -ItemType Directory -Path $snapshotLocal,$snapshotSite,(Join-Path $snapshotApi 'node_modules') -Force
+    # Explicit allowlist: no owner notes, secrets, logs, test data, or checkout-wide copy.
+    foreach ($name in @('protocol.mjs','package.json','package-lock.json')) { Copy-Item -LiteralPath (Join-Path $apiRoot $name) -Destination $snapshotApi }
+    foreach ($name in @('connector.mjs','doctor.mjs','supervise.ps1')) { Copy-Item -LiteralPath (Join-Path $PSScriptRoot $name) -Destination $snapshotLocal }
+    foreach ($name in @('knowledge.js','interview.js','status.js')) { Copy-Item -LiteralPath (Join-Path $repoRoot ('site\second-rolf\'+$name)) -Destination $snapshotSite }
+    Copy-Item -LiteralPath (Join-Path $apiRoot 'node_modules\ws') -Destination (Join-Path $snapshotApi 'node_modules\ws') -Recurse
+    [IO.File]::WriteAllText((Join-Path $snapshot 'package.json'),'{"private":true,"type":"module"}',$utf8)
+    $backup=Join-Path $privateRoot ('supervisor-before-bonsai-'+$stamp+'.ps1')
+    Copy-Item -LiteralPath $wrapper -Destination $backup
+    $wasPaused=Test-Path -LiteralPath $paused
+    $pauseContent=$null
+    if ($wasPaused) { $pauseContent=[IO.File]::ReadAllBytes($paused) }
+    $wrapperReplaced=$false
+    try {
+        Set-Content -LiteralPath $paused -Value 'Paused for verified Bonsai runtime upgrade.'
+        Wait-SupervisorExit
+        $supervise=Join-Path $snapshotLocal 'supervise.ps1'
+        $wrapperText="& '"+$supervise.Replace("'","''")+"' -RuntimeRoot '"+$RuntimeRoot.Replace("'","''")+"' -InstallationPath '"+$InstallationPath.Replace("'","''")+"'`r`n"
+        $wrapperTemporary=$wrapper+'.tmp'
+        [IO.File]::WriteAllText($wrapperTemporary,$wrapperText,$utf8)
+        $wrapperReplaced=$true
+        Move-Item -LiteralPath $wrapperTemporary -Destination $wrapper -Force
+        & $startScript
+        $env:SECOND_ROLF_MODEL_STATUS=Join-Path $privateRoot 'bonsai-status.json'
+        $verified=$false
+        for ($attempt=0; $attempt -lt 60; $attempt++) {
+            Start-Sleep -Seconds 3
+            try {
+                $state=Get-Content -LiteralPath $env:SECOND_ROLF_MODEL_STATUS -Raw | ConvertFrom-Json
+                if ($state.gpuLayers -eq 65 -and $state.totalLayers -eq 65) {
+                    & $node (Join-Path $snapshotLocal 'doctor.mjs') --local-only
+                    if ($LASTEXITCODE -eq 0) { $verified=$true; break }
+                }
+            } catch {}
+        }
+        if (-not $verified) { throw 'Installed Bonsai runtime did not pass local readiness.' }
+    } catch {
+        $upgradeFailure=$_
+        if ($wrapperReplaced) {
+            Set-Content -LiteralPath $paused -Value 'Bonsai upgrade failed; restoring previous supervisor.'
+            try { Wait-SupervisorExit }
+            catch { throw 'Bonsai upgrade failed and its supervisor did not stop. The saved wrapper was not overwritten; keep the runtime paused and restore the backup after the process exits.' }
+            Copy-Item -LiteralPath $backup -Destination $wrapper -Force
+        }
+        if ($wasPaused) { [IO.File]::WriteAllBytes($paused,$pauseContent) }
+        else {
+            if (Test-Path -LiteralPath $paused) { Remove-Item -LiteralPath $paused -Force }
+            # The startup mutex makes this safe even if the original process is still alive.
+            & $startScript
+        }
+        throw $upgradeFailure
+    }
+    Write-Host 'Verified Bonsai runtime installed. Existing Ollama files and private connector config are unchanged.'
     if ($DeployWorker) {
         & $npm run deploy
-        if ($LASTEXITCODE -ne 0) { throw 'Worker deployment failed. Sign in using npx wrangler login, then rerun. Existing connector was not stopped.' }
+        if ($LASTEXITCODE -ne 0) { throw 'Local Bonsai works, but Worker deployment failed. Existing secrets were not changed.' }
     }
-
-    $env:OLLAMA_HOST = '127.0.0.1:11434'
-    $env:OLLAMA_NO_CLOUD = '1'
-    $env:OLLAMA_NUM_PARALLEL = '1'
-    $env:OLLAMA_CONTEXT_LENGTH = '8192'
-    $env:OLLAMA_FLASH_ATTENTION = '1'
-    $env:OLLAMA_KV_CACHE_TYPE = 'q8_0'
-    $env:SECOND_ROLF_CONFIG = $ConfigPath
-    $ollamaReady = $false
-    try { $null = Invoke-RestMethod 'http://127.0.0.1:11434/api/version' -TimeoutSec 3; $ollamaReady = $true } catch {}
-    if (-not $ollamaReady) {
-        $ollama = (Get-Command ollama.exe -ErrorAction Stop).Source
-        $null = Start-Process -FilePath $ollama -ArgumentList 'serve' -WindowStyle Minimized -PassThru
-        for ($i = 0; $i -lt 30; $i++) {
-            Start-Sleep -Seconds 1
-            try { $null = Invoke-RestMethod 'http://127.0.0.1:11434/api/version' -TimeoutSec 2; $ollamaReady = $true; break } catch {}
-        }
-    }
-    if (-not $ollamaReady) { throw 'Ollama did not start. No existing connector was stopped.' }
-    & $node local/doctor.mjs --local-only
-    if ($LASTEXITCODE -ne 0) { throw 'Local Ministral did not answer. Ensure ollama pull ministral-3:14b has completed. No existing connector was stopped.' }
-
-    # Refresh PIDs after installation/warmup; restart only this exact validated config.
-    # Never stop unrelated Node/Ollama processes or modify startup tasks.
-    $processes = @(Get-CimInstance Win32_Process -Filter "Name = 'node.exe'" -ErrorAction SilentlyContinue)
-    foreach ($process in $processes) {
-        $oldConfig = Read-ConnectorConfigPath $process.CommandLine
-        if ($oldConfig -and $oldConfig -eq $ConfigPath) {
-            Stop-Process -Id $process.ProcessId -ErrorAction SilentlyContinue
-        }
-    }
-    $connector = Join-Path $PSScriptRoot 'connector.mjs'
-    $started = Start-Process -FilePath $node -ArgumentList @(('"' + $connector + '"'), ('"' + $ConfigPath + '"')) -WorkingDirectory $apiRoot -WindowStyle Minimized -PassThru
-    Write-Host ('Started updated Second Rolf connector, process ' + $started.Id + '. Checking public readiness...')
-    for ($i = 0; $i -lt 20; $i++) {
-        Start-Sleep -Seconds 3
-        try {
-            $health = Invoke-RestMethod ($workerOrigin + '/api/second-rolf/health') -TimeoutSec 6
-            if ($health.available -eq $true -and $health.model -eq 'ministral-3:14b' -and $health.profileRevision -eq $expected) {
-                & $node local/doctor.mjs --public-only
-                if ($LASTEXITCODE -eq 0) { Write-Host 'Public readiness confirmed. Reload the page and complete its security check.'; return }
-            }
-        } catch {}
-    }
-    & $node local/doctor.mjs --public-only
-    throw 'The updated connector was started, but public chat is not confirmed ready. Check the diagnostic above. If the Worker is old, rerun with -DeployWorker. Check that an old startup task is not relaunching another connector copy.'
+    & $node (Join-Path $snapshotLocal 'doctor.mjs') --public-only
+    if ($LASTEXITCODE -ne 0) { Write-Warning 'Local Bonsai works. Publish the matching Worker and Pages revision before public chat can be ready.' }
 } finally { Pop-Location }

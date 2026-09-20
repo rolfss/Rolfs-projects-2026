@@ -11,13 +11,15 @@ if (!publicOnly) {
   try {
     const local = await probeModel(true);
     if (!local.available) throw new Error('The expected model is not loaded.');
-    await infer({ question: 'What is 2 + 2? Answer briefly.', history: [], profileRevision: PROFILE_REVISION }, new AbortController().signal);
-    console.log(`PASS: local /api/chat returned a completed ${MODEL} answer with the current public prompt.`);
-    console.log(`Ollama reports GPU memory in use: ${local.gpu}.`);
+    const answer = await infer({ question: 'What is 2 + 2? Answer with only the digit 4.', history: [], profileRevision: PROFILE_REVISION }, new AbortController().signal);
+    if (answer.trim() !== '4') throw new Error('The model failed the arithmetic check.');
+    console.log(`PASS: local /v1/chat/completions returned a completed ${MODEL} answer with the current public prompt.`);
+    console.log(`Verified full GPU layer offload and live NVIDIA compute process: ${local.gpu}.`);
+    if (!local.gpu) { failed = true; console.error('FAIL: GPU readiness could not be verified from the runtime status and live NVIDIA process.'); }
     console.log('This tests local inference, not the browser/Turnstile path or answer quality.');
   } catch {
     failed = true;
-    console.error(`FAIL: local ${MODEL} inference is not ready. Start Ollama on 127.0.0.1:11434 and ensure this model is installed.`);
+    console.error(`FAIL: local ${MODEL} inference is not ready. Start the Second Rolf Bonsai runtime on 127.0.0.1:8099 and set SECOND_ROLF_MODEL_STATUS to its private runtime status file.`);
   }
 }
 if (!localOnly) {
