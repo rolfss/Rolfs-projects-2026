@@ -1,6 +1,6 @@
-import { PROFILE_REVISION } from './interview.js?v=20260915-technical-self-description';
+import { PROFILE_REVISION } from './interview.js?v=20260920-bonsai-private-notes';
 export const BACKEND_ORIGIN = 'https://second-rolf-api.rolfsselas.workers.dev';
-export const LOCAL_MODEL = 'ministral-3:14b';
+export const LOCAL_MODEL = 'Bonsai-2-27B-PQ2_0';
 
 // Model connectivity and permission to use the current public profile are different states.
 // Never remove the revision guard: a legacy connector may still contain removed private data.
@@ -19,16 +19,16 @@ export function normalizeStatus(data) {
 
 export function statusDescription(status) {
   const descriptions = {
-    ready: 'Ministral 3 14B er tilkoblet med gjeldende offentlig kunnskapsbase. Vanlig chat og faglige spørsmål besvares av den lokale modellen.',
-    busy: 'Ministral 3 14B svarer en annen besøkende. Prøv igjen om litt.',
+    ready: 'Bonsai 2 27B er tilkoblet med gjeldende offentlig kunnskapsbase. Vanlig chat og faglige spørsmål besvares av den lokale modellen.',
+    busy: 'Bonsai 2 27B svarer en annen besøkende. Prøv igjen om litt.',
     backend_update_required: 'PC-en kan være på og modellen tilkoblet, men Cloudflare-backenden må oppdateres før trygg live-chat kan brukes. Oppdater også PC-koblingen.',
     connector_update_required: 'PC-koblingen bruker en eldre kunnskapsversjon. Oppdater og start Second Rolf-koblingen på nytt; hele PC-en trenger ikke omstart.',
-    pc_disconnected: 'Ingen aktiv forbindelse fra PC-en. Både Ollama og Second Rolf-koblingen må kjøre; det er ikke nok at PC-en er slått på.',
+    pc_disconnected: 'Ingen aktiv forbindelse fra PC-en. Både Bonsai-serveren og Second Rolf-koblingen må kjøre; det er ikke nok at PC-en er slått på.',
     heartbeat_expired: 'PC-koblingen har sluttet å sende status. Den kan være i hvilemodus eller ha mistet nettforbindelsen.',
-    model_starting: 'PC-koblingen er oppe, men Ministral er ikke bekreftet klar ennå. Innlasting kan ta litt tid.',
-    model_unavailable: 'Ministral har ikke bekreftet at den kan svare. Profilmodus gir bare innebygde profilsvar, ikke AI-chat.',
+    model_starting: 'PC-koblingen er oppe, men Bonsai er ikke bekreftet klar ennå. Innlasting kan ta litt tid.',
+    model_unavailable: 'Bonsai har ikke bekreftet at den kan svare. Profilmodus gir bare innebygde profilsvar, ikke AI-chat.',
     not_configured: 'Cloudflare-backenden mangler nødvendig konfigurasjon for live-chat.',
-    model_mismatch: 'Backenden bekrefter ikke den forventede lokale Ministral-modellen. Live-chat er sperret.',
+    model_mismatch: 'Backenden bekrefter ikke den forventede lokale Bonsai-modellen. Live-chat er sperret.',
     network_error: 'Nettleseren får ikke kontakt med statusendepunktet. Dette sier ikke om PC-en er av eller på.',
     invalid_health: 'Statusendepunktet ga et ugyldig svar. Live-chat er ikke bekreftet.'
   };

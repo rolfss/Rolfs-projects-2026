@@ -1,5 +1,5 @@
-import { rankKnowledge, PROFILE_REVISION } from './knowledge.js?v=20260915-technical-self-description';
-import { BACKEND_ORIGIN, LOCAL_MODEL, watchStatus, getStatus, statusDescription } from './status.js?v=20260915-ministral-chat';
+import { rankKnowledge, PROFILE_REVISION } from './knowledge.js?v=20260920-bonsai-private-notes';
+import { BACKEND_ORIGIN, LOCAL_MODEL, watchStatus, getStatus, statusDescription } from './status.js?v=20260920-bonsai-private-notes';
 const els = Object.fromEntries(['messages', 'composer', 'question', 'send', 'clear', 'status', 'status-detail', 'retry-status', 'verification', 'chat-feedback', 'reply-wait', 'reply-wait-message', 'reply-elapsed'].map(id => [id, document.getElementById(id)]));
 let history = [], live = false, siteKey = '', turnstileToken = '', widgetId = null, scriptPromise, busy = false, generation = 0, controller, waitingTimer;
 
@@ -7,7 +7,7 @@ function localAnswer(question) {
   const matches = rankKnowledge(question).slice(0, 2);
   const relevant = matches.filter(m => m.score >= matches[0].score * .75);
   return relevant.length ? { text: relevant.map(m => m.answer).join('\n\n'), sources: relevant.map(m => ({ title: m.source, url: new URL(m.url, 'https://rolfss.github.io/Rolfs-projects-2026/second-rolf/').href })) } : {
-    text: 'Ministral er ikke tilgjengelig for live-chat akkurat nå. I profilmodus er svarene avgrenset til fag og teknologi og Rolfs dokumenterte profesjonelle profil. Vanlige spørsmål kan besvares av Ministral når tilkoblingen er klar. Dette er en innebygd melding, ikke et modellsvar.', sources: []
+    text: 'Bonsai er ikke tilgjengelig for live-chat akkurat nå. I profilmodus er svarene avgrenset til fag og teknologi og Rolfs dokumenterte profesjonelle profil. Vanlige spørsmål kan besvares av Bonsai når tilkoblingen er klar. Dette er en innebygd melding, ikke et modellsvar.', sources: []
   };
 }
 
@@ -17,7 +17,7 @@ function addMessage(role, text, sources = [], isLive = false) {
   const bubble = document.createElement('div');
   if (role === 'assistant') {
     const speaker = document.createElement('span'); speaker.className = 'speaker';
-    speaker.textContent = isLive ? 'Second Rolf · Ministral 3 14B · lokal AI' : 'Second Rolf · offentlig profil · ikke AI'; bubble.append(speaker);
+    speaker.textContent = isLive ? 'Second Rolf · Bonsai 2 27B · lokal AI' : 'Second Rolf · offentlig profil · ikke AI'; bubble.append(speaker);
   }
   const p = document.createElement('p');
   for (const part of text.split(/(\*\*[^*\n]+\*\*)/g)) {
@@ -43,9 +43,9 @@ function setLive(status) {
   live = status.available === true && status.model === LOCAL_MODEL && status.profileRevision === PROFILE_REVISION;
   els.status.classList.toggle('live', live);
   let label;
-  if (live) label = status.busy ? 'Ministral 3 14B · opptatt' : status.gpu ? 'Ministral 3 14B · aktiv på GPU' : 'Ministral 3 14B · aktiv';
-  else if (status.modelOnline) label = 'Ministral tilkoblet · oppdatering kreves';
-  else label = ['backend_update_required', 'connector_update_required'].includes(status.reason) ? 'Ministral · oppdatering kreves' : 'Ministral · live-chat utilgjengelig';
+  if (live) label = status.busy ? 'Bonsai 2 27B · opptatt' : status.gpu ? 'Bonsai 2 27B · aktiv på GPU' : 'Bonsai 2 27B · aktiv';
+  else if (status.modelOnline) label = 'Bonsai tilkoblet · oppdatering kreves';
+  else label = ['backend_update_required', 'connector_update_required'].includes(status.reason) ? 'Bonsai · oppdatering kreves' : 'Bonsai · live-chat utilgjengelig';
   els.status.querySelector('b').textContent = label;
   const detail = statusDescription(status);
   els.status.title = detail;
@@ -85,7 +85,7 @@ async function askLive(question, signal) {
   const data = await response.json();
   if (!response.ok) { const error = new Error(data.message || 'Tilkoblingen svarte ikke.'); error.code = data.error; throw error; }
   if (data.profileRevision !== PROFILE_REVISION) { const error = new Error('Kunnskapsversjonen er ikke gjeldende.'); error.code = 'profile_revision'; throw error; }
-  if (data.model !== LOCAL_MODEL || data.mode !== 'local-model' || data.localOnly !== true || typeof data.answer !== 'string' || !data.answer.trim()) { const error = new Error('Ikke et bekreftet Ministral-svar.'); error.code = 'model_mismatch'; throw error; }
+  if (data.model !== LOCAL_MODEL || data.mode !== 'local-model' || data.localOnly !== true || typeof data.answer !== 'string' || !data.answer.trim()) { const error = new Error('Ikke et bekreftet Bonsai-svar.'); error.code = 'model_mismatch'; throw error; }
   return { text: data.answer.slice(0, 6000), sources: Array.isArray(data.sources) ? data.sources.slice(0, 6) : [], isLive: true };
 }
 
@@ -103,7 +103,7 @@ function startWaiting() {
     const seconds = Math.floor((performance.now() - startedAt) / 1000);
     const message = seconds >= 15
       ? 'Dette tar litt tid. Spørsmålet er sendt, og vi venter fortsatt på svaret.'
-      : 'Venter på svar fra Ministral …';
+      : 'Venter på svar fra Bonsai …';
     // Announce only a change of state, not every second of elapsed time.
     if (els['reply-wait-message'].textContent !== message) els['reply-wait-message'].textContent = message;
     els['reply-elapsed'].textContent = `${seconds} s`;

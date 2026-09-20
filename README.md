@@ -14,7 +14,7 @@
 
 ## Second Rolf
 
-**Snakk med en offentlig AI-representasjon av Rolf, drevet av en lokal modell på hans egen PC.** Ministral 3 14B bruker prosjektinformasjonen som grunnlag, håndterer oppfølgingsspørsmål og viser kildelenker. Et grønt lys viser når lokal AI er tilgjengelig; den innebygde offentlige profilen fungerer også når PC-en er frakoblet.
+**Snakk med Second Rolf, drevet av Bonsai 2 27B (PQ2_0) lokalt på Rolfs egen PC.** Modellen støtter vanlig chat og bruker den offentlige profesjonelle profilen som grunnlag for svar om Rolf, med kildelenker. PrismML llama.cpp kjører modellen på lokal GPU uten sky-modell som fallback. Private eiernotater er utelatt fra offentlig chat og kildekode. Et grønt lys viser når lokal AI er tilgjengelig; innebygd profilmodus fungerer også når PC-en er frakoblet.
 
 [Snakk med Second Rolf →](https://rolfss.github.io/Rolfs-projects-2026/second-rolf/) · [Lokal AI og dokumentasjon](./second-rolf-api/)
 

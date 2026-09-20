@@ -40,7 +40,7 @@
   <main id="main">
     <section class="second-rolf-spotlight" aria-labelledby="second-rolf-title">
       <div><p class="eyebrow">Møt prosjektet</p><h2 id="second-rolf-title">Second Rolf</h2>
-      <p>En AI-samtalepartner om prosjektene mine, fag og digitale verktøy. Drevet av en lokal modell på min egen PC.</p></div>
+      <p>En AI-samtalepartner for vanlig chat og spørsmål om prosjektene mine, fag og digitale verktøy. Bonsai 2 27B kjører lokalt på min egen PC.</p></div>
       <div class="spotlight-action"><a class="button button-primary" href="./second-rolf/">Snakk med Second Rolf →</a>
       <span id="second-rolf-status" class="model-status" role="status"><i aria-hidden="true"></i><span>Offentlig profilmodus</span></span></div>
     </section>
@@ -121,8 +121,8 @@
         <div class="card-top"><span class="card-index">07</span><span class="label">AI · Offentlig beta</span></div>
         <p class="project-name">Second Rolf</p>
         <h2>Snakk med en avgrenset digital representasjon av Rolf.</h2>
-        <p>En offentlig chat om prosjektene på denne siden, faglige interesser og arbeidsmåte. Den er tydelig merket som AI, lagrer ikke samtalen i nettleseren og har ingen tilgang til Rolfs private data eller PC.</p>
-        <ul class="compact-facts"><li>Fungerer allerede i offentlig profilmodus</li><li>Lokal AI med Ministral 3 14B</li><li>Ingen private minner eller handlingsverktøy</li></ul>
+        <p>Vanlig chat og kildebaserte svar om Rolfs dokumenterte profesjonelle profil og prosjektene på denne siden. Samtalen holdes midlertidig i nettleseren og går gjennom Cloudflare til den lokale modellen. Private eiernotater er ikke del av offentlig chat.</p>
+        <ul class="compact-facts"><li>Offentlig profilmodus når PC-en er frakoblet</li><li>Bonsai 2 27B (PQ2_0) på lokal GPU</li><li>Ingen handlingsverktøy eller sky-modell som fallback</li></ul>
         <div class="actions">
           <a class="button button-dark" href="./second-rolf/">Snakk med Second Rolf</a>
           <a class="text-action" href="https://github.com/rolfss/Rolfs-projects-2026/tree/main/second-rolf-api" rel="noreferrer">Arkitektur og kode →</a>
@@ -225,6 +225,6 @@
     <span>Oslo, Norge</span>
     <a href="https://github.com/rolfss" rel="noreferrer">GitHub</a>
   </footer>
-  <script type="module" src="./second-rolf/spotlight.js"></script>
+  <script type="module" src="./second-rolf/spotlight.js?v=20260920-bonsai-private-notes"></script>
 </body>
 </html>

@@ -2,7 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { env } from 'cloudflare:workers';
 import { runInDurableObject, evictDurableObject } from 'cloudflare:test';
 import worker from '../worker.mjs';
-import { MODEL, PROFILE_REVISION, modelRequest, cleanConversation, sourcesFor, readJsonBounded, parseModelAnswer } from '../protocol.mjs';
+import { MODEL, CONTEXT_TOKENS, PROFILE_REVISION, modelRequest, cleanConversation, sourcesFor, readJsonBounded, parseModelAnswer } from '../protocol.mjs';
 
 const sockets = [];
 const settings = () => ({ ...env, SECOND_ROLF_RATE: { limit: async () => ({ success: true }) } });
@@ -125,7 +125,15 @@ describe('local inference contract', () => {
   it('pins the local model, context, public profile and no action tools', () => {
     const req = modelRequest({ question: 'Follow up', history: [{ role: 'user', content: 'Earlier' }, { role: 'assistant', content: 'Answer' }], model: 'cloud', tools: [{}] });
     expect(req.model).toBe(MODEL); expect(req.messages.map(m => m.role)).toEqual(['system', 'user', 'assistant', 'user']);
-    expect(req.messages[0].content).toContain('MetaReady'); expect(req).not.toHaveProperty('tools'); expect(req.options.num_ctx).toBe(8192);
+    expect(req.messages[0].content).toContain('MetaReady'); expect(req).not.toHaveProperty('tools');
+    expect(CONTEXT_TOKENS).toBe(8192);
+    expect(req).not.toHaveProperty('options'); expect(req).not.toHaveProperty('keep_alive'); expect(req).not.toHaveProperty('format');
+    expect(req).toMatchObject({ stream: false, max_tokens: 1000, temperature: 0.7, top_p: 0.8, top_k: 20, min_p: 0, presence_penalty: 1.5, repeat_penalty: 1, chat_template_kwargs: { enable_thinking: false } });
+    expect(req.response_format).toMatchObject({ type: 'json_schema', json_schema: { name: 'second_rolf_answer', strict: true, schema: {
+      type: 'object', additionalProperties: false, required: ['answer', 'source_ids'],
+      properties: { answer: { type: 'string' }, source_ids: { type: 'array', items: { type: 'string' } } }
+    } } });
+    expect(req.response_format.json_schema.schema.properties.source_ids.items.enum).toContain('metaready');
   });
   it('limits history and accepts only real source references', () => {
     expect(() => cleanConversation({ question: 'Hi there', history: Array.from({ length: 8 }, (_, i) => ({ role: i % 2 ? 'assistant' : 'user', content: 'x'.repeat(3000) })) })).toThrow();
