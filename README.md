@@ -1,4 +1,4 @@
-# Rolf Selås — nyeste digitale prosjekter (2026–)
+# Rolf Selås — nyeste digitale prosjekter (2026–) — [click here for the most recent AI-powered programs and experiments](https://rolfss.github.io/Rolfs-projects-2026/)
 
 **Testede digitale produkter i skjæringspunktet mellom dokumentasjonsforvaltning, informasjonsstyring, AI-beredskap og systemforvaltning.**
 
