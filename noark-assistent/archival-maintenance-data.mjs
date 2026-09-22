@@ -1,0 +1,68 @@
+import { record } from './data-sources.mjs';
+
+// Necessary corrections and coverage gaps reviewed by GPT-6 Astra / ultra.
+// This is the verification date, not the sources' publication date.
+const verifiedAt = '2026-09-22';
+
+export const ARCHIVAL_MAINTENANCE_RECORDS = Object.freeze([
+  record({
+    id: 'rules-documentation-plan-annual',
+    source: 'archive-regulation',
+    title: 'Årlig framlegging av dokumentasjonsplanen',
+    section: '§ 13 første og andre ledd: internkontroll',
+    topic: 'Internkontroll',
+    verifiedAt,
+    scope: 'Organer underlagt arkivforskrifta § 13 andre ledd, ikke kommuner og fylkeskommuner',
+    tags: ['dokumentasjonsplan', 'internkontroll', 'ledelsen', 'ledelse', 'årlig', 'hvert år', 'framlegging', 'fremlegges', '§ 13', 'kommuner', 'fylkeskommuner'],
+    summary: 'Andre organer enn kommuner og fylkeskommuner skal legge dokumentasjonsplanen fram for øverste ledelse minst én gang i året som del av internkontrollen.',
+    detail: 'For kommuner og fylkeskommuner viser arkivforskrifta § 13 første ledd til kommuneloven § 25-1.',
+  }),
+  record({
+    id: 'noark-siard-alternative',
+    source: 'noark-now',
+    title: 'SIARD i stedet for Noark-uttrekk',
+    section: 'Kan vi ta SIARD-uttrekk fra Noark-systemet?',
+    topic: 'Uttrekk',
+    verifiedAt,
+    scope: 'Statlige organers avlevering til Nasjonalarkivet',
+    tags: ['SIARD', 'SIARD-uttrekk', 'Noark 5', 'Noark 4', 'eldre', 'uttrekk', 'avlevering', 'avtale', 'særlige grunner', '§ 28'],
+    summary: 'For Noark 5 krever en annen uttrekksmetode særlige grunner og avtale. For Noark 4 og eldre avtales valget mellom Noark- og SIARD-uttrekk med Nasjonalarkivet.',
+    detail: 'At SIARD er et akseptert filformat gir ikke alene adgang til å erstatte Noark 5-uttrekk.',
+  }),
+  record({
+    id: 'noark-extract-cleanup',
+    source: 'noark-now',
+    title: 'Rydding og autentisitet før avlevering',
+    section: 'Hvor mye skal vi rydde i metadata, filer og database før uttrekk?',
+    topic: 'Uttrekk',
+    verifiedAt,
+    scope: 'Avslutning av Noark-system og avlevering til Nasjonalarkivet',
+    tags: ['rydding', 'rydde', 'metadata', 'filer', 'database', 'autentisitet', 'feil', 'mangler', 'uttrekk', 'avlevering'],
+    summary: 'Rydd løpende. Ved avlevering skal feil og mangler dokumenteres og forklares fremfor å endre autentiske data.',
+    detail: 'Noe databaseopprydding kan likevel være nødvendig når mangler i uttrekket hindrer at all informasjon blir med.',
+  }),
+  record({
+    id: 'guide-physical-security',
+    source: 'na-physical-security',
+    title: 'Fysisk sikring gjelder også digitale arkiver',
+    section: 'Kort fortalt; Krav til den fysiske sikringen; Forebygging og håndtering av skader',
+    topic: 'Sikkerhet',
+    verifiedAt,
+    scope: 'Virksomheter underlagt arkivloven; fysisk lagringsmedium',
+    tags: ['fysisk sikring', 'risikovurdering', 'server', 'servere', 'serverkjøling', 'strøm', 'vann', 'fukt', 'brann', 'innbrudd', 'beredskap', 'lagringsmedium'],
+    summary: 'Risikovurder fysisk sikring av både analoge og digitale lagringsmedier mot vann, brann, klima- og miljøskade og uvedkommende tilgang.',
+    detail: 'Vurder blant annet kjøling og strømforsyning for servere. Veilederen anbefaler dokumenterte vurderinger og beredskapsplanlegging; tiltak må iverksettes straks ved risiko for skade.',
+  }),
+  record({
+    id: 'rules-section-11-commencement',
+    source: 'archive-law',
+    title: 'Arkivlova § 11 er ikke satt i kraft',
+    section: '§ 11 og § 24, ikrafttredelsesfotnotene',
+    topic: 'Regelverk 2026',
+    verifiedAt,
+    scope: 'Ikraftsetting av arkivlova; utførsel av arkiv',
+    tags: ['§ 11', 'paragraf 11', 'ikrafttredelse', 'iverksetting', 'utførsel', 'utlandet', 'arkivlova', '1992', '§ 9', 'overgangsregler'],
+    summary: 'Arkivlova § 11 er ikke satt i kraft. Innledningen og bokstav b i § 9 i arkivloven fra 1992 gjelder fortsatt inntil da.',
+    detail: 'Den nye lovens §§ 1–10 og 12–25 gjelder fra 1. januar 2026. § 11 om utførsel skal derfor ikke presenteres som gjeldende rett.',
+  }),
+]);

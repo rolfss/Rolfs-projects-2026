@@ -85,7 +85,8 @@ export const SOURCES = Object.freeze([
     published: "20.06.2025",
     type: "Lov",
     url: "https://lovdata.no/dokument/NL/lov/2025-06-20-96",
-    note: "Gjeldende arkivlov fra 1. januar 2026.",
+    note: "Loven gjelder i hovedsak fra 1. januar 2026. § 11 er ikke satt i kraft; eldre § 9 innledning og bokstav b gjelder fortsatt.",
+    verifiedAt: "2026-09-22",
   },
   {
     id: "archive-regulation",
@@ -107,6 +108,19 @@ export const SOURCES = Object.freeze([
     url: "https://lovdata.no/dokument/SF/forskrift/2025-12-19-2729",
     note: "Regler om hvilken dokumentasjon som skal bevares for ettertiden.",
   },
+  {
+    id: "na-physical-security",
+    title: "Veileder for risikovurdering og fysisk sikring av arkiver",
+    shortTitle: "Fysisk sikring av arkiver",
+    publisher: "Nasjonalarkivet",
+    published: "Publiseringsdato ikke bekreftet",
+    type: "Offisiell veiledning",
+    url: "https://www.nasjonalarkivet.no/veiledere/veileder-for-risikovurdering-og-fysisk-sikring-av-arkiver/",
+    note: "Risikovurdering av analoge og digitale arkiver på fysiske lagringsmedier.",
+    scope: "Virksomheter underlagt arkivloven; fysisk lagringsmedium",
+    verifiedAt: "2026-09-22",
+    status: "current-guidance",
+  },
 ]);
 
 const sourceIds = new Set(SOURCES.map((source) => source.id));
@@ -123,6 +137,8 @@ export function record({
   tags = [],
   summary,
   detail,
+  verifiedAt,
+  scope,
 }) {
   if (!sourceIds.has(source)) throw new Error(`Ukjent kilde: ${source}`);
   return Object.freeze({
@@ -137,5 +153,7 @@ export function record({
     tags: Object.freeze(tags),
     summary,
     detail,
+    ...(verifiedAt ? { verifiedAt } : {}),
+    ...(scope ? { scope } : {}),
   });
 }
