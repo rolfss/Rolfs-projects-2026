@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - "site/**"
+      - "scripts/build-news.py"
+      - "scripts/test-news.py"
       - "second-rolf-api/**"
       - "archive-assist/**"
       - "metaready/**"
@@ -16,6 +18,8 @@ on:
       - "arkivmuseet/**"
       - "fjordsprint/**"
       - ".github/workflows/deploy-pages.yml"
+  schedule:
+    - cron: '23 */6 * * *'
   workflow_dispatch:
 
 permissions:
@@ -85,6 +89,12 @@ jobs:
       - name: Test FJORDSPRINT
         working-directory: ./fjordsprint
         run: npm test
+
+      - name: Test Fagstrøm
+        run: python3 scripts/test-news.py
+
+      - name: Oppdater fagnyheter fra RSS
+        run: python3 scripts/build-news.py
 
       - name: Sett sammen den statiske siden
         run: |
