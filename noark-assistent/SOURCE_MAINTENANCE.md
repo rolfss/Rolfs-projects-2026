@@ -12,7 +12,7 @@ Klokkeslettet er norsk lokal tid, også ved overgang mellom sommer- og vintertid
 
 ## Fremgangsmåte ved hver kontroll
 
-1. Hent siste versjon fra `rolfss/Rolfs-projects-2026`, og les eksisterende kildeposter og tidligere vurderinger i `maintenance/`. Ikke overskriv andre endringer i en arbeidskopi.
+1. Hent siste versjon fra `rolfss/Click-here-for-newest-projects`, og les eksisterende kildeposter og tidligere vurderinger i `maintenance/`. Ikke overskriv andre endringer i en arbeidskopi.
 2. Undersøk alle registrerte originalkilder i `SOURCES`, som eksporteres samlet fra `data.mjs`. Søk også etter nye relevante dokumenter hos de offisielle utgiverne nedenfor. Kontroller både nye dokumenter, revisjoner, erstattede kilder og endrede ikrafttredelsesdatoer. Et søk skal ikke begrenses til kjente nettadresser.
 3. Åpne selve originalmaterialet. Registrer dokumenttittel, utgiver, URL, observert dato, publiserings-/endringsdato når den finnes, versjon og virkeområde. Skill mellom en nyoppdaget kilde og en dokumentert ny publikasjon. Uverifiserte datoer skal forbli uverifiserte.
 4. Kjør en egen faglig vurdering med **modell `gpt-6-astra` og resonneringsnivå `ultra`**. I Codex brukes en separat agent med disse eksplisitte innstillingene og et selvstendig oppdrag. Gi agenten originale dokumenter, lenker og de eksisterende postene som kan bli berørt. Ikke erstatt modellen eller nivået hvis de er utilgjengelige; registrer at vurderingen ikke kunne gjennomføres.
