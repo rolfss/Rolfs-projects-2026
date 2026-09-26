@@ -1,5 +1,12 @@
 # Aktiver Luna for Noark-assistenten
 
+## Prøv JEV mot det eksisterende kildegrunnlaget
+
+JEV-utprøvingen har et eget [oppsett og evalueringsløp](JEV_EVALUATION.md).
+Kjør `node noark-api/evals/evaluate-jev.mjs` fra repository-roten for en lokal
+basismåling uten API-kall. Betalte JEV-kall og sammenligning med Luna må velges
+eksplisitt. Utprøvingen aktiverer ikke JEV for besøkende.
+
 ## Oppdater den eksisterende Luna-serveren
 
 Fra roten av en oppdatert utsjekking av dette repositoryet, med Node.js 22 eller nyere:
