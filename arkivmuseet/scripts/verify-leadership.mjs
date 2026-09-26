@@ -21,18 +21,18 @@ const closeIsReachable=page=>page.evaluate(()=>{
  const right=left+(viewport?.width??innerWidth),bottom=top+(viewport?.height??innerHeight);
  return r.x>=left&&r.y>=top&&r.right<=right&&r.bottom<=bottom&&(hit===button||button.contains(hit));
 });
-const readableGuide=page=>page.evaluate(()=>{
+const readableGuide=(page,selector='#dialog .guide-kicker,#dialog .guide-boundary,#dialog .guide-references span')=>page.evaluate(selector=>{
  const luminance=value=>{
   const channels=value.match(/[\d.]+/g).slice(0,3).map(Number).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;});
   return .2126*channels[0]+.7152*channels[1]+.0722*channels[2];
  };
  const background=luminance(getComputedStyle(document.querySelector('#dialog')).backgroundColor);
- return [...document.querySelectorAll('#dialog .guide-kicker,#dialog .guide-boundary,#dialog .guide-references span')]
+ return [...document.querySelectorAll(selector)]
   .filter(e=>e.getClientRects().length).every(e=>{
    const foreground=luminance(getComputedStyle(e).color);
    return (Math.max(foreground,background)+.05)/(Math.min(foreground,background)+.05)>=4.5;
   });
-});
+},selector);
 try{
  const page=await browser.newPage({viewport:{width:1440,height:960},reducedMotion:'reduce'});observe(page);
  await page.goto(url);await page.waitForFunction(()=>!document.querySelector('#enter').disabled);
@@ -72,6 +72,7 @@ try{
    await page.locator('#case-order').click();check(await page.locator('[data-plan="tokke"]').isChecked(),'A case action can be selected without any completed quiz');
    check((await page.locator('#passport-open').innerText()).includes('0/5'),'Selecting a real action does not award fictional learning badges');
    check(await page.locator('#calendar-plan').isDisabled(),'Calendar export requires a selected action with a date');
+   check(await readableGuide(page,'#plan-storage,#calendar-help'),'Calendar and storage explanations meet 4.5:1 text contrast on paper');
    await page.locator('[data-owner="tokke"]').fill('Systemeier');await page.locator('[data-due="tokke"]').fill('2026-10-15');
    const downloadEvent=page.waitForEvent('download');await page.locator('#download-plan').click();const download=await downloadEvent;
    const downloaded=await readFile(await download.path(),'utf8');
@@ -108,6 +109,7 @@ try{
   if(width===390)await p.screenshot({path:out+'/mobile-case-lens.png'});
   await p.locator('#case-order').click();check(await p.locator('[data-plan="osen"]').isChecked(),`${width}×${height}: case-to-action route works by touch`);
   check(await p.locator('#calendar-plan').isDisabled(),`${width}×${height}: an undated action cannot create a calendar event`);
+  check(await readableGuide(p,'#plan-storage,#calendar-help'),`${width}×${height}: calendar and privacy instructions have readable contrast`);
   await p.locator('[data-due="osen"]').fill('2026-10-20');
   check(await p.locator('#calendar-plan').isEnabled(),`${width}×${height}: dated action enables calendar export by touch`);
   await p.locator('#calendar-plan').scrollIntoViewIfNeeded();

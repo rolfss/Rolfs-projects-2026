@@ -59,6 +59,8 @@ dialog[open]{display:flex;flex-direction:column;overflow:hidden}
 #dialog-body{flex:1 1 auto;min-height:0;min-width:0;overflow-y:auto;overscroll-behavior:contain}
 /* Dialogs share the paper palette; light museum accents are not readable on paper. */
 dialog .leader-guide{--guide-accent:#765e2c;--guide-rule:#9a895366;--guide-wash:#d6cfb94d;--guide-muted:#495b4d}
+/* Action-plan privacy and calendar instructions are essential, not decorative. */
+#dialog #plan-storage,#dialog #calendar-help{color:#495b4d}
 /* Static reading routes use the same component markup in a paper-like palette. */
 .guide-page{background:#ece8dc;color:#182c26;font:18px/1.75 system-ui;scroll-behavior:smooth}
 .guide-page body{max-width:1060px;margin:auto;padding:2rem 1.3rem 5rem}
