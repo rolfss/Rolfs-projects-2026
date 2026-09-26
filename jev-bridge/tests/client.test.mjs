@@ -4,6 +4,10 @@ import { buildChoiceRequest, buildNoulRequest, buildScoreRequest, callJev } from
 
 test('builds bounded TypeSafe question shapes', () => {
   assert.equal(buildNoulRequest({ state: 'x', question: 'yes?' }).questions.decision.type, 'noul');
+  assert.deepEqual(
+    buildNoulRequest({ state: 'x', question: 'yes?', yesCriteria: 'yes case', noCriteria: 'no case' }).questions.decision.criteria,
+    { true: 'yes case', false: 'no case' }
+  );
   assert.deepEqual(buildChoiceRequest({ state: 'x', question: 'pick', options: [{ label: 'a' }, { label: 'b', description: 'B' }] }).questions.decision.criteria, { a: null, b: 'B' });
   assert.deepEqual(buildScoreRequest({ state: 'x', question: 'rate', levels: ['low', 'high'] }).questions.decision.criteria, ['low', 'high']);
 });
