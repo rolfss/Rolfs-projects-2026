@@ -48,6 +48,14 @@
 .guide-reading-link{margin:1rem 0;font-size:.85rem}
 @media(max-width:700px){.benefit-grid{grid-template-columns:1fr}.benefit-card{padding-top:.9rem}.benefit-card h3{font-size:1.45rem}.duty-content{padding-left:.2rem}.guide-duty>summary{gap:.7rem}.leader-case-actions{flex-direction:column}.leader-case-actions button{width:100%;text-align:left}.guide-references{font-size:.78rem}}
 @media(prefers-reduced-motion:reduce){.leader-guide,.case-leader-lens{scroll-behavior:auto}}
+/* Keep the header outside the scrolling region, including long titles and enlarged text. */
+dialog[open]{display:flex;flex-direction:column;overflow:hidden}
+.dialog-header{position:relative;top:auto;flex:0 0 auto;min-width:0}
+.dialog-header h2{flex:1;min-width:0;overflow-wrap:anywhere}
+#dialog-close{flex:0 0 44px;align-self:flex-start}
+#dialog-body{flex:1 1 auto;min-height:0;min-width:0;overflow-y:auto;overscroll-behavior:contain}
+/* Dialogs share the paper palette; light museum accents are not readable on paper. */
+dialog .leader-guide{--guide-accent:#765e2c;--guide-rule:#9a895366;--guide-wash:#d6cfb94d;--guide-muted:#495b4d}
 /* Static reading routes use the same component markup in a paper-like palette. */
 .guide-page{background:#ece8dc;color:#182c26;font:18px/1.75 system-ui;scroll-behavior:smooth}
 .guide-page body{max-width:1060px;margin:auto;padding:2rem 1.3rem 5rem}

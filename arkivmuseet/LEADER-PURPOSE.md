@@ -38,9 +38,13 @@ Særlig viktige skiller: §§ 1–10 og 12–25 trådte i kraft 1. januar 2026, 
 
 ## Validering og gjennomgang
 
-`tests/leadership.test.mjs` tester datadekning, skiller i regelverket, escaping, kildevalidering, sak-til-tiltak uten quiz, lagringskompatibilitet og felles statisk gjengivelse. `scripts/verify-leadership.mjs` tester den kompilerte appen med ekte Chromium/WebGL, berøringsemulering, redusert bevegelse, større tekst, fokusretur, eksport, ingen JavaScript, manglende grafikk/lagring og flyttet basepath. Den kjøres etter den eksisterende besøkskontrollen og lagrer logger/skjermbilder i `qa-visit/leadership/`.
+`tests/leadership.test.mjs` tester datadekning, skiller i regelverket, escaping, kildevalidering, sak-til-tiltak uten quiz, lagringskompatibilitet og felles statisk gjengivelse. `scripts/verify-leadership.mjs` tester den kompilerte appen med ekte Chromium/WebGL, berøringsemulering, redusert bevegelse, større tekst, fokusretur, eksport, ingen JavaScript, manglende grafikk/lagring og flyttet basepath. Kontrollen omfatter også faktisk tekstkontrast på dialogbakgrunnen og at lukkeknappen fortsatt kan treffes etter rulling ved større tekst. Den kjøres etter den eksisterende besøkskontrollen og lagrer logger/skjermbilder i `qa-visit/leadership/`.
 
 Resultater skal hentes fra den konkrete commitens CI-logg. En testbeskrivelse er ikke et bestått resultat. Nettleseremulering er ikke fysisk iPhone/Safari-testing. Endringen gjør ingen påstand om målt læringseffekt, gevinst eller bedre bildefrekvens.
+
+## Funn fra første fullstendige testkjøring
+
+På funksjonscommiten besto 51 enhetstester, TypeScript/Vite-bygg og de 176 eksisterende nettleserkontrollene. Den nye lederreisen besto på skrivebord, inkludert tiltak og nedlasting uten øvelsesmerker. Ved 320 piksler og større tekst fant den nye testen en lukkeknapp som ikke lot seg treffe etter rulling. Dialogens overskrift og kropp fikk derfor separate layout- og rulleområder, med eksplisitt kontroll av treffpunktet. Gjennomgangen fant også lyse hjelpetekster på lys dialogbakgrunn; fargene er rettet og en nettlesertest måler minimum 4,5:1 for disse tekstene. Det endelige resultatet må leses fra siste commit, ikke denne historiske feilkjøringen.
 
 ## Tilbakerulling
 

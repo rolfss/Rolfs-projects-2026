@@ -62,7 +62,7 @@ Legg til data etter samme skjema, velg en installasjonstype og angi romposisjon.
 
 Én motor: Three.js, TypeScript og Vite. Modulære Blender-modeller eksporteres med `blender --background --factory-startup --python scripts/make-assets.py`. Ferdig GLB er inkludert; Blender trengs ikke i Pages-byggingen.
 
-Modellpakken er ca. 582 kB ukomprimert. 3D-koden lastes som separat modul; samlet komprimert JavaScript er ca. 180 kB. Kolonner og gulv er instansierte; statisk geometri slås sammen per materiale. Rominstallasjoner bygges ved nærhet og skjules på avstand. Bildeoppløsning begrenses; skygger kan slås av med lavere bildekvalitet. Materialdetaljer og lyd genereres lokalt. De fire bildene er lokale WebP-filer på til sammen omtrent 750 kB. Ingen bilde-CDN eller ekstern forespørsel trengs under besøket. Fototeksturer lastes ved rombesøk.
+Modellpakken er ca. 582 kB ukomprimert. 3D-koden lastes som separat modul. Se byggloggen for målte filstørrelser; lederoversikten ligger i den vanlige applikasjonsmodulen, ikke i en ny nettjeneste. Kolonner og gulv er instansierte; statisk geometri slås sammen per materiale. Rominstallasjoner bygges ved nærhet og skjules på avstand. Bildeoppløsning begrenses; skygger kan slås av med lavere bildekvalitet. Materialdetaljer og lyd genereres lokalt. De fire bildene er lokale WebP-filer på til sammen omtrent 750 kB. Ingen bilde-CDN eller ekstern forespørsel trengs under besøket. Fototeksturer lastes ved rombesøk.
 
 Automatisk maskinvaremåling og nettleseremulering er ikke en garanti for alle telefoner. Kontrollene kjøres i Chromium med berørings- og skjermemulering; fysisk iOS/Safari må prøves separat. Full tekst gir et varig alternativ ved manglende grafikkstøtte.
 

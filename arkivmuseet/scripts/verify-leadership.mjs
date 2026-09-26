@@ -10,14 +10,32 @@ const browser=await chromium.launch({executablePath:process.env.MUSEUM_CHROME||u
 const log=[],errors=[],missing=[];let mountServer;
 const check=(value,message)=>{assert.ok(value,message);log.push(message);console.log('PASS: '+message);};
 const observe=page=>{page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.url().startsWith(url)&&r.status()>=400)missing.push(r.url());});};
-const fits=page=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth&&[...document.querySelectorAll('#dialog-body,#story-content,.guide-page main')].filter(e=>e.getClientRects().length).every(e=>e.scrollWidth<=e.clientWidth+1));
+const fits=page=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth&&[...document.querySelectorAll('#dialog[open],.dialog-header,#dialog-body,#story-content,.guide-page main')].filter(e=>e.getClientRects().length).every(e=>e.scrollWidth<=e.clientWidth+1));
 const focusIs=(page,id)=>page.locator(id).evaluate(e=>e===document.activeElement);
+const closeIsReachable=page=>page.evaluate(()=>{
+ const button=document.querySelector('#dialog-close'),r=button.getBoundingClientRect();
+ const hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
+ return r.x>=0&&r.y>=0&&r.right<=innerWidth&&r.bottom<=innerHeight&&(hit===button||button.contains(hit));
+});
+const readableGuide=page=>page.evaluate(()=>{
+ const luminance=value=>{
+  const channels=value.match(/[\d.]+/g).slice(0,3).map(Number).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;});
+  return .2126*channels[0]+.7152*channels[1]+.0722*channels[2];
+ };
+ const background=luminance(getComputedStyle(document.querySelector('#dialog')).backgroundColor);
+ return [...document.querySelectorAll('#dialog .guide-kicker,#dialog .guide-boundary,#dialog .guide-references span')]
+  .filter(e=>e.getClientRects().length).every(e=>{
+   const foreground=luminance(getComputedStyle(e).color);
+   return (Math.max(foreground,background)+.05)/(Math.min(foreground,background)+.05)>=4.5;
+  });
+});
 try{
  const page=await browser.newPage({viewport:{width:1440,height:960},reducedMotion:'reduce'});observe(page);
  await page.goto(url);await page.waitForFunction(()=>!document.querySelector('#enter').disabled);
  check((await page.locator('#intro').innerText()).includes('Mulighetene vi skaper'),'Entrance communicates opportunities, not only loss');
  await page.screenshot({path:out+'/desktop-entry.png'});
  await page.locator('#about').click();check(await page.locator('.benefit-card').count()===3,'Three opportunities are available before entering 3D');
+ check(await readableGuide(page),'Opportunity labels and caveats meet 4.5:1 text contrast on their actual background');
  await page.locator('.benefit-card details summary').first().click();
  check(await page.locator('.benefit-card details[open]').count()===1,'Pitfalls use native keyboard-accessible disclosure');
  await page.screenshot({path:out+'/desktop-opportunities.png'});
@@ -25,6 +43,7 @@ try{
  check((await page.locator('#dialog-body').innerText()).includes('ikke automatisk alle private'),'Legal scope is visible before individual duties');
  await page.locator('#krav-journal>summary').click();
  check((await page.locator('#krav-journal').innerText()).includes('§ 14 tredje ledd'),'The current journal exception for access requests is explicit');
+ check(await readableGuide(page),'Legal labels, source types and caveats meet 4.5:1 text contrast');
  const links=await page.locator('.guide-references a').evaluateAll(nodes=>nodes.map(a=>({url:a.href,target:a.target,rel:a.rel})));
  check(links.length>6&&links.every(a=>a.url.startsWith('https://')&&a.target==='_blank'&&a.rel.includes('noopener')),'Sources are explicit and external links are safe');
  await page.screenshot({path:out+'/desktop-law.png'});await page.keyboard.press('Escape');
@@ -57,7 +76,7 @@ try{
   await page.locator('#next-exhibition').click();
  }
  check(await page.locator('#leader-plan').isVisible(),'The full case route reaches the practical ending without quizzes');
- check(!(await page.locator('#leader-extras').getAttribute('open')),'Extra fictional choices remain optional');
+ check((await page.locator('#leader-extras').getAttribute('open'))===null,'Extra fictional choices remain optional');
  await page.screenshot({path:out+'/desktop-ending.png'});
  await page.locator('#leader-law').click();check(await page.locator('.guide-duty').count()===6,'Leader room opens an explanatory guide, not merely a list of URLs');
  await page.locator('#dialog-close').click();await page.close();
@@ -69,7 +88,9 @@ try{
   check(await fits(p),`${width}×${height}, text ${scale}: opportunity guide has no horizontal overflow`);
   await p.locator('#about-law').click();await p.locator('#krav-control>summary').click();
   check(await fits(p),`${width}×${height}, text ${scale}: expanded legal content remains readable`);
-  await p.locator('#krav-control').scrollIntoViewIfNeeded();await p.screenshot({path:out+`/mobile-law-${width}.png`});
+  await p.locator('#krav-control').scrollIntoViewIfNeeded();
+  check(await closeIsReachable(p),`${width}×${height}, text ${scale}: the close button stays directly touchable after scrolling`);
+  await p.screenshot({path:out+`/mobile-law-${width}.png`});
   await p.locator('#dialog-close').click();await p.locator('#flat-enter').click();await p.locator('[data-step="4"]').click();
   check(await fits(p),`${width}×${height}: case leadership view has no horizontal overflow`);
   if(width===390)await p.screenshot({path:out+'/mobile-case-lens.png'});
