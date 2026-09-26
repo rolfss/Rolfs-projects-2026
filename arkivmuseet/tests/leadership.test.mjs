@@ -81,7 +81,8 @@ test('Full-text generator and browser use the same case-lens and legal presentat
  for(const lens of guide.lenses)assert.ok(text.includes(renderCaseLens(lens)));
  assert.ok(text.includes(renderLegalGuide(guide)));
 });
-test('The compiled-site base is relative while the familiar CI preview path stays available',()=>{
+test('The compiled-site base is relative and every preview test uses the local root',()=>{
  assert.match(read('vite.config.ts'),/base:'\.\/'/);
- assert.match(JSON.parse(read('package.json')).scripts.preview,/--base \/Rolfs-projects-2026\/arkivmuseet\//);
+ assert.doesNotMatch(JSON.parse(read('package.json')).scripts.preview,/--base/);
+ for(const script of ['verify-browser.mjs','verify-investigation.mjs','verify-visit-ui.mjs','verify-leadership.mjs']) assert.match(read('scripts/'+script),/127\.0\.0\.1:4196\/['"]/);
 });

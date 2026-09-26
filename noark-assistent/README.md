@@ -12,13 +12,13 @@ Når Luna er valgt, erstattes ikke feil med et ferdig lokalt standardsvar. Appen
 
 Den offentlige Worker-adressen er konfigurert i `api-config.mjs`; ingen hemmelighet ligger i klientkoden. Grensesnittet kontrollerer faktisk tilgjengelighet og faller tilbake til lokalt søk ved feil eller oppbrukt appbudsjett.
 
-**Versjon 1.3.1:** GitHub Pages og Cloudflare må oppdateres separat med kildegrunnlaget fra 22.09.2026. En vellykket Pages-publisering alene bekrefter ikke at Luna-serveren er oppdatert. Ved versjonskonflikt viser klienten feil for spørsmål som trenger nyere kilder. Se [vedlikeholdsregelen](SOURCE_MAINTENANCE.md) og [utrulling og privat kvalitetsgjennomgang](../noark-api/GUIDANCE_AND_REVIEW.md).
+**Versjon 1.3.2:** GitHub Pages og Cloudflare må oppdateres separat med kildegrunnlaget fra 26.09.2026. En vellykket Pages-publisering alene bekrefter ikke at Luna-serveren er oppdatert. Ved versjonskonflikt viser klienten feil for spørsmål som trenger nyere kilder. Se [vedlikeholdsregelen](SOURCE_MAINTENANCE.md) og [utrulling og privat kvalitetsgjennomgang](../noark-api/GUIDANCE_AND_REVIEW.md).
 
 ## Kildegrunnlag
 
 **Fast vedlikeholdsregel:** Søk etter nye og reviderte, relevante dokumenter hver tirsdag og torsdag kl. 09.00 norsk tid. Kunnskapsbasen endres bare når **GPT-6 Astra med ultra** vurderer det nødvendig. Kontrollen kjøres via eierens Codex og krever at maskinen er på og appen kjører. Regelen vises i brukergrensesnittet. Se [fremgangsmåte, vurderingskrav og publisering](SOURCE_MAINTENANCE.md).
 
-163 kildeposter fra 19 offisielle kilder, inkludert 65 formatoppføringer. Materialet omfatter Noark, regelverk, avlevering, internkontroll, fysisk sikring, dokumentasjonskartlegging, bevaringskriterier, mediekonvertering, kassasjon og Arkade. Fem poster er lagt til og tre presisert etter [Astra Ultra-vurderingen 22.09.2026](maintenance/2026-09-22.md). Den kontrollen undersøkte alle 18 daværende kilder og nye relevante publikasjoner. Kildenes publiseringsdatoer skilles fra kontrolldatoer; ukjente veilederdatoer forblir ubekreftet.
+164 kildeposter fra 20 offisielle kilder, inkludert 65 formatoppføringer. Materialet omfatter Noark, regelverk, avlevering, internkontroll, fysisk sikring, dokumentasjonskartlegging, bevaringskriterier, mediekonvertering, kassasjon og Arkade. Etter [Astra Ultra-vurderingen 26.09.2026](maintenance/2026-09-26.md) er en post om Arkade 2.13.1 lagt til, mappeID-kravet presisert og én kildehenvisning rettet. Kontrollen undersøkte alle 19 daværende kilder og nye relevante publikasjoner. Kildenes publiseringsdatoer skilles fra kontrolldatoer; ukjente veilederdatoer forblir ubekreftet.
 
 Formatoppføringene bevarer filendelser, PRONOM-identifikatorer og eksplisitte versjoner fra Nasjonalarkivets liste. Nye kilder har kontrolltidspunkt, virkeområde og seksjon. Akseptert format er ikke godkjenning av hele avleveringen; kravene gjelder ikke automatisk alle kommunale depot. Eldre veiledere merket utdaterte brukes ikke som gjeldende regelgrunnlag.
 

@@ -20,7 +20,7 @@ Fem kildebelagte utstillinger: Osen kommune, Tokke kommune, Sivilombudsmannens s
 - **Utforsk rommene:** fem oppdrag med 20 undersøkbare sporkort og 15 ulike handlingsforløp. Konsekvensene er tydelig merket som tenkte; historiske funn og forbehold finnes ved siden av.
 - **Prøv valgene:** hvert forløp har tre tidspunkt. Spol frem, sammenlign med et alternativ og gå tilbake. Ingen tidsfrist eller poeng for fart.
 - **Øvelser:** fremdrift og valg lagres bare i denne nettleseren. Skadet eller utilgjengelig lagring blokkerer ikke besøket. Reisen kan nullstilles etter bekreftelse.
-- **Min lederbestilling:** velg tiltak, ansvarlig rolle og oppfølgingsdato. Last ned tekst eller skriv ut / lagre PDF. Ingen opplysninger sendes til en server.
+- **Min lederbestilling:** velg tiltak, ansvarlig rolle og oppfølgingsdato. Last ned tekst, skriv ut / lagre PDF, eller eksporter valgte tiltak med dato til en kalenderfil du importerer selv. Ingen opplysninger sendes til en server.
 - **Besøk uten 3D:** alle oppdrag og lederbestillingen kan brukes uten WebGL. Den fullstendige tekstversjonen har også oppdrag, alle alternativer, bilder og kilder uten JavaScript.
 - Fotografier fra Hanekleivtunnelen og Dalen i Tokke og faksimiler fra Osen- og NPE-rapportene er inkludert lokalt. Stedsbilder er merket som stedsbilder. Se `public/assets/cases/credits.json`.
 
@@ -44,7 +44,7 @@ Besøksplanen er en sammenfoldet bunnlinje, ikke et kort midt i 3D-rommet. Den v
 
 Node 22.12+ eller 24+, pnpm 11.19.0. Installer med `pnpm install --frozen-lockfile`. Start med `pnpm dev`. Kjør `pnpm test` og `pnpm build`. Produksjonen kan prøves med `pnpm preview`. Mens forhåndsvisningen kjører, tester `pnpm test:browser`, `pnpm test:investigation` og `pnpm test:visit-ui` den virkelige nettleseropplevelsen. Den siste kjører også `test:leadership`. Denne kontrollerer den nye lederreisen, kildevisning, eksport, manglende WebGL/lagring, JavaScript-fri lesing og flytting av det ferdige bygget. Besøkskontrollen kontrollerer blant annet sammenfolding, tastaturfokus, leserute uten quizkrav, 320–430 piksler brede telefoner, landskap og større tekst. Resultater og skjermbilder lagres i GitHub Actions som `museum-qa`; se siste kjøring for faktisk status.
 
-Bygget bruker relativ base (`./`) og kan ligge under det nye repositorynavnet uten hardkodede asset-stier. `pnpm preview` beholder den gamle lokale teststien `/Rolfs-projects-2026/arkivmuseet/`; nettlesertesten serverer også det samme `dist/` under `/Click-here-for-newest-projects/arkivmuseet/` uten redirect. Dette er ikke en endring av selve GitHub Pages-konfigurasjonen. GitHub Pages-arbeidsflyten installerer avhengigheter fra låsefil, tester, bygger og kopierer bare `dist/` til `_site/arkivmuseet/`. De øvrige prosjektene beholder sine vanlige løp.
+Bygget bruker relativ base (`./`) og kan ligge under det nye repositorynavnet uten hardkodede asset-stier. `pnpm preview` bruker lokal rot på `http://127.0.0.1:4196/`; nettlesertesten serverer også det samme `dist/` under `/Click-here-for-newest-projects/arkivmuseet/` uten redirect. Dette er ikke en endring av selve GitHub Pages-konfigurasjonen. GitHub Pages-arbeidsflyten installerer avhengigheter fra låsefil, tester, bygger og kopierer bare `dist/` til `_site/arkivmuseet/`. De øvrige prosjektene beholder sine vanlige løp.
 
 ## Innhold og nye utstillinger
 

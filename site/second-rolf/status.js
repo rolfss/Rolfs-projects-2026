@@ -1,4 +1,4 @@
-import { PROFILE_REVISION } from './interview.js?v=20260920-bonsai-private-notes';
+import { PROFILE_REVISION } from './interview.js?v=20260926-pages-rename';
 export const BACKEND_ORIGIN = 'https://second-rolf-api.rolfsselas.workers.dev';
 export const LOCAL_MODEL = 'Bonsai-2-27B-PQ2_0';
 

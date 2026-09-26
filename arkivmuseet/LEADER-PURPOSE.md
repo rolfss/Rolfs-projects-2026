@@ -49,3 +49,11 @@ På funksjonscommiten besto 51 enhetstester, TypeScript/Vite-bygg og de 176 eksi
 ## Tilbakerulling
 
 Endringen er isolert til Arkivmuseet. Tilbakerulling av funksjonscommiten gjenoppretter det tidligere innholdet, generatoroppsettet og basepath uten å endre de fem historiske datasettene eller brukerens lagringsnøkler. Ingen datamigrering er nødvendig. Publisert nettside endres først ved separat godkjent sammenslåing og vellykket Pages-bygg.
+
+## Local calendar follow-up export
+
+The leadership order can now download an `.ics` file containing only selected actions with valid follow-up dates. Dates are checked against the actual calendar, including leap years, rather than only a string pattern. Each export gets new event identifiers. Re-importing a file may create duplicates; the UI states this explicitly.
+
+The export contains all-day, transparent events with the chosen role, requested action and evidence to review. There are no attendees, invitations, automatic alerts, calendar-account connections or network calls. The calendar application chosen by the visitor may sync imported content; its own sharing/privacy settings apply. `CLASS:PRIVATE` is only an advisory calendar field, not an access-control guarantee. Do not enter case details.
+
+The format follows RFC 5545 sections 3.1, 3.3.11 and 3.6.1 (https://www.rfc-editor.org/rfc/rfc5545): CRLF lines, escaped TEXT, UTF-8-safe 75-octet folding, and DATE-only single-day events. Unit tests cover dates, selection, escaping/injection, Unicode folding and identifiers. The leadership browser route downloads and reads the actual calendar file and checks mobile controls. Existing text/PDF export, history keys, exercise badges, historical case facts and legal guidance are unchanged.

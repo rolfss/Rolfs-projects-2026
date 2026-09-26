@@ -1,6 +1,6 @@
-import { knowledge, knowledgeFor } from '../site/second-rolf/knowledge.js?v=20260920-bonsai-private-notes';
-import { interview } from '../site/second-rolf/interview.js?v=20260920-bonsai-private-notes';
-export { PROFILE_REVISION } from '../site/second-rolf/interview.js?v=20260920-bonsai-private-notes';
+import { knowledge, knowledgeFor } from '../site/second-rolf/knowledge.js?v=20260926-pages-rename';
+import { interview } from '../site/second-rolf/interview.js?v=20260926-pages-rename';
+export { PROFILE_REVISION } from '../site/second-rolf/interview.js?v=20260926-pages-rename';
 
 export const MODEL = 'Bonsai-2-27B-PQ2_0';
 export const CONTEXT_TOKENS = 8192;
@@ -97,7 +97,7 @@ export function parseModelAnswer(content) {
 export function sourcesFor(answer) {
   return [...new Set([...answer.matchAll(/\[([a-z-]+)\]/g)].map(m => m[1]))]
     .map(id => knowledge.find(k => k.id === id)).filter(Boolean).slice(0, 6)
-    .map(k => ({ title: k.source, url: new URL(k.url, 'https://rolfss.github.io/Rolfs-projects-2026/second-rolf/').href }));
+    .map(k => ({ title: k.source, url: new URL(k.url, 'https://rolfss.github.io/Click-here-for-newest-projects/second-rolf/').href }));
 }
 
 export async function readJsonBounded(request, maximum = MAX_BODY) {

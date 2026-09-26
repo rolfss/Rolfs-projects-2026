@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "pnpm content && vite --host 127.0.0.1 --port 5196 --strictPort",
     "build": "pnpm content && tsc --noEmit && vite build",
-    "preview": "vite preview --base /Rolfs-projects-2026/arkivmuseet/ --host 127.0.0.1 --port 4196 --strictPort",
+    "preview": "vite preview --host 127.0.0.1 --port 4196 --strictPort",
     "test": "pnpm content && node --experimental-strip-types --test tests/*.test.mjs",
     "test:browser": "node scripts/verify-browser.mjs",
     "test:investigation": "node scripts/verify-investigation.mjs",

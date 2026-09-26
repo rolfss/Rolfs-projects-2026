@@ -8,6 +8,7 @@ on:
       - "site/**"
       - "scripts/build-news.py"
       - "scripts/test-news.py"
+      - "scripts/check-pages.mjs"
       - "second-rolf-api/**"
       - "archive-assist/**"
       - "metaready/**"
@@ -121,6 +122,9 @@ jobs:
             echo "::error::Fjordsprint must not be linked from the public homepage."
             exit 1
           fi
+
+      - name: Kontroller sidelenker og ressursstier etter bygging
+        run: node scripts/check-pages.mjs
 
       - name: Konfigurer GitHub Pages
         uses: actions/configure-pages@v5

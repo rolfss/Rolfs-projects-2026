@@ -92,7 +92,7 @@ def collect(previous, fixtures=None, now=None):
                 raw = (fixtures / (source['id'] + '.xml')).read_bytes()
             else:
                 request = urllib.request.Request(source['url'], headers={
-                    'User-Agent': 'RolfFagstrom/1.0 (+https://rolfss.github.io/Rolfs-projects-2026/)'
+                    'User-Agent': 'RolfFagstrom/1.0 (+https://rolfss.github.io/Click-here-for-newest-projects/)'
                 })
                 with urllib.request.urlopen(request, timeout=20) as response:
                     raw = response.read(MAX_BYTES + 1)

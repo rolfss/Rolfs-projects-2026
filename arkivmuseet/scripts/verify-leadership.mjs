@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdir,writeFile,readFile} from 'node:fs/promises';
 import {createServer} from 'node:http';
 import {resolve,extname,sep} from 'node:path';
-const url=process.env.MUSEUM_URL||'http://127.0.0.1:4196/Rolfs-projects-2026/arkivmuseet/';
+const url=process.env.MUSEUM_URL||'http://127.0.0.1:4196/';
 const out=(process.env.MUSEUM_QA_DIR||'qa-visit')+'/leadership';await mkdir(out,{recursive:true});
 const browser=await chromium.launch({executablePath:process.env.MUSEUM_CHROME||undefined,
  headless:process.env.MUSEUM_HEADED!=='1',args:['--enable-webgl','--ignore-gpu-blocklist','--enable-unsafe-swiftshader']});
@@ -71,10 +71,18 @@ try{
    await page.screenshot({path:out+'/desktop-case-lens.png'});
    await page.locator('#case-order').click();check(await page.locator('[data-plan="tokke"]').isChecked(),'A case action can be selected without any completed quiz');
    check((await page.locator('#passport-open').innerText()).includes('0/5'),'Selecting a real action does not award fictional learning badges');
+   check(await page.locator('#calendar-plan').isDisabled(),'Calendar export requires a selected action with a date');
    await page.locator('[data-owner="tokke"]').fill('Systemeier');await page.locator('[data-due="tokke"]').fill('2026-10-15');
    const downloadEvent=page.waitForEvent('download');await page.locator('#download-plan').click();const download=await downloadEvent;
    const downloaded=await readFile(await download.path(),'utf8');
    check(downloaded.includes('Systemeier')&&downloaded.includes('2026-10-15')&&downloaded.includes('lesbarhet'),'The exported order contains the selected action, role, date and required evidence');
+   check(await page.locator('#calendar-plan').isEnabled(),'Adding a follow-up date enables calendar export');
+   const calendarEvent=page.waitForEvent('download');await page.locator('#calendar-plan').click();const calendarFile=await calendarEvent;
+   const calendar=(await readFile(await calendarFile.path(),'utf8')).replace(/\r\n /g,'');
+   check(calendarFile.suggestedFilename()==='Arkivmuseet-oppfolging.ics','Calendar download has the expected extension');
+   check((calendar.match(/BEGIN:VEVENT/g)||[]).length===1&&calendar.includes('DTSTART;VALUE=DATE:20261015'),'Only the selected action is exported, on the selected date');
+   check(calendar.includes('Systemeier')&&calendar.includes('lesbarhet')&&!/ATTENDEE|VALARM|METHOD:REQUEST/.test(calendar),'The calendar carries the role and evidence without invitations or alarms');
+   check((await page.locator('#plan-status').innerText()).includes('Ingen kalender er endret automatisk'),'The UI does not misrepresent a download as a calendar integration');
    await page.screenshot({path:out+'/desktop-order.png'});await page.locator('#dialog-close').click();
   }
   await page.locator('#next-exhibition').click();
@@ -99,6 +107,11 @@ try{
   check(await fits(p),`${width}×${height}: case leadership view has no horizontal overflow`);
   if(width===390)await p.screenshot({path:out+'/mobile-case-lens.png'});
   await p.locator('#case-order').click();check(await p.locator('[data-plan="osen"]').isChecked(),`${width}×${height}: case-to-action route works by touch`);
+  check(await p.locator('#calendar-plan').isDisabled(),`${width}×${height}: an undated action cannot create a calendar event`);
+  await p.locator('[data-due="osen"]').fill('2026-10-20');
+  check(await p.locator('#calendar-plan').isEnabled(),`${width}×${height}: dated action enables calendar export by touch`);
+  await p.locator('#calendar-plan').scrollIntoViewIfNeeded();
+  check(await fits(p),`${width}×${height}: calendar controls and explanation fit the phone`);
   await context.close();
  }
  // No-JavaScript route: actual browser interaction, not just HTML string inspection.
