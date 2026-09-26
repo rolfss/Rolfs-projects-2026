@@ -48,6 +48,9 @@
 .guide-reading-link{margin:1rem 0;font-size:.85rem}
 @media(max-width:700px){.benefit-grid{grid-template-columns:1fr}.benefit-card{padding-top:.9rem}.benefit-card h3{font-size:1.45rem}.duty-content{padding-left:.2rem}.guide-duty>summary{gap:.7rem}.leader-case-actions{flex-direction:column}.leader-case-actions button{width:100%;text-align:left}.guide-references{font-size:.78rem}}
 @media(prefers-reduced-motion:reduce){.leader-guide,.case-leader-lens{scroll-behavior:auto}}
+/* The display wordmark must not enlarge the mobile layout viewport behind a modal.
+   Reading text still follows the user's text-size setting; no clipping or zoom lock. */
+@media(max-width:800px){#intro h1{font-size:min(clamp(4.8rem,15vw,7rem),calc((100vw - 3rem)*.27))}}
 /* Keep the header outside the scrolling region, including long titles and enlarged text. */
 dialog[open]{display:flex;flex-direction:column;overflow:hidden}
 .dialog-header{position:relative;top:auto;flex:0 0 auto;min-width:0}

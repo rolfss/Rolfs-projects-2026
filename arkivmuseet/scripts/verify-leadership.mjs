@@ -10,12 +10,15 @@ const browser=await chromium.launch({executablePath:process.env.MUSEUM_CHROME||u
 const log=[],errors=[],missing=[];let mountServer;
 const check=(value,message)=>{assert.ok(value,message);log.push(message);console.log('PASS: '+message);};
 const observe=page=>{page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.url().startsWith(url)&&r.status()>=400)missing.push(r.url());});};
-const fits=page=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth&&[...document.querySelectorAll('#dialog[open],.dialog-header,#dialog-body,#story-content,.guide-page main')].filter(e=>e.getClientRects().length).every(e=>e.scrollWidth<=e.clientWidth+1));
+const fits=page=>page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1&&innerWidth<=document.documentElement.clientWidth+1&&[...document.querySelectorAll('#dialog[open],.dialog-header,#dialog-body,#story-content,.guide-page main')].filter(e=>e.getClientRects().length).every(e=>e.scrollWidth<=e.clientWidth+1));
 const focusIs=(page,id)=>page.locator(id).evaluate(e=>e===document.activeElement);
 const closeIsReachable=page=>page.evaluate(()=>{
  const button=document.querySelector('#dialog-close'),r=button.getBoundingClientRect();
  const hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
- return r.x>=0&&r.y>=0&&r.right<=innerWidth&&r.bottom<=innerHeight&&(hit===button||button.contains(hit));
+ const viewport=window.visualViewport;
+ const left=viewport?.offsetLeft??0,top=viewport?.offsetTop??0;
+ const right=left+(viewport?.width??innerWidth),bottom=top+(viewport?.height??innerHeight);
+ return r.x>=left&&r.y>=top&&r.right<=right&&r.bottom<=bottom&&(hit===button||button.contains(hit));
 });
 const readableGuide=page=>page.evaluate(()=>{
  const luminance=value=>{
@@ -85,7 +88,7 @@ try{
   const context=await browser.newContext({viewport:{width,height},isMobile:true,hasTouch:true,reducedMotion:'reduce'});
   const p=await context.newPage();observe(p);await p.goto(url);await p.locator('#about').click();
   await p.evaluate(scale=>document.documentElement.style.setProperty('--text-scale',String(scale)),scale);
-  check(await fits(p),`${width}×${height}, text ${scale}: opportunity guide has no horizontal overflow`);
+  check(await fits(p),`${width}×${height}, text ${scale}: opportunity guide and background fit the device layout viewport`);
   await p.locator('#about-law').click();await p.locator('#krav-control>summary').click();
   check(await fits(p),`${width}×${height}, text ${scale}: expanded legal content remains readable`);
   await p.locator('#krav-control').scrollIntoViewIfNeeded();
@@ -147,6 +150,10 @@ try{
  console.log(JSON.stringify({passed:log.length,errors,missing}));
 }catch(error){
  await writeFile(out+'/failure.json',JSON.stringify({error:String(error),log,errors,missing},null,2));
- let i=0;for(const context of browser.contexts())for(const page of context.pages())await page.screenshot({path:out+`/failure-${++i}.png`,timeout:5000}).catch(()=>{});
+ let i=0;for(const context of browser.contexts())for(const page of context.pages()){
+  const n=++i;
+  await writeFile(out+`/failure-viewport-${n}.json`,JSON.stringify(await page.evaluate(()=>({innerWidth,innerHeight,clientWidth:document.documentElement.clientWidth,scrollWidth:document.documentElement.scrollWidth,viewport:window.visualViewport?{x:visualViewport.offsetLeft,y:visualViewport.offsetTop,width:visualViewport.width,height:visualViewport.height,scale:visualViewport.scale}:null})),null,2)).catch(()=>{});
+  await page.screenshot({path:out+`/failure-${n}.png`,timeout:5000}).catch(()=>{});
+ }
  throw error;
 }finally{await browser.close();if(mountServer)await new Promise(r=>mountServer.close(r));}
