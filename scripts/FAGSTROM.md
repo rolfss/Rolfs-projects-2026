@@ -1,6 +1,6 @@
 # Fagstrøm
 
-Statisk fagnyhetsstrøm på `site/fagstrom/`, basert på publiseringsutkastet fra 22. september 2026. Egen side under `/Rolfs-projects-2026/fagstrom/`, lenket fra hovednavigasjonen. Ingen endringer i de andre appene.
+Statisk fagnyhetsstrøm på `site/fagstrom/`, basert på publiseringsutkastet fra 22. september 2026. Egen side under `/Click-here-for-newest-projects/fagstrom/`, lenket fra hovednavigasjonen. Ingen endringer i de andre appene.
 
 ## Bygg og test
 

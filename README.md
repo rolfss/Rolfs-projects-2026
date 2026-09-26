@@ -1,22 +1,22 @@
-# Rolf Selås — nyeste digitale prosjekter (2026–) — [click here for the most recent AI-powered programs and experiments](https://rolfss.github.io/Rolfs-projects-2026/)
+# Rolf Selås — nyeste digitale prosjekter (2026–) — [click here for the most recent AI-powered programs and experiments](https://rolfss.github.io/Click-here-for-newest-projects/)
 
 **Testede digitale produkter i skjæringspunktet mellom dokumentasjonsforvaltning, informasjonsstyring, AI-beredskap og systemforvaltning.**
 
-## [Se og prøv de nyeste prosjektene →](https://rolfss.github.io/Rolfs-projects-2026/)
+## [Se og prøv de nyeste prosjektene →](https://rolfss.github.io/Click-here-for-newest-projects/)
 
-**Nyest:** [VEDTAK!](https://rolfss.github.io/Rolfs-projects-2026/vedtak/) · [Second Rolf](https://rolfss.github.io/Rolfs-projects-2026/second-rolf/) · Arkivmuseet · Noark 5-arkivassistent · Archive Assist · MetaReady · Lumen Relay · Brukerstøttejakten
+**Nyest:** [VEDTAK!](https://rolfss.github.io/Click-here-for-newest-projects/vedtak/) · [Second Rolf](https://rolfss.github.io/Click-here-for-newest-projects/second-rolf/) · Arkivmuseet · Noark 5-arkivassistent · Archive Assist · MetaReady · Lumen Relay · Brukerstøttejakten
 
 ## VEDTAK! — Felles sak
 
 **For folket. Med hverandre.** Et originalt plattformspill med varm humor fra norsk arbeidshverdag. Bli med Kari på en fellesskapsstafett med dobbelthopp, kaffedash, TILLIT-bokstaver, hemmelige dugnader og en finale med Konfettikolossen. Tre originale musikktemaer, ni lagoppdrag, seks varige merker, fem ranger og Fellesløft med glimtmagnet og doble poeng. Konfetti og fyrverkeri feirer bragdene underveis.
 
-[Spill VEDTAK! →](https://rolfss.github.io/Rolfs-projects-2026/vedtak/) · [Kode og spillveiledning](./vedtak/)
+[Spill VEDTAK! →](https://rolfss.github.io/Click-here-for-newest-projects/vedtak/) · [Kode og spillveiledning](./vedtak/)
 
 ## Second Rolf
 
 **Snakk med Second Rolf, drevet av Bonsai 2 27B (PQ2_0) lokalt på Rolfs egen PC.** Modellen støtter vanlig chat og bruker den offentlige profesjonelle profilen som grunnlag for svar om Rolf, med kildelenker. PrismML llama.cpp kjører modellen på lokal GPU uten sky-modell som fallback. Private eiernotater er utelatt fra offentlig chat og kildekode. Et grønt lys viser når lokal AI er tilgjengelig; innebygd profilmodus fungerer også når PC-en er frakoblet.
 
-[Snakk med Second Rolf →](https://rolfss.github.io/Rolfs-projects-2026/second-rolf/) · [Lokal AI og dokumentasjon](./second-rolf-api/)
+[Snakk med Second Rolf →](https://rolfss.github.io/Click-here-for-newest-projects/second-rolf/) · [Lokal AI og dokumentasjon](./second-rolf-api/)
 
 ---
 
@@ -24,13 +24,13 @@
 
 **Sporene staten ikke hadde råd til å miste.** Et museum i sanntids-3D med fem virkelige norske saker, kildemodus, guidet omvisning og Lederens rom.
 
-[Besøk museet](https://rolfss.github.io/Rolfs-projects-2026/arkivmuseet/) · [Tekstversjon](https://rolfss.github.io/Rolfs-projects-2026/arkivmuseet/tekst.html) · [Kilder og dokumentasjon](./arkivmuseet/)
+[Besøk museet](https://rolfss.github.io/Click-here-for-newest-projects/arkivmuseet/) · [Tekstversjon](https://rolfss.github.io/Click-here-for-newest-projects/arkivmuseet/tekst.html) · [Kilder og dokumentasjon](./arkivmuseet/)
 
 ## Noark 5-arkivassistent
 
 **Kildebasert søke- og svarassistent for Noark 5 versjon 6.0 og arkivregelverket fra 2026**
 
-[Prøv arkivassistenten](https://rolfss.github.io/Rolfs-projects-2026/noark-assistent/) · [Kildekode og dokumentasjon](./noark-assistent/)
+[Prøv arkivassistenten](https://rolfss.github.io/Click-here-for-newest-projects/noark-assistent/) · [Kildekode og dokumentasjon](./noark-assistent/)
 
 - 154 kildeposter fra 17 offisielle kilder, inkludert 65 avleveringsformater med PRONOM-identifikatorer og versjoner.
 - Praktisk veiledning om internkontroll, dokumentasjonskartlegging, bevaring, mediekonvertering og Arkade.
@@ -44,7 +44,7 @@
 
 **Innholdsbasert saksdokumenttittel og metadatahjelp for arkivfiler**
 
-[Prøv Archive Assist](https://rolfss.github.io/Rolfs-projects-2026/archive-assist/) · [Kildekode og dokumentasjon](./archive-assist/)
+[Prøv Archive Assist](https://rolfss.github.io/Click-here-for-newest-projects/archive-assist/) · [Kildekode og dokumentasjon](./archive-assist/)
 
 Archive Assist leser dokumentinnhold og tilgjengelige metadata, foreslår en redigerbar saksdokumenttittel og eksporterer dokumenter med manifest og metadata-sidecars.
 
@@ -60,7 +60,7 @@ Archive Assist leser dokumentinnhold og tilgjengelige metadata, foreslår en red
 
 **Arbeidsflate for informasjonsstyring og AI-beredskap**
 
-[Åpne MetaReady](https://rolfss.github.io/Rolfs-projects-2026/metaready/) · [Kildekode og dokumentasjon](./metaready/)
+[Åpne MetaReady](https://rolfss.github.io/Click-here-for-newest-projects/metaready/) · [Kildekode og dokumentasjon](./metaready/)
 
 MetaReady samler metadata, eierskap, proveniens, sensitivitet, livsløp, relasjoner og kvalitet. Mangler blir gjort om til konkrete tiltak.
 
@@ -70,7 +70,7 @@ Demoen har en styrt treminutters gjennomgang og kan eksportere en ledelsesbrief 
 
 **Lite nettleserspill om signalruting**
 
-[Spill Lumen Relay](https://rolfss.github.io/Rolfs-projects-2026/lumen-relay/) · [Kildekode og designnotater](./lumen-relay/)
+[Spill Lumen Relay](https://rolfss.github.io/Click-here-for-newest-projects/lumen-relay/) · [Kildekode og designnotater](./lumen-relay/)
 
 Et 90-sekunders arkadespill laget med Canvas 2D, Web Audio og vanlige JavaScript-moduler. Kan spilles med tastatur, mus og berøring.
 
@@ -78,6 +78,6 @@ Et 90-sekunders arkadespill laget med Canvas 2D, Web Audio og vanlige JavaScript
 
 **Duck Hunt-inspirert arkadespill om den endeløse saksstrømmen**
 
-[Spill Brukerstøttejakten](https://rolfss.github.io/Rolfs-projects-2026/brukerstottejakten/) · [Kildekode](./brukerstottejakten/)
+[Spill Brukerstøttejakten](https://rolfss.github.io/Click-here-for-newest-projects/brukerstottejakten/) · [Kildekode](./brukerstottejakten/)
 
 Et femminutters kaffepausespill med 10 nivåer og 80 saker. Service Manager Mk V bygges ut med moduler underveis; skjermede saker og hovedhendelsen tåler flere treff. Noark 5-spørsmål dukker opp sjeldnere, og musikk/lydeffekter kan styres separat. Unødvendig blinkende feedback er fjernet.

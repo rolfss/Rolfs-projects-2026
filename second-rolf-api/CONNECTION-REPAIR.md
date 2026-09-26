@@ -4,9 +4,9 @@ The current runtime is PrismML Bonsai 2 27B PQ2_0, exposed only at `127.0.0.1:80
 
 ## Historical incident: 15 September 2026
 
-A public health request at **19:29:32 UTC** reported the former Ministral model available but omitted `profileRevision`. The deployed Worker was older than the website's profile contract. This was a point-in-time health observation, not a browser chat or hardware inspection. Evidence: [read-only diagnostic run](https://github.com/rolfss/Rolfs-projects-2026/actions/runs/35013925450).
+A public health request at **19:29:32 UTC** reported the former Ministral model available but omitted `profileRevision`. The deployed Worker was older than the website's profile contract. This was a point-in-time health observation, not a browser chat or hardware inspection. Evidence: [read-only diagnostic run](https://github.com/rolfss/Click-here-for-newest-projects/actions/runs/35013925450).
 
-The status module also imported an older cache-keyed profile module. The current browser module graph uses cache version `20260920-bonsai-private-notes` consistently.
+The status module also imported an older cache-keyed profile module. The current browser module graph uses cache version `20260926-pages-rename` consistently.
 
 Do not remove the profile or exact-model checks to hide a mismatch. A legacy local connector may still contain removed profile material. Updating a website alone does not update Cloudflare or a running Windows process.
 

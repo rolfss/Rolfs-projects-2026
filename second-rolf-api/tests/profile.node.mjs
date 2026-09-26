@@ -9,7 +9,7 @@ const allowed = ['profile','current-role','public-access','integrations-operatio
 const removed = ['interests','science-fiction','books','music','civilization','creative-work','exercise','personality','mysticism','past-and-present','psychology-links','integrity-example','dialogue','technical-background','spanish','friendship','close-relationships','grimstad','hesse','jung','julian','formative-reading'];
 
 const revision = '2026-09-20-bonsai-private-notes';
-const assetVersion = '20260920-bonsai-private-notes';
+const assetVersion = '20260926-pages-rename';
 
 test('professional CV and project records are supplied; the compatibility dataset remains empty', () => {
   assert.deepEqual(interview.entries, []);
@@ -65,7 +65,7 @@ test('technical follow-ups retain history without adding new authoritative facts
 test('professional citations resolve and all removed source IDs are rejected', () => {
   for (const entry of knowledge) {
     const answer = parseModelAnswer(JSON.stringify({ answer: entry.answer, source_ids: [entry.id] }));
-    assert.equal(sourcesFor(answer)[0].url, new URL(entry.url, 'https://rolfss.github.io/Rolfs-projects-2026/second-rolf/').href);
+    assert.equal(sourcesFor(answer)[0].url, new URL(entry.url, 'https://rolfss.github.io/Click-here-for-newest-projects/second-rolf/').href);
   }
   for (const id of [...removed, 'invented']) {
     assert.throws(() => parseModelAnswer(JSON.stringify({ answer: 'Not approved.', source_ids: [id] })));

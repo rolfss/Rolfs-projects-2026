@@ -1,7 +1,7 @@
 import {chromium, devices} from '@playwright/test';
 import assert from 'node:assert/strict';
 import {mkdir, writeFile, readFile} from 'node:fs/promises';
-const url=process.env.MUSEUM_URL||'http://127.0.0.1:4196/Rolfs-projects-2026/arkivmuseet/';
+const url=process.env.MUSEUM_URL||'http://127.0.0.1:4196/';
 const out=process.env.MUSEUM_QA_DIR||'qa-investigation';await mkdir(out,{recursive:true});
 const data=JSON.parse(await readFile(new URL('../cases/investigation.json',import.meta.url)));
 const browser=await chromium.launch({executablePath:process.env.MUSEUM_CHROME||undefined,headless:process.env.MUSEUM_HEADED!=='1',args:['--enable-webgl','--ignore-gpu-blocklist','--enable-unsafe-swiftshader']});

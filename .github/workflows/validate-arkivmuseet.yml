@@ -41,7 +41,7 @@ jobs:
           SERVER=$!
           trap 'kill "$SERVER" 2>/dev/null || true' EXIT
           for i in $(seq 1 40); do
-            curl --fail --silent http://127.0.0.1:4196/Rolfs-projects-2026/arkivmuseet/ > /dev/null && break
+            curl --fail --silent http://127.0.0.1:4196/ > /dev/null && break
             sleep 1
           done
           RESULT=0

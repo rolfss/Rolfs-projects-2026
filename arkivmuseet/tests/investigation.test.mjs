@@ -2,6 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 import {freshCase, restoreCase, collectEvidence, roomEvidence, workSummary, caseReport, CASE_STORAGE} from '../src/investigation-state.ts';
 const data = JSON.parse(readFileSync(new URL('../cases/investigation.json', import.meta.url)));
 test('All ten clues belong to five rooms, in pairs, and are explicitly fictional', () => {
@@ -65,7 +66,7 @@ test('The optional discovery is independent of case completion and storage is is
   const a=freshCase(),b=freshCase();a.secret=true;assert.deepEqual(workSummary(a,data.triage,data.access),workSummary(b,data.triage,data.access));
 });
 test('The generated text version includes every clue and every task without scripts', () => {
-  execFileSync(process.execPath,[new URL('../scripts/make-investigation-text.mjs',import.meta.url).pathname]);
+  execFileSync(process.execPath,[fileURLToPath(new URL('../scripts/make-investigation-text.mjs',import.meta.url))]);
   const html=readFileSync(new URL('../public/sak17.html',import.meta.url),'utf8');
   for(const card of [...data.evidence,...data.triage,...data.access,...data.crisis])assert.ok(html.includes(card.title));
   assert.ok(html.includes(data.reconstruction.explanation));assert.equal(html.includes('<script'),false);

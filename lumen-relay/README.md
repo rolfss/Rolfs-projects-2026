@@ -6,7 +6,7 @@ Et lite arkadespill om signalruting, laget for nettleseren med Canvas 2D, Web Au
 
 Den publiserte versjonen ligger her:
 
-`https://rolfss.github.io/Rolfs-projects-2026/lumen-relay/`
+`https://rolfss.github.io/Click-here-for-newest-projects/lumen-relay/`
 
 ## Regler
 

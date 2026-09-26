@@ -2,7 +2,7 @@
 
 **Sporene staten ikke hadde råd til å miste.** Et museum i sanntids-3D om offentlig dokumentasjon, offentlighet og etterprøvbarhet.
 
-[Besøk museet](https://rolfss.github.io/Rolfs-projects-2026/arkivmuseet/) · [Full tekstversjon](https://rolfss.github.io/Rolfs-projects-2026/arkivmuseet/tekst.html)
+[Besøk museet](https://rolfss.github.io/Click-here-for-newest-projects/arkivmuseet/) · [Full tekstversjon](https://rolfss.github.io/Click-here-for-newest-projects/arkivmuseet/tekst.html)
 
 Fem kildebelagte utstillinger: Osen kommune, Tokke kommune, Sivilombudsmannens sak 2008/171, Hanekleivtunnelen og Norsk pasientskadeerstatning. Fem interaktive lederoppdrag knytter kildefunnene til hverdagen: undersøk dokumentasjon, velg handling, spol frem til mulige følger og prøv igjen. Øvelsesoversikten viser fem læringsmerker; merkene måler bare gjennomførte øvelser. Lederens rom tilbyr først en praktisk lederbestilling. Fire ekstra scenarioer kan åpnes frivillig. Ingen konto, server, analyseverktøy eller runtime-KI.
 
@@ -36,7 +36,7 @@ Besøksplanen er en sammenfoldet bunnlinje, ikke et kort midt i 3D-rommet. Den v
 
 Node 22.12+ eller 24+, pnpm 11.19.0. Installer med `pnpm install --frozen-lockfile`. Start med `pnpm dev`. Kjør `pnpm test` og `pnpm build`. Produksjonen kan prøves med `pnpm preview`. Mens forhåndsvisningen kjører, tester `pnpm test:browser`, `pnpm test:investigation` og `pnpm test:visit-ui` den virkelige nettleseropplevelsen. Den siste kontrollerer blant annet sammenfolding, tastaturfokus, leserute uten quizkrav, 320–430 piksler brede telefoner, landskap og større tekst. Resultater og skjermbilder lagres i GitHub Actions som `museum-qa`; se siste kjøring for faktisk status.
 
-Basepath er `/Rolfs-projects-2026/arkivmuseet/`. GitHub Pages-arbeidsflyten installerer avhengigheter fra låsefil, tester, bygger og kopierer bare `dist/` til `_site/arkivmuseet/`. De øvrige prosjektene beholder sine vanlige løp.
+Vite bruker relativ basepath (`./`), slik at JavaScript, stilark og museumsressurser fungerer også etter at GitHub-repositoriet får nytt navn. Lokal forhåndsvisning åpnes på `http://127.0.0.1:4196/`. GitHub Pages-arbeidsflyten installerer avhengigheter fra låsefil, tester, bygger og kopierer bare `dist/` til `_site/arkivmuseet/`. De øvrige prosjektene beholder sine vanlige løp.
 
 ## Innhold og nye utstillinger
 

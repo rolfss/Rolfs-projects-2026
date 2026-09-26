@@ -2,7 +2,7 @@ import {chromium,devices} from '@playwright/test';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 
-const url=process.env.MUSEUM_URL||'http://127.0.0.1:4196/Rolfs-projects-2026/arkivmuseet/';
+const url=process.env.MUSEUM_URL||'http://127.0.0.1:4196/';
 const out=process.env.MUSEUM_QA_DIR||'qa-visit';
 await mkdir(out,{recursive:true});
 const browser=await chromium.launch({executablePath:process.env.MUSEUM_CHROME||undefined,
