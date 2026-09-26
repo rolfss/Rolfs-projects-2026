@@ -1,8 +1,16 @@
 # Arkivmuseet
 
-**Sporene staten ikke hadde råd til å miste.** Et museum i sanntids-3D om offentlig dokumentasjon, offentlighet og etterprøvbarhet.
+**Sporene vi bevarer. Mulighetene vi skaper.** Et museum for ledere om hva arkiver gjør mulig, hva som står på spill uten brukbar dokumentasjon, og hvilke krav som gjelder i Norge.
 
-[Besøk museet](https://rolfss.github.io/Rolfs-projects-2026/arkivmuseet/) · [Full tekstversjon](https://rolfss.github.io/Rolfs-projects-2026/arkivmuseet/tekst.html)
+[Besøk museet](https://rolfss.github.io/Click-here-for-newest-projects/arkivmuseet/) · [Full tekstversjon](https://rolfss.github.io/Click-here-for-newest-projects/arkivmuseet/tekst.html)
+
+Denne grenen er et endringsforslag; lenkene ovenfor viser publisert versjon, ikke nødvendigvis grenens innhold.
+
+## Muligheter, risiko og ledergrep
+
+«Hvorfor arkiv?» forklarer tre muligheter: handle med kunnskap, gjøre rettigheter brukbare og beholde muligheter for fremtiden. Hver mulighet har en fallgruve og et spørsmål til ledelsen. Alle fem saker får et eget lederperspektiv med mulighet, risiko og spørsmål. Et konkret tiltak kan legges i lederbestillingen direkte fra saken, uten fullførte øvelser.
+
+En kildebelagt oversikt forklarer seks norske krav og skiller lovkrav fra museets forslag til oppfølging. Virkeområde, kommunal internkontroll, innsynsunntak og særskilt ikraftsetting er synlige avgrensninger. `leder.html` gir hovedinnholdet uten JavaScript; `tekst.html` gir hele utstillingen med de samme lederperspektivene og regelverksoversikten. Se [LEADER-PURPOSE.md](./LEADER-PURPOSE.md) for kildekontroll og avgrensning.
 
 Fem kildebelagte utstillinger: Osen kommune, Tokke kommune, Sivilombudsmannens sak 2008/171, Hanekleivtunnelen og Norsk pasientskadeerstatning. Fem interaktive lederoppdrag knytter kildefunnene til hverdagen: undersøk dokumentasjon, velg handling, spol frem til mulige følger og prøv igjen. Øvelsesoversikten viser fem læringsmerker; merkene måler bare gjennomførte øvelser. Lederens rom tilbyr først en praktisk lederbestilling. Fire ekstra scenarioer kan åpnes frivillig. Ingen konto, server, analyseverktøy eller runtime-KI.
 
@@ -26,7 +34,7 @@ Fem kildebelagte utstillinger: Osen kommune, Tokke kommune, Sivilombudsmannens s
 
 ## En tydeligere museumsreise
 
-Hovedruten er **virkelige saker → valgfrie lederøvelser → ett praktisk tiltak**. Et rom åpner den kildebaserte utstillingen først. «Neste rom» følger museumsruten uavhengig av øvelsesmerker. Besøkende kan nå avslutningen uten å svare på en quiz.
+Hovedruten er **virkelige saker → muligheter og risiko → ett praktisk tiltak**. Lederøvelsene er valgfrie sidespor. Et rom åpner den kildebaserte utstillingen først. «Neste rom» følger museumsruten uavhengig av øvelsesmerker. Besøkende kan nå avslutningen uten å svare på en quiz.
 
 Besøksplanen er en sammenfoldet bunnlinje, ikke et kort midt i 3D-rommet. Den viser én kontekstuell hovedhandling. Utvid planen for omvisning, lyd, fremdrift og fordypning. Menyen er alltid tilgjengelig. Bevegelsesknappene beholder trykkflater på minst 44 × 44 CSS-piksler og forsvinner ikke uten at en annen flate tar over.
 
@@ -34,11 +42,15 @@ Besøksplanen er en sammenfoldet bunnlinje, ikke et kort midt i 3D-rommet. Den v
 
 ## Utvikling
 
-Node 22.12+ eller 24+, pnpm 11.19.0. Installer med `pnpm install --frozen-lockfile`. Start med `pnpm dev`. Kjør `pnpm test` og `pnpm build`. Produksjonen kan prøves med `pnpm preview`. Mens forhåndsvisningen kjører, tester `pnpm test:browser`, `pnpm test:investigation` og `pnpm test:visit-ui` den virkelige nettleseropplevelsen. Den siste kontrollerer blant annet sammenfolding, tastaturfokus, leserute uten quizkrav, 320–430 piksler brede telefoner, landskap og større tekst. Resultater og skjermbilder lagres i GitHub Actions som `museum-qa`; se siste kjøring for faktisk status.
+Node 22.12+ eller 24+, pnpm 11.19.0. Installer med `pnpm install --frozen-lockfile`. Start med `pnpm dev`. Kjør `pnpm test` og `pnpm build`. Produksjonen kan prøves med `pnpm preview`. Mens forhåndsvisningen kjører, tester `pnpm test:browser`, `pnpm test:investigation` og `pnpm test:visit-ui` den virkelige nettleseropplevelsen. Den siste kjører også `test:leadership`. Denne kontrollerer den nye lederreisen, kildevisning, eksport, manglende WebGL/lagring, JavaScript-fri lesing og flytting av det ferdige bygget. Besøkskontrollen kontrollerer blant annet sammenfolding, tastaturfokus, leserute uten quizkrav, 320–430 piksler brede telefoner, landskap og større tekst. Resultater og skjermbilder lagres i GitHub Actions som `museum-qa`; se siste kjøring for faktisk status.
 
-Basepath er `/Rolfs-projects-2026/arkivmuseet/`. GitHub Pages-arbeidsflyten installerer avhengigheter fra låsefil, tester, bygger og kopierer bare `dist/` til `_site/arkivmuseet/`. De øvrige prosjektene beholder sine vanlige løp.
+Bygget bruker relativ base (`./`) og kan ligge under det nye repositorynavnet uten hardkodede asset-stier. `pnpm preview` beholder den gamle lokale teststien `/Rolfs-projects-2026/arkivmuseet/`; nettlesertesten serverer også det samme `dist/` under `/Click-here-for-newest-projects/arkivmuseet/` uten redirect. Dette er ikke en endring av selve GitHub Pages-konfigurasjonen. GitHub Pages-arbeidsflyten installerer avhengigheter fra låsefil, tester, bygger og kopierer bare `dist/` til `_site/arkivmuseet/`. De øvrige prosjektene beholder sine vanlige løp.
 
 ## Innhold og nye utstillinger
+
+`pnpm content` genererer tekstsidene før utvikling, enhetstester og produksjonsbygg. `public/tekst.html`, `public/leder.html` og `public/leader-guide.css` er genererte og ignoreres av Git, på samme måte som etterforskningens tekstsider. Rediger JSON, renderer og stilark, ikke genererte sider.
+
+`cases/leader-guide.json` er det felles grunnlaget for muligheter, fem saksperspektiver og seks rettslige hovedtrekk. `src/leader-guide.ts` gjør all HTML-escaping og kildekontroll i en ren renderer som brukes i både museet og tekstgeneratorene. Den validerer struktur, ikke juridisk etterlevelse.
 
 `cases/cases.json` er publiseringsgrunnlaget. Påstander har kilde-ID, lokalisering og type (`fact`, `risk`, `interpretation`). `cases/legal-sources.json` inneholder felles rettskilder. `cases/leader-scenarios.json` har de opprinnelige fiktive ledervalgene. `cases/missions.json` beskriver de fem nye oppdragene; `src/journey-state.ts` håndterer validerbar fremdrift, bevisvurdering og eksport. `src/journey.ts` kobler oppdragene til museumsreisen.
 

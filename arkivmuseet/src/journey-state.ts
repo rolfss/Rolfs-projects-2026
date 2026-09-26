@@ -46,3 +46,11 @@ export function planText(missions:Mission[],state:JourneyState){
     'Første møte: Velg en konkret sak eller leveranse. Avtal hvem som prøver gjenfinning, når dere følger opp, og hvordan avvik lukkes.',
     'Læringsøvelse, ikke en vurdering av virksomhetens etterlevelse. Ingen faktiske saksopplysninger er nødvendige.'].join('\n');
 }
+
+/** Select a practical action without awarding or changing any exercise progress. */
+export function selectPlanItem(state:JourneyState,missions:Mission[],id:string):boolean{
+  if(!missions.some(m=>m.id===id))return false;
+  const item=state.plan[id]??={selected:false,owner:'',due:''};
+  item.selected=true;
+  return true;
+}
