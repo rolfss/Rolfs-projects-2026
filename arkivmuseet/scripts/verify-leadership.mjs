@@ -10,7 +10,8 @@ const browser=await chromium.launch({executablePath:process.env.MUSEUM_CHROME||u
 const log=[],errors=[],missing=[];let mountServer;
 const check=(value,message)=>{assert.ok(value,message);log.push(message);console.log('PASS: '+message);};
 const observe=page=>{page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.url().startsWith(url)&&r.status()>=400)missing.push(r.url());});};
-const fits=page=>page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1&&innerWidth<=document.documentElement.clientWidth+1&&[...document.querySelectorAll('#dialog[open],.dialog-header,#dialog-body,#story-content,.guide-page main')].filter(e=>e.getClientRects().length).every(e=>e.scrollWidth<=e.clientWidth+1));
+// Compare with the configured device width; desktop scrollbars legitimately reduce clientWidth.
+const fits=page=>page.evaluate(viewportWidth=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1&&innerWidth<=viewportWidth+1&&[...document.querySelectorAll('#dialog[open],.dialog-header,#dialog-body,#story-content,.guide-page main')].filter(e=>e.getClientRects().length).every(e=>e.scrollWidth<=e.clientWidth+1),page.viewportSize().width);
 const focusIs=(page,id)=>page.locator(id).evaluate(e=>e===document.activeElement);
 const closeIsReachable=page=>page.evaluate(()=>{
  const button=document.querySelector('#dialog-close'),r=button.getBoundingClientRect();
