@@ -43,8 +43,8 @@ export function buildNoulRequest({ state, question, yesCriteria, noCriteria, mod
   const q = { type: 'noul', instructions: boundedString(question, 'question', MAX_QUESTION_CHARS) };
   if ((yesCriteria && String(yesCriteria).trim()) || (noCriteria && String(noCriteria).trim())) {
     q.criteria = {
-      yes: yesCriteria ? boundedString(String(yesCriteria), 'yesCriteria', 2000) : null,
-      no: noCriteria ? boundedString(String(noCriteria), 'noCriteria', 2000) : null
+      true: yesCriteria ? boundedString(String(yesCriteria), 'yesCriteria', 2000) : null,
+      false: noCriteria ? boundedString(String(noCriteria), 'noCriteria', 2000) : null
     };
   }
   return { model, state: boundedString(state, 'state', MAX_STATE_CHARS), questions: { decision: q } };
