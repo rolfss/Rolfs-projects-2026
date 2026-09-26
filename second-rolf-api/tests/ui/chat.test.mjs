@@ -4,7 +4,7 @@ import { beforeEach, afterEach, it, expect, vi } from 'vitest';
 import { PROFILE_REVISION } from '../../../site/second-rolf/interview.js';
 
 const harness = vi.hoisted(() => ({ status: null, token: null, nextStatus: null }));
-vi.mock('../../../site/second-rolf/status.js?v=20260920-bonsai-private-notes', async importOriginal => ({
+vi.mock('../../../site/second-rolf/status.js?v=20260926-pages-rename', async importOriginal => ({
   ...await importOriginal(),
   watchStatus: fn => { harness.status = fn; },
   getStatus: async () => harness.nextStatus
@@ -59,9 +59,20 @@ it('keeps offline answers and source links, without falsely labelling them local
   status({ available: false }); await submit('Hva er Arkivmuseet?');
   expect(query('#messages').textContent).toContain('offentlig profil');
   expect(query('#messages').lastElementChild.textContent).toContain('ikke AI');
-  expect(query('#messages .sources a').href).toContain('/arkivmuseet/');
+  expect(query('#messages .sources a').href).toBe(new URL('../arkivmuseet/', location.href).href);
   expect(query('#status').classList.contains('live')).toBe(false);
   expect(query('#reply-wait').hidden).toBe(true);
+});
+
+it('repairs source URLs returned by a backend deployed before the repository rename', async () => {
+  status({ available: true, gpu: true, siteKey: 'site' }); await flush();
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({
+    answer: 'Museum source', model: 'Bonsai-2-27B-PQ2_0', profileRevision: PROFILE_REVISION,
+    mode: 'local-model', localOnly: true,
+    sources: [{ title: 'Arkivmuseet', url: 'https://rolfss.github.io/Rolfs-projects-2026/arkivmuseet/?view=text#sources' }]
+  }), { status: 200 })));
+  await submit('Hva er Arkivmuseet?');
+  expect(query('#messages .sources a').href).toBe(new URL('../arkivmuseet/?view=text#sources', location.href).href);
 });
 
 it('names Bonsai and the verified GPU rather than just saying local AI', () => {

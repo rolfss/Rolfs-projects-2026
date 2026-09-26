@@ -49,9 +49,9 @@ test('all browser status imports use the current profile module and a new status
   const app = fs.readFileSync(new URL('../../site/second-rolf/app.js', import.meta.url), 'utf8');
   const page = fs.readFileSync(new URL('../../site/second-rolf/index.html', import.meta.url), 'utf8');
   assert.doesNotMatch(status, /20260915-cv-professional/);
-  assert.match(status, /interview\.js\?v=20260920-bonsai-private-notes/);
-  assert.match(app, /status\.js\?v=20260920-bonsai-private-notes/);
-  assert.match(page, /app\.js\?v=20260920-bonsai-private-notes/);
+  assert.match(status, /interview\.js\?v=20260926-pages-rename/);
+  assert.match(app, /status\.js\?v=20260926-pages-rename/);
+  assert.match(page, /app\.js\?v=20260926-pages-rename/);
 });
 
 for (const question of ['Why is the sky blue?', 'Write a short poem about a lighthouse.', 'Explain fractions.', 'Help me debug a Python function.', 'Tell me about a novel.']) {

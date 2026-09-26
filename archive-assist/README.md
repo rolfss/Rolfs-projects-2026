@@ -2,7 +2,7 @@
 
 **Innholdsbasert saksdokumenttittel og metadatahjelp for arkivfiler**
 
-[Åpne den publiserte demoen](https://rolfss.github.io/Rolfs-projects-2026/archive-assist/)
+[Åpne den publiserte demoen](https://rolfss.github.io/Click-here-for-newest-projects/archive-assist/)
 
 Archive Assist leser dokumentinnhold lokalt, foreslår saksdokumenttittel og øvrige metadata, og lar saksbehandler eller arkivar kontrollere resultatet før videre overføring eller registrering. Brukeren kan i tillegg velge forbedring med **GPT-5.6 Luna** og **reasoning effort `medium`** via den samme sikre API-bakenden som Noark-assistenten.
 

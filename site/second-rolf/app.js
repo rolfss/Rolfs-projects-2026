@@ -1,12 +1,13 @@
-import { rankKnowledge, PROFILE_REVISION } from './knowledge.js?v=20260920-bonsai-private-notes';
-import { BACKEND_ORIGIN, LOCAL_MODEL, watchStatus, getStatus, statusDescription } from './status.js?v=20260920-bonsai-private-notes';
+import { rankKnowledge, PROFILE_REVISION } from './knowledge.js?v=20260926-pages-rename';
+import { BACKEND_ORIGIN, LOCAL_MODEL, watchStatus, getStatus, statusDescription } from './status.js?v=20260926-pages-rename';
 const els = Object.fromEntries(['messages', 'composer', 'question', 'send', 'clear', 'status', 'status-detail', 'retry-status', 'verification', 'chat-feedback', 'reply-wait', 'reply-wait-message', 'reply-elapsed'].map(id => [id, document.getElementById(id)]));
 let history = [], live = false, siteKey = '', turnstileToken = '', widgetId = null, scriptPromise, busy = false, generation = 0, controller, waitingTimer;
+const sourceBase = new URL('.', location.href);
 
 function localAnswer(question) {
   const matches = rankKnowledge(question).slice(0, 2);
   const relevant = matches.filter(m => m.score >= matches[0].score * .75);
-  return relevant.length ? { text: relevant.map(m => m.answer).join('\n\n'), sources: relevant.map(m => ({ title: m.source, url: new URL(m.url, 'https://rolfss.github.io/Rolfs-projects-2026/second-rolf/').href })) } : {
+  return relevant.length ? { text: relevant.map(m => m.answer).join('\n\n'), sources: relevant.map(m => ({ title: m.source, url: new URL(m.url, sourceBase).href })) } : {
     text: 'Bonsai er ikke tilgjengelig for live-chat akkurat nå. I profilmodus er svarene avgrenset til fag og teknologi og Rolfs dokumenterte profesjonelle profil. Vanlige spørsmål kan besvares av Bonsai når tilkoblingen er klar. Dette er en innebygd melding, ikke et modellsvar.', sources: []
   };
 }
@@ -31,6 +32,15 @@ function addMessage(role, text, sources = [], isLive = false) {
       if (typeof source?.title !== 'string' || typeof source.url !== 'string') continue;
       let url; try { url = new URL(source.url, location.href); } catch { continue; }
       if (url.protocol !== 'https:' || !['rolfss.github.io', 'github.com'].includes(url.hostname)) continue;
+      // A running backend may still return source URLs from before the repository rename.
+      if (url.hostname === 'rolfss.github.io' && sourceBase.hostname === 'rolfss.github.io') {
+        for (const prefix of ['/Rolfs-projects-2026/', '/Click-here-for-newest-projects/']) {
+          if (url.pathname.startsWith(prefix)) {
+            url.pathname = new URL('../', sourceBase).pathname + url.pathname.slice(prefix.length);
+            break;
+          }
+        }
+      }
       if (index) list.append(' · ');
       const link = document.createElement('a'); link.href = url.href; link.textContent = source.title; link.rel = 'noreferrer'; list.append(link);
     }

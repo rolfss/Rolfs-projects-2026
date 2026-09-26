@@ -11,7 +11,7 @@ The public knowledge records `ai`, `ai-model`, `ai-hardware`, `ai-knowledge` and
 
 ## Applying this revision
 
-The browser, Worker and local connector must agree on `2026-09-20-bonsai-private-notes` and the exact Bonsai alias. Browser modules use cache version `20260920-bonsai-private-notes`. Publishing GitHub Pages updates the visible page and built-in profile answers; it does not redeploy Cloudflare or update a running Windows process.
+The browser, Worker and local connector must agree on `2026-09-20-bonsai-private-notes` and the exact Bonsai alias. Browser modules use cache version `20260926-pages-rename`. Publishing GitHub Pages updates the visible page and built-in profile answers; it does not redeploy Cloudflare or update a running Windows process.
 
 Before publishing, validate the installed Bonsai model through the application request path, including general chat, professional source grounding and privacy probes. Then update the PC connector, Worker and Pages from the same tested revision, preserving the existing private connector credentials. Until all components agree, the site uses current profile-mode answers. See [README.md](./README.md) and [CONNECTION-REPAIR.md](./CONNECTION-REPAIR.md).
 
