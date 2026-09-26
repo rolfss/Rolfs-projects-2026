@@ -18,7 +18,6 @@ edit(p,'  await this.renderer.compileAsync(this.scene,this.camera);this.tick();'
 edit(p,'if(!ancestor.visible)return;ancestor=ancestor.parent;','if(!ancestor.visible||ancestor.userData.preserveGroup)return;ancestor=ancestor.parent;')
 edit(p,"!['position','normal','uv'].includes(key)","!['position','normal','uv','uv1'].includes(key)")
 edit(p,'let b=buckets.get(mat.uuid);',"if(!g.getAttribute('uv1'))g.setAttribute('uv1',g.getAttribute('uv').clone());let b=buckets.get(mat.uuid);")
-edit(p,' invalidate(){this.renderDirty=true;}', ' invalidate(){this.renderDirty=true;if(this.renderer?.shadowMap)this.renderer.shadowMap.needsUpdate=true;}')
 edit(p,'const m=new T.Mesh(new T.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);',"const geometry=new T.BoxGeometry(w,h,d);const positions=geometry.getAttribute('position'),normals=geometry.getAttribute('normal'),uv=geometry.getAttribute('uv');for(let i=0;i<uv.count;i++){if(Math.abs(normals.getY(i))>.5)uv.setXY(i,positions.getX(i)/2,positions.getZ(i)/2);else if(Math.abs(normals.getX(i))>.5)uv.setXY(i,positions.getZ(i)/2,positions.getY(i)/2);else uv.setXY(i,positions.getX(i)/2,positions.getY(i)/2);}const m=new T.Mesh(geometry,mat);m.position.set(x,y,z);")
 s=p.read_text()
 if "machines.name='tokke-machines'" not in s:
@@ -30,8 +29,23 @@ if "machines.name='tokke-machines'" not in s:
 edit(p,'glass.position.y=2.02;group.add(glass);',"glass.position.y=2.02;group.add(glass);\n  if(c.id==='tokke')void this.visuals?.loadTokke(group);")
 edit(p,"this.label('LA MÉMOIRE PUBLIQUE','HUKOMMELSE · RETTIGHETER · TILLIT'","this.label('SAMFUNNETS HUKOMMELSE','KUNNSKAP · RETTIGHETER · TILLIT'")
 edit(p,"this.label('Hva skjer når samfunnet mister sporene?','ARKIVMUSEET'","this.label('Det vi tar vare på, kan vi lære av.','ARKIVMUSEET'")
-edit(p,'if(!this.settings.reduced)this.sun.position.z=8+Math.sin((now-this.startTime)/600000)*9;','if(!this.settings.reduced&&!this.visuals?.enabled)this.sun.position.z=8+Math.sin((now-this.startTime)/600000)*9;')
 edit(p,'paused:this.paused};}','paused:this.paused,graphics:this.visuals?.diagnostics()};}')
+# Cache static shadows. Camera movement changes the view, not shadow geometry.
+edit(p,'this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=',
+     'this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.autoUpdate=false;this.renderer.shadowMap.needsUpdate=true;this.renderer.shadowMap.type=')
+edit(p,' invalidate(){this.renderDirty=true;}',
+     ' invalidate(){this.renderDirty=true;}\n invalidateShadows(){this.invalidate();if(this.renderer?.shadowMap)this.renderer.shadowMap.needsUpdate=true;}')
+edit(p,"look(){this.camera.rotation.set(this.pitch,this.yaw,0,'YXZ');}",
+     "look(){this.camera.rotation.set(this.pitch,this.yaw,0,'YXZ');this.renderDirty=true;}")
+edit(p,'  const len=Math.hypot(f,s)||1;',
+     '  if(!f&&!s&&!turn){this.moving=false;return;}\n  const len=Math.hypot(f,s)||1;')
+edit(p,"if(this.loaded.has(c.id))return;this.loaded.add(c.id);", "if(this.loaded.has(c.id))return;this.invalidateShadows();this.loaded.add(c.id);")
+edit(p,"if(this.loaded.has('leader'))return;this.loaded.add('leader');", "if(this.loaded.has('leader'))return;this.invalidateShadows();this.loaded.add('leader');")
+edit(p,"if(this.active){this.doors[0].rotation.y=T.MathUtils.damp(this.doors[0].rotation.y,-1.55,1.2,dt);this.doors[1].rotation.y=T.MathUtils.damp(this.doors[1].rotation.y,1.55,1.2,dt);}",
+     "if(this.active){this.doors.forEach((door,i)=>{const target=i===0?-1.55:1.55;if(Math.abs(door.rotation.y-target)>.002){door.rotation.y=this.settings.reduced?target:T.MathUtils.damp(door.rotation.y,target,2.2,Math.min(elapsed,1));if(Math.abs(door.rotation.y-target)<.002)door.rotation.y=target;this.invalidateShadows();}});}")
+edit(p,"if(this.artifacts.has(c.id))this.artifacts.get(c.id)!.visible=dist<37;", "const artifact=this.artifacts.get(c.id);if(artifact&&artifact.visible!==(dist<37)){artifact.visible=dist<37;this.invalidateShadows();}")
+edit(p,"if(!this.settings.reduced)this.sun.position.z=8+Math.sin((now-this.startTime)/600000)*9;", "// Fixed sun keeps baked lighting and cached shadows aligned.")
+edit(p,"if((!this.active||this.paused)&&!this.renderDirty)return;", "if(!this.renderDirty)return;")
 p=r/'src/main.ts'
 edit(p,"import './leader-guide.css';","import './leader-guide.css';\nimport './visual-preview.css';")
 edit(p,'${step===1&&c.displayMetric?', '${c.id===\'tokke\'&&step===4?`<section class="tokke-visual-demo" aria-label="Illustrert arkivprinsipp"><h3>Oppbevart eller brukbart?</h3><p>Bytt visning i installasjonen. Dette er et illustrert prinsipp, ikke Tokkes faktiske utbedring.</p><div><button id="tokke-stored" aria-pressed="true">En kopi finnes</button><button id="tokke-usable" aria-pressed="false">Innholdet kan brukes</button></div><p id="tokke-visual-status" role="status">En kopi finnes. Sammenheng og lesbarhet må fortsatt avklares.</p></section>`:\'\'}${step===1&&c.displayMetric?')

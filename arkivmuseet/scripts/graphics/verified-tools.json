@@ -1,0 +1,9 @@
+{
+  "reviewed": "2026-09-26",
+  "scope": "Official free authoring tools. This manifest is not evidence of installation on the user's PC.",
+  "windows": [
+    {"file":"blender-5.2.2-windows-x64.zip","url":"https://download.blender.org/release/Blender5.2/blender-5.2.2-windows-x64.zip","bytes":404453484,"sha256":"3849d17a682cba006075aaa3f3597ecb5c9c30ec31035b2e092c53e40679b535","verification":"Downloaded and matched the publisher SHA-256 in the isolated authoring run; not installed on the workstation."},
+    {"file":"KTX-Software-4.4.2-Windows-x64.exe","url":"https://github.com/KhronosGroup/KTX-Software/releases/download/v4.4.2/KTX-Software-4.4.2-Windows-x64.exe","bytes":6417024,"sha256":"1f323b0fec19794f5e6c0425a61d4b1da396872a10be862d105f4f4b2d2957fe","verification":"Official GitHub release metadata. Setup verifies the downloaded bytes before retaining the installer; never launches it automatically."}
+  ],
+  "microsoftStore": {"productId":"9PP3C07GTVRH","expectedPublisher":"Blender Foundation","pricePolicy":"Install only when the official listing shows Free/Get. Stop at any purchase prompt."}
+}

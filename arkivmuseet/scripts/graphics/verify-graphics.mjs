@@ -11,10 +11,9 @@ const diag=p=>p.evaluate(()=>window.museumDiagnostics());
 const graphicsReady=p=>p.waitForFunction(()=>window.museumDiagnostics?.()?.graphics?.state==='ready',null,{timeout:60000});
 const measure=async(p,name)=>{
  const data=await p.evaluate(async()=>{
-  const frames=[];let last=performance.now();
-  await new Promise(resolve=>{let n=0;function tick(now){frames.push(now-last);last=now;if(++n<40)requestAnimationFrame(tick);else resolve();}requestAnimationFrame(tick);});
-  frames.sort((a,b)=>a-b);
-  return{diagnostics:window.museumDiagnostics(),frameIntervalMedianMs:frames[Math.floor(frames.length/2)],frameIntervalP95Ms:frames[Math.floor(frames.length*.95)],encodedResourceBytes:performance.getEntriesByType('resource').reduce((n,e)=>n+e.encodedBodySize,0),resources:performance.getEntriesByType('resource').map(e=>({name:new URL(e.name).pathname,bytes:e.encodedBodySize}))};
+  const initial=window.museumDiagnostics().frameCount;const started=performance.now();
+  await new Promise(resolve=>setTimeout(resolve,400));
+  return{diagnostics:window.museumDiagnostics(),idleRenderedFrames:window.museumDiagnostics().frameCount-initial,idleObservationMs:performance.now()-started,encodedResourceBytes:performance.getEntriesByType('resource').reduce((n,e)=>n+e.encodedBodySize,0),resources:performance.getEntriesByType('resource').map(e=>({name:new URL(e.name).pathname,bytes:e.encodedBodySize}))};
  });measurements.push({name,...data});return data;
 };
 try{
@@ -22,7 +21,7 @@ try{
  await before.goto(url+'?visual=baseline');await before.waitForFunction(()=>!document.querySelector('#enter').disabled);
  await before.locator('#enter').click();await before.waitForTimeout(900);
  check((await diag(before)).graphics.state==='baseline','Comparison mode uses the unenhanced renderer without new asset requests');
- await before.screenshot({path:out+'/hall-before.png'});await measure(before,'Baseline renderer / software Chromium / 1440x960');
+ await before.screenshot({path:out+'/hall-before.png'});await measure(before,'Unenhanced renderer / software Chromium / 1440x960');
  await before.locator('#map-open').click();await before.locator('[data-room="tokke"]').click();await before.waitForTimeout(700);
  await before.screenshot({path:out+'/tokke-before.png'});await before.close();
  const page=await browser.newPage({viewport:{width:1440,height:960},reducedMotion:'reduce'});observe(page);await page.goto(url);await graphicsReady(page);
@@ -32,6 +31,7 @@ try{
  await page.locator('#enter').click();await page.waitForTimeout(900);
  await page.screenshot({path:out+'/hall-after.png'});
  const desktop=await measure(page,'Enhanced automatic / software Chromium / 1440x960');
+ check(desktop.idleRenderedFrames===0,'A settled hall stops GPU rendering while the visitor is idle');
  check(desktop.encodedResourceBytes<12000000,'Default desktop resources stay below the 12 MB target');
  check(!desktop.resources.some(r=>r.name.includes('-2048.')),'No 2K textures are downloaded by the default desktop tier');
  await page.locator('#map-open').click();await page.locator('[data-room="tokke"]').click();
