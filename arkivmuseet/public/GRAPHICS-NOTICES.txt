@@ -1,0 +1,12 @@
+Arkivmuseet graphics preview
+
+Original material maps and Tokke display: project-original, MIT licence (same as the project).
+No paid assets or third-party photographs were added by this visual pilot. Existing case-image credits remain unchanged.
+
+Basis Universal texture transcoder, as distributed with Three.js 0.185.1:
+Copyright 2019-2026 Binomial LLC. Apache License 2.0; see BASIS-LICENSE.txt.
+https://github.com/BinomialLLC/basis_universal
+Runtime transcoder files have not been modified.
+
+Three.js: MIT; see THREE-LICENSE.txt.
+Blender and KTX are offline authoring tools, not required on a visitor device.

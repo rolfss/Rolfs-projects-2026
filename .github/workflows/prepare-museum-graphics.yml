@@ -1,0 +1,18 @@
+name: Prepare museum graphics preview
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/prepare-museum-graphics.yml'
+      - 'arkivmuseet/scripts/graphics/bake-assets.py'
+      - 'arkivmuseet/scripts/graphics/make-materials.py'
+      - 'arkivmuseet/scripts/graphics/compress-assets.py'
+      - 'arkivmuseet/scripts/graphics/bootstrap.py'
+permissions:
+  contents: read
+jobs:
+  prepare:
+    # Authoring is complete for this pilot. Re-enable only for an explicitly approved rebake.
+    if: false
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo 'Use the reviewed local authoring scripts; no automatic downloads or rebakes.'
