@@ -1,4 +1,18 @@
-# Validering av lederreisen · versjon 1.1
+# Validering av visuell oppgradering
+
+26. september 2026. Kontrollert med Node 24 og installert Microsoft Edge via Playwright på Windows.
+
+- 40 automatiske tester bestått. Navigasjon gjennom alle seks portaler, kollisjoner, bevegelsestiming, alle oppdrag, lagring og kildesporbarhet er kontrollert.
+- TypeScript og Vite-produksjonsbygg bestått.
+- Produksjonsbygget på `http://127.0.0.1:4196/`: 61 museumskontroller, 47 etterforskningskontroller og 72 besøks-/grensesnittkontroller bestått. Ingen registrerte JavaScript-feil eller manglende museumsressurser.
+- Egne integrerte kontroller viser GTAO på stor skrivebordsskjerm, uten GTAO med lav bildekvalitet, tilbake til GTAO ved normal kvalitet og uten GTAO på emulert berøringsenhet.
+- Originale saksdata, kilder, kildebilder, tekstversjon, spill- og lagringsmoduler er uendret. Faglige påstander er ikke redigert eller vurdert på nytt som del av den visuelle oppgraderingen.
+- Blender 4.5.9 LTS eksporterte syv navngitte prototyper med kompatible dimensjoner. Modellpakken er 1 285 736 byte, har 22 mesh-primitiver og fire innebygde teksturer uten eksterne ressurslenker. Prototypene inneholder samlet 32 808 trekanter før instansiering.
+- JavaScript er ca. 221 kB gzip. Modellpakken og renderingskostnaden er større enn i første utgave; telefoner og strømsparingsvalg beholder en enklere renderingsvei. Tegnekall og trekanter i diagnostikken teller nå alle renderingspass, også skygger og kontaktskygger, og kan ikke sammenlignes direkte med gamle tall for siste pass.
+
+Skjermbilder av inngang, hovedhall, utstilling og mobil er visuelt kontrollert. Mobilprøvene er emulering; fysisk iOS/Safari og en full WCAG-revisjon er ikke gjennomført.
+
+## Historikk: lederreisen · versjon 1.1
 
 8. september 2026.
 

@@ -50,7 +50,11 @@ Legg til data etter samme skjema, velg en installasjonstype og angi romposisjon.
 
 Én motor: Three.js, TypeScript og Vite. Modulære Blender-modeller eksporteres med `blender --background --factory-startup --python scripts/make-assets.py`. Ferdig GLB er inkludert; Blender trengs ikke i Pages-byggingen.
 
-Modellpakken er ca. 582 kB ukomprimert. 3D-koden lastes som separat modul; samlet komprimert JavaScript er ca. 180 kB. Kolonner og gulv er instansierte; statisk geometri slås sammen per materiale. Rominstallasjoner bygges ved nærhet og skjules på avstand. Bildeoppløsning begrenses; skygger kan slås av med lavere bildekvalitet. Materialdetaljer og lyd genereres lokalt. De fire bildene er lokale WebP-filer på til sammen omtrent 750 kB. Ingen bilde-CDN eller ekstern forespørsel trengs under besøket. Fototeksturer lastes ved rombesøk.
+Modellpakken er under 1,5 MB ukomprimert og inneholder originale farge- og normalkart for kalkstein og eik. 3D-koden lastes som separat modul; samlet komprimert JavaScript er ca. 221 kB. Kolonner og gulv er instansierte; statisk geometri slås sammen per materiale. Rominstallasjoner bygges ved nærhet og skjules på avstand. De fire historiske bildene er uendrede, lokale WebP-filer på til sammen omtrent 750 kB. Ingen bilde-CDN eller ekstern forespørsel trengs under besøket. Fototeksturer lastes ved rombesøk.
+
+Den visuelle oppgraderingen fra september 2026 gir hallen steinfuger, kassettak, messingarmaturer, glassoverlys og mer detaljerte arkivmøbler. Blender-modellene har avrundede kanter, utskårne søyler, skuffefronter, håndtak og papirlag. Dette er fortsatt scenografi, ikke nye historiske gjenstander eller kilder. Romposisjoner, kollisjoner, oppdrag, tekst og lagring er beholdt.
+
+Store skjermer med presis peker får GTAO-kontaktskygger og fireprøvers MSAA, med begrenset intern oppløsning. Berøringsenheter, vinduer under 1000 piksler og «Lavere · spar strøm» bruker den enklere renderingen; sistnevnte slår også av solskygger. Kvalitetsbytte og endret vindusstørrelse gjelder umiddelbart. Hovedhallen har i tillegg lette, instansierte kontaktskygger. Stillestående lese- og pausevisninger tegnes bare på nytt ved behov.
 
 Automatisk maskinvaremåling og nettleseremulering er ikke en garanti for alle telefoner. Kontrollene kjøres i Chromium med berørings- og skjermemulering; fysisk iOS/Safari må prøves separat. Full tekst gir et varig alternativ ved manglende grafikkstøtte.
 
