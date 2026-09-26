@@ -45,7 +45,15 @@ if ($codex) {
   $raw = Get-Content $config -Raw
   if ($raw -notmatch '(?m)^\[mcp_servers\.jev\]\s*$') {
     $runner = (Join-Path $root 'run-jev.ps1').Replace('\','\\')
-    Add-Content $config "`n[mcp_servers.jev]`ncommand = \"powershell.exe\"`nargs = [\"-NoProfile\", \"-ExecutionPolicy\", \"Bypass\", \"-File\", \"$runner\"]`ndefault_tools_approval_mode = \"auto\"`n"
+    $block = @(
+      '',
+      '[mcp_servers.jev]',
+      'command = "powershell.exe"',
+      ('args = ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "' + $runner + '"]'),
+      'default_tools_approval_mode = "auto"',
+      ''
+    ) -join [Environment]::NewLine
+    Add-Content -LiteralPath $config -Value $block
     Write-Host 'Added the Jev MCP server to Codex config. Restart Codex to load it.'
   } else {
     Write-Host 'Codex already has an mcp_servers.jev entry; it was left unchanged.'
