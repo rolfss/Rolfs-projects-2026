@@ -11,34 +11,44 @@ concurrency:
   cancel-in-progress: true
 jobs:
   prepare:
-    # Never use billable private-repository or larger runners for this preview.
     if: github.event.repository.private == false && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'improve/arkivmuseet-graphics-preview'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-          persist-credentials: false
       - uses: actions/setup-node@v5
         with:
           node-version: 22
       - uses: pnpm/action-setup@v4
         with:
           version: 11.19.0
-      - name: Prepare the pinned local review environment
+      - name: Prepare pinned review environment
         working-directory: arkivmuseet
         run: |
           pnpm install --frozen-lockfile
           mkdir -p graphics-review
-          tar -czf graphics-review/dependencies.tar.gz node_modules
           git rev-parse HEAD > graphics-review/revision.txt
-      - name: Build authoring assets when their scripts are present
+      - name: Bake and compress project-original assets
         working-directory: arkivmuseet
+        run: python3 scripts/graphics/bootstrap.py
+      - name: Commit only generated web assets to the isolated preview branch
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
-          if test -f scripts/graphics/bootstrap.py; then
-            python3 scripts/graphics/bootstrap.py
+          set -euo pipefail
+          test "$(git ls-remote origin refs/heads/improve/arkivmuseet-graphics-preview | cut -f1)" = "$EXPECTED_HEAD"
+          test -s arkivmuseet/public/assets/visual-preview/manifest.json
+          test -s arkivmuseet/public/assets/visual-preview/tokke-display.glb
+          git add arkivmuseet/public/assets/visual-preview
+          if ! git diff --cached --quiet; then
+            git -c user.name='Museum asset builder' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Add original baked and compressed museum preview assets [skip ci]'
+            git push origin HEAD:refs/heads/improve/arkivmuseet-graphics-preview
           fi
+          git rev-parse HEAD > arkivmuseet/graphics-review/asset-commit.txt
       - uses: actions/upload-artifact@v4
         if: always()
         with:
