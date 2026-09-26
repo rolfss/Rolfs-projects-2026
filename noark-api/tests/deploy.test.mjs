@@ -41,3 +41,13 @@ test('verification polls health only and waits for the deployed answer version',
 test('an unavailable deployment exits verification with an error', async () => {
   await assert.rejects(() => checkDeployment({ fetchImpl: async () => new Response('', { status: 503 }) }), /HTTP 503/);
 });
+
+test('full RAG verification requires both JEV and a live compatible Bonsai connection', async () => {
+  const base = await health();
+  assert.throws(() => assertDeploymentHealth(base, { requireRag: true }), /JEV eller Bonsai/);
+  const full = { ...base, retrieval: { provider: 'jev', enabled: true },
+    fallback: { enabled: true, available: true, model: 'Bonsai-2-27B-PQ2_0' } };
+  assert.equal(assertDeploymentHealth(full, { requireRag: true }), full);
+  for (const field of ['enabled', 'available']) assert.throws(() => assertDeploymentHealth({ ...full,
+    fallback: { ...full.fallback, [field]: false } }, { requireRag: true }));
+});

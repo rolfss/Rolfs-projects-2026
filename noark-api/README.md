@@ -1,4 +1,15 @@
-# Aktiver Luna for Noark-assistenten
+# NOARK med JEV, Luna og Bonsai
+
+Se [driftsoppsettet](RAG_OPERATION.md) for JEV-kildevalg, eksplisitt samtykke,
+Bonsai på eierens PC, kvotereserve og sikker publisering. Eksisterende
+budsjettregister og mottakerbegrensninger beholdes.
+
+## Prøv JEV mot det eksisterende kildegrunnlaget
+
+JEV-utprøvingen har et eget [oppsett og evalueringsløp](JEV_EVALUATION.md).
+Kjør `node noark-api/evals/evaluate-jev.mjs` fra repository-roten for en lokal
+basismåling uten API-kall. Betalte JEV-kall og sammenligning med Luna må velges
+eksplisitt. Utprøvingen aktiverer ikke JEV for besøkende.
 
 ## Oppdater den eksisterende Luna-serveren
 
@@ -18,7 +29,7 @@ Etter publisering kontrolleres **den offentlige backendadressen som nettsiden fa
 
 Bakenden bruker **GPT-5.6 Luna**, `reasoning.effort: medium`, via OpenAI Responses API. Nettleseren forblir på GitHub Pages; API-nøkkelen ligger bare som hemmelighet i en Cloudflare Worker. Én SQLite Durable Object deler budsjett og forespørselsgrenser mellom alle brukere.
 
-**Status:** implementert og enhetstestet med simulerte API-kall. Ingen nøkkel følger med, og ingen betalte API-kall eller live Cloudflare-utrulling er utført som del av implementeringen. Helseendepunktet kontrollerer konfigurasjon, ikke om API-kontoen faktisk har tilgang til modellen.
+Helseendepunktet kontrollerer konfigurasjon og lokal modellberedskap, ikke svarkvalitet eller OpenAI-kontoens modelltilgang. Verifiser faktiske svar etter utrulling. Nøkler følger aldri med kildekoden.
 
 ## Privat aktivering – anbefalt, enklest og sikkert
 
