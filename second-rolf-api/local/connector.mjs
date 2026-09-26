@@ -4,6 +4,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { pathToFileURL } from 'node:url';
 import WebSocket from 'ws';
+import { connect as connectSession } from './connection.mjs';
 import { MODEL, PROFILE_REVISION, modelRequest, MAX_ANSWER, readJsonBounded, parseModelAnswer, privacyReply } from '../protocol.mjs';
 
 const LOCAL_RUNTIME = 'http://127.0.0.1:8099';
@@ -121,11 +122,13 @@ export function createModelClient({ fetchImpl = (...args) => fetch(...args), bas
     const data = await readJsonBounded(response, 100_000);
     return parseModelAnswer(completionContent(data)).slice(0, MAX_ANSWER);
   }
-  async function probeModel(warm = false) {
+  async function probeModel(warm = false, signal) {
+    signal?.throwIfAborted();
+    const timeout = () => AbortSignal.any([...(signal ? [signal] : []), AbortSignal.timeout(4000)]);
     const unavailable = { available: false, gpu: false, model: MODEL };
-    const health = await fetchImpl(`${baseUrl}/health`, { signal: AbortSignal.timeout(4000) });
+    const health = await fetchImpl(`${baseUrl}/health`, { signal: timeout() });
     if (!health.ok || (await readJsonBounded(health, 16_000)).status !== 'ok') return unavailable;
-    const response = await fetchImpl(`${baseUrl}/v1/models`, { signal: AbortSignal.timeout(4000) });
+    const response = await fetchImpl(`${baseUrl}/v1/models`, { signal: timeout() });
     if (!response.ok) return unavailable;
     const models = await readJsonBounded(response, 16_000);
     if (!Array.isArray(models.data) || models.data.length !== 1 || models.data[0]?.id !== MODEL) return unavailable;
@@ -142,7 +145,7 @@ export function createModelClient({ fetchImpl = (...args) => fetch(...args), bas
         && (await gpuReader()).includes(status.processId);
     } catch { /* GPU readiness must be evidenced by a current NVIDIA compute process. */ }
     if (warm) {
-      const answer = await infer({ question: 'What is 2 + 2? Answer with only the digit 4.', history: [], profileRevision: PROFILE_REVISION });
+      const answer = await infer({ question: 'What is 2 + 2? Answer with only the digit 4.', history: [], profileRevision: PROFILE_REVISION }, signal);
       if (answer.trim() !== '4') throw new Error('Expected Bonsai model did not pass the answer check');
     }
     return { available: true, gpu, model: MODEL };
@@ -155,79 +158,7 @@ export const infer = productionClient.infer;
 export const probeModel = productionClient.probeModel;
 
 export function connect(config, { WebSocketClient = WebSocket, logger = console, modelClient = productionClient } = {}) {
-  const url = new URL(config.workerUrl);
-  if (url.protocol !== 'https:' || url.hostname !== 'second-rolf-api.rolfsselas.workers.dev' || url.username || url.password) throw new Error('Unexpected Worker address');
-  if (typeof config.key !== 'string' || config.key.length < 40) throw new Error('Missing connector key');
-  url.protocol = 'wss:'; url.pathname = '/api/local/connect'; url.search = ''; url.hash = '';
-  let stopping = false, socket, timer, reconnectTimer, active, probing = false, lastAck = 0, verifiedAt = 0, warnedRevision = false, modelReady = null;
-  const send = data => { if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify(data)); };
-  function reportModelStatus(available, gpu = false) {
-    if (modelReady === available) return;
-    modelReady = available;
-    if (available) logger.log('Local model ready: ' + MODEL + (gpu ? ' (GPU).' : '.'));
-    else logger.warn('Local model unavailable. Start the Second Rolf Bonsai runtime and check its status file. The connector will retry automatically.');
-  }
-  async function heartbeat() {
-    if (probing || socket?.readyState !== WebSocket.OPEN) return;
-    if (lastAck && Date.now() - lastAck > 60_000) { socket.terminate(); return; }
-    probing = true;
-    try {
-      let status = await modelClient.probeModel(false);
-      if (!active && (!status.available || Date.now() - verifiedAt > 300_000)) {
-        status = await modelClient.probeModel(true); verifiedAt = status.available ? Date.now() : 0;
-      }
-      const available = status.available && verifiedAt > 0;
-      send({ type: 'health', ...status, profileRevision: PROFILE_REVISION, available });
-      reportModelStatus(available, status.gpu);
-    } catch {
-      verifiedAt = 0;
-      send({ type: 'health', available: false, gpu: false, model: MODEL, profileRevision: PROFILE_REVISION });
-      reportModelStatus(false);
-    }
-    finally { probing = false; }
-  }
-  function open() {
-    if (stopping) return;
-    const ws = new WebSocketClient(url, { headers: { Authorization: `Bearer ${config.key}` }, handshakeTimeout: 15_000, maxPayload: 48_000 });
-    socket = ws;
-    ws.on('open', () => {
-      lastAck = Date.now(); verifiedAt = 0; warnedRevision = false; modelReady = null;
-      logger.log('Cloudflare connection established; checking local Bonsai model.');
-      void heartbeat(); timer = setInterval(() => { void heartbeat(); }, 15_000);
-    });
-    ws.on('message', async raw => {
-      let data;
-      try { data = JSON.parse(raw.toString()); } catch { return; }
-      if (data.type === 'ack') {
-        lastAck = Date.now();
-        if (data.profileRevision !== PROFILE_REVISION && !warnedRevision) {
-          warnedRevision = true;
-          logger.warn('Worker/profile version mismatch. Update the checkout, deploy the Worker and restart this connector. A PC reboot is not required.');
-        }
-        return;
-      }
-      if (data.type === 'cancel' && active?.id === data.id) { active.controller.abort(); return; }
-      if (data.type !== 'chat' || typeof data.id !== 'string') return;
-      if (active) { ws.send(JSON.stringify({ type: 'answer', id: data.id, error: 'busy', profileRevision: PROFILE_REVISION })); return; }
-      const controller = new AbortController();
-      active = { id: data.id, controller };
-      try {
-        const answer = await modelClient.infer(data, controller.signal);
-        verifiedAt = Date.now();
-        if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'answer', id: data.id, answer, profileRevision: PROFILE_REVISION }));
-      } catch {
-        verifiedAt = 0;
-        if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'answer', id: data.id, error: 'local_model_unavailable', profileRevision: PROFILE_REVISION }));
-      } finally { if (active?.controller === controller) active = null; }
-    });
-    ws.on('error', () => {}); // No credentials, prompts or answers are written to logs.
-    ws.on('close', () => {
-      clearInterval(timer); active?.controller.abort();
-      if (!stopping) { logger.log('Connection closed; retrying.'); reconnectTimer = setTimeout(open, 5000); }
-    });
-  }
-  open();
-  return () => { stopping = true; clearTimeout(reconnectTimer); clearInterval(timer); active?.controller.abort(); socket?.close(); };
+  return connectSession(config, { WebSocketClient, logger, modelClient });
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
