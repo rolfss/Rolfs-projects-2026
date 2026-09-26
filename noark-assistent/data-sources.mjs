@@ -123,7 +123,21 @@ export const SOURCES = Object.freeze([
   },
 ]);
 
-const sourceIds = new Set(SOURCES.map((source) => source.id));
+export const ARKADE_RELEASE_SOURCE = Object.freeze({
+  id: "arkade-2-13-1",
+  title: "Arkade 2.13.1 – utgivelsesnotat",
+  shortTitle: "Arkade 2.13.1",
+  publisher: "Nasjonalarkivet",
+  published: "23.09.2026",
+  type: "Offisiell verktøydokumentasjon",
+  url: "https://github.com/nasjonalarkivet/arkade5/releases/tag/v2.13.1",
+  note: "Retter en versjonsavgrenset feil i METS-beskrivelsen ved pakking av Noark 5-uttrekk.",
+  scope: "Arkade 2.13.0 og rettelsen i 2.13.1; pakking av Noark 5-uttrekk",
+  verifiedAt: "2026-09-26",
+  status: "tool-documentation",
+});
+
+const sourceIds = new Set([...SOURCES.map((source) => source.id), ARKADE_RELEASE_SOURCE.id]);
 
 export function record({
   id,

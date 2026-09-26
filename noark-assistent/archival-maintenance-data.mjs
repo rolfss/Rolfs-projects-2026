@@ -6,6 +6,18 @@ const verifiedAt = '2026-09-22';
 
 export const ARCHIVAL_MAINTENANCE_RECORDS = Object.freeze([
   record({
+    id: 'arkade-2-13-1-mets',
+    source: 'arkade-2-13-1',
+    title: 'Arkade 2.13.1 retter manglende filbeskrivelser i METS',
+    section: 'Håndtering av Noark 5-dokumentfiler',
+    topic: 'Uttrekk',
+    verifiedAt: '2026-09-26',
+    scope: 'Arkade 2.13.0 og rettelsen i 2.13.1; pakking av Noark 5-uttrekk',
+    tags: ['Arkade', '2.13.0', '2.13.1', 'METS', 'pakking', 'pakke', 'pakkeopprettelse', 'uttrekk', 'Noark 5', 'filbeskrivelser', 'dokumentfilkatalog', 'filsti'],
+    summary: 'Arkade 2.13.1 retter en feil i 2.13.0 som kunne gi manglende filbeskrivelser i METS ved pakking av Noark 5-uttrekk.',
+    detail: 'Feilen gjaldt filer utenfor dokumentfilkatalogen når filstien inneholdt et dokumentfilkatalognavn. Versjonsbegrensningen er relevant ved kontroll av pakker produsert med 2.13.0.',
+  }),
+  record({
     id: 'rules-documentation-plan-annual',
     source: 'archive-regulation',
     title: 'Årlig framlegging av dokumentasjonsplanen',
