@@ -71,7 +71,7 @@ function installFetch(t, setup, { bot, jev, luna } = {}) {
       setup.events.push({ provider: 'jev', payload });
       const ledger = await setup.storage.get('ledger');
       assert.ok(Object.values(ledger.requests).some((request) => request.pending && request.amount > 0), 'JEV dispatched before reservation');
-      assert.equal(options.redirect, 'error');
+      assert.equal(options.redirect, 'manual');
       if (jev) return jev(payload);
       return Response.json({ answers: Object.fromEntries(payload.state.records.map((record, i) => [`r${i}`, {
         type: 'noul', noul: record.id === 'req-6-13-14' ? 0.99 : 0.1,
@@ -81,7 +81,7 @@ function installFetch(t, setup, { bot, jev, luna } = {}) {
       setup.events.push({ provider: 'luna', payload });
       const ledger = await setup.storage.get('ledger');
       assert.ok(Object.values(ledger.requests).some((request) => request.pending && request.amount > 0), 'Luna dispatched before reservation');
-      assert.equal(options.redirect, 'error');
+      assert.equal(options.redirect, 'manual');
       const ids = JSON.parse(payload.input[0].content).source_records.map((record) => record.id);
       return luna ? luna(ids, payload) : modelResponse(ids);
     }
@@ -201,6 +201,7 @@ test('authentication, refusal, malformed data, invalid citations, and incomplete
   const cases = {
     authentication: () => new Response('private auth details', { status: 401 }),
     forbidden: () => new Response('private auth details', { status: 403 }),
+    redirect: () => new Response(null, { status: 302, headers: { Location: 'https://other-provider.invalid' } }),
     refusal: () => Response.json({ status: 'completed', usage, output: [{ type: 'message', content: [{ type: 'refusal', refusal: 'refused' }] }] }),
     malformed: () => new Response('not JSON', { headers: { 'Content-Type': 'application/json' } }),
     citation: (ids) => { const parsed = parsedAnswer(ids); parsed.claims[0].recordIds = ['invented-record'];

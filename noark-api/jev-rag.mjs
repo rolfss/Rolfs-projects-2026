@@ -199,7 +199,9 @@ export async function callJev(payload, { apiKey, fetchImpl = fetch } = {}) {
   });
   const perform = async () => {
     const response = await fetchImpl(ENDPOINT, {
-      method: 'POST', redirect: 'error', headers: { Authorization: `Bearer ${apiKey.trim()}`,
+      // Manual mode also works in workerd; the checks below reject every redirect
+      // without following Location or forwarding provider credentials.
+      method: 'POST', redirect: 'manual', headers: { Authorization: `Bearer ${apiKey.trim()}`,
         'Content-Type': 'application/json', Accept: 'application/json' }, body, signal: controller.signal,
     });
     if (controller.signal.aborted) { void response.body?.cancel().catch(() => {}); fail('timeout'); }

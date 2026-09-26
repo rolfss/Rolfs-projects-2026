@@ -65,7 +65,7 @@ export function prepareBonsaiRequest(input, { sourceLimit = BONSAI_LIMITS.source
 export function validateBonsaiAnswer(parsed, question, recordIds) {
   const candidates = canonicalBonsaiCandidates(recordIds);
   finalizeAnswer(question, parsed, candidates);
-  if (parsed.status === 'answered' && recordIds.some(id => id.startsWith('format-'))
+  if (parsed.status === 'answered' && parsed.claims.some(claim => claim.recordIds.some(id => id.startsWith('format-')))
       && !parsed.claims.some(claim => claim.recordIds.includes('guide-format-agreement')))
     throw new Error('Format answer omitted cited delivery conditions');
   // Return only validated answer fields, never arbitrary model metadata.

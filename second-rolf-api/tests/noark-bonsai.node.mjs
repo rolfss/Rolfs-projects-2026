@@ -50,6 +50,13 @@ test('NOARK replies require valid complete relevance and source-supported citati
   assert.throws(() => validateBonsaiAnswer({ ...answer, claims: [{ text: 'https://evil.invalid', recordIds: [ids[0]] }] }, input().question, ids));
 });
 
+test('irrelevant format candidates do not force an unrelated delivery claim', () => {
+  const ids = ['meta-system-id', 'format-pdfa-3b', 'guide-format-agreement', 'guide-format-conversion'];
+  const answer = parsed(ids);
+  answer.relevance = answer.relevance.map((row, i) => ({ ...row, score: i === 0 ? 95 : 10 }));
+  assert.doesNotThrow(() => validateBonsaiAnswer(answer, 'Hva er systemID?', ids));
+});
+
 test('connector tokenizes the pinned template and returns exactly the canonical subset used', async () => {
   const calls = [];
   const client = createModelClient({ fetchImpl: async (url, options) => {

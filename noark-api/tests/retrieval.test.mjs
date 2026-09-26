@@ -71,7 +71,7 @@ test('successful JEV ranking promotes candidates outside the old 12 while retain
   const fetchImpl = async (url, options) => {
     calls++;
     assert.equal(url, 'https://api.typesafe.ai/v1/systemone');
-    assert.equal(options.redirect, 'error');
+    assert.equal(options.redirect, 'manual');
     assert.equal(options.headers.Authorization, `Bearer ${env.TYPESAFE_API_KEY}`);
     assert.deepEqual(JSON.parse(options.body), plan.payload);
     return Response.json(response(plan));

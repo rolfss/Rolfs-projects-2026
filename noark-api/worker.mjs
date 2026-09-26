@@ -14,7 +14,7 @@ const ARCHIVE_OUTPUT_TOKENS = 3072;
 // Preserve the existing trial's conservative price assumptions; this is not an invoice.
 export const estimatedCost = (input, output) => Math.ceil(input * 0.25 + output * 1.2);
 const encoder = new TextEncoder();
-export const ANSWER_VERSION = '2026-09-26-jev-bonsai-v1';
+export const ANSWER_VERSION = '2026-09-26-jev-bonsai-v2';
 export const BONSAI_MODEL_ID = 'Bonsai-2-27B-PQ2_0';
 export const BONSAI_CONSENT = '2026-09-26-bonsai-v1';
 const bonsaiEnabled = (env) => env.BONSAI_ENABLED === 'true' && Boolean(env.BONSAI);
@@ -432,7 +432,9 @@ export class LunaGate {
       const { body } = buildPayload(question, history, candidates);
       charged += generationReserve;
       const response = await fetch('https://api.openai.com/v1/responses', {
-        method: 'POST', redirect: 'error', headers: { 'Authorization': `Bearer ${this.env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
+        // Workerd accepts manual/follow redirect modes. Return redirects without
+        // following them so provider credentials can never reach another URL.
+        method: 'POST', redirect: 'manual', headers: { 'Authorization': `Bearer ${this.env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify(body), signal: AbortSignal.timeout(85000),
       });
       if (!response.ok) {

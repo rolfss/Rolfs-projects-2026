@@ -134,7 +134,7 @@ test('transport uses fixed HTTPS endpoint, redirects disabled, bounded request a
   const response = await invoke(async (url, options) => {
     calls++;
     assert.equal(url, 'https://api.typesafe.ai/v1/systemone');
-    assert.equal(options.redirect, 'error');
+    assert.equal(options.redirect, 'manual');
     assert.equal(options.headers.Authorization, `Bearer ${key}`);
     assert.equal(options.method, 'POST');
     assert.ok(options.signal instanceof AbortSignal);
