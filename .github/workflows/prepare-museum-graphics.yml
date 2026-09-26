@@ -1,0 +1,47 @@
+name: Prepare museum graphics preview
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/prepare-museum-graphics.yml'
+      - 'arkivmuseet/scripts/graphics/**'
+permissions:
+  contents: read
+concurrency:
+  group: graphics-preparation-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  prepare:
+    # Never use billable private-repository or larger runners for this preview.
+    if: github.event.repository.private == false && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'improve/arkivmuseet-graphics-preview'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - name: Prepare the pinned local review environment
+        working-directory: arkivmuseet
+        run: |
+          pnpm install --frozen-lockfile
+          mkdir -p graphics-review
+          tar -czf graphics-review/dependencies.tar.gz node_modules
+          git rev-parse HEAD > graphics-review/revision.txt
+      - name: Build authoring assets when their scripts are present
+        working-directory: arkivmuseet
+        run: |
+          if test -f scripts/graphics/bootstrap.py; then
+            python3 scripts/graphics/bootstrap.py
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: museum-graphics-toolchain
+          path: arkivmuseet/graphics-review/
+          retention-days: 1
