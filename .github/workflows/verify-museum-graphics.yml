@@ -1,0 +1,84 @@
+name: Verify museum graphics preview
+on:
+  pull_request:
+    paths:
+      - 'arkivmuseet/**'
+      - '.github/workflows/verify-museum-graphics.yml'
+permissions:
+  contents: read
+concurrency:
+  group: graphics-validation-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  graphics:
+    if: github.event.repository.private == false && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'improve/arkivmuseet-graphics-preview'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - name: Apply the reviewed integration once
+        run: python3 arkivmuseet/scripts/graphics/apply-integration.py
+      - name: Validate and compile
+        working-directory: arkivmuseet
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm test
+          node --experimental-strip-types --test scripts/graphics/graphics.test.mjs
+          pnpm build
+          pnpm exec playwright install --with-deps chromium
+      - name: Browser graphics and full regression verification
+        working-directory: arkivmuseet
+        run: |
+          set -o pipefail
+          mkdir -p qa-graphics
+          export MUSEUM_CHROME="$(pnpm exec node --input-type=module -e "import {chromium} from '@playwright/test'; console.log(chromium.executablePath());")"
+          export MUSEUM_HEADED=1
+          pnpm preview > qa-graphics/server.log 2>&1 &
+          SERVER=$!
+          trap 'kill "$SERVER" 2>/dev/null || true' EXIT
+          for i in $(seq 1 40); do
+            curl --fail --silent http://127.0.0.1:4196/Rolfs-projects-2026/arkivmuseet/ >/dev/null && break
+            sleep 1
+          done
+          RESULT=0
+          timeout 240s xvfb-run -a node scripts/graphics/verify-graphics.mjs 2>&1 | tee qa-graphics/graphics.log || RESULT=1
+          timeout 300s xvfb-run -a pnpm test:browser 2>&1 | tee qa-graphics/museum.log || RESULT=1
+          timeout 300s xvfb-run -a pnpm test:investigation 2>&1 | tee qa-graphics/investigation.log || RESULT=1
+          timeout 240s xvfb-run -a pnpm test:visit-ui 2>&1 | tee qa-graphics/visit.log || RESULT=1
+          exit "$RESULT"
+      - name: Retain only validated source edits on the isolated branch
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git ls-remote origin refs/heads/improve/arkivmuseet-graphics-preview | cut -f1)" = "$EXPECTED_HEAD"
+          git add arkivmuseet/src/main.ts arkivmuseet/src/world.ts arkivmuseet/package.json arkivmuseet/tsconfig.json arkivmuseet/scripts/make-text-version.mjs arkivmuseet/.gitignore
+          if ! git diff --cached --quiet; then
+            git -c user.name='Museum preview validator' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Integrate browser-tested hall and Tokke graphics preview [skip ci]'
+            git push origin HEAD:refs/heads/improve/arkivmuseet-graphics-preview
+          fi
+          git rev-parse HEAD > arkivmuseet/qa-graphics/tested-source-commit.txt
+      - name: Preserve tested source and compiled preview
+        if: always()
+        run: |
+          mkdir -p arkivmuseet/qa-graphics
+          tar --exclude=node_modules --exclude=dist --exclude=qa-graphics --exclude=qa-output --exclude=qa-visit --exclude=qa-investigation --exclude=graphics-work -czf arkivmuseet/qa-graphics/source.tar.gz arkivmuseet
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: museum-graphics-preview
+          path: |
+            arkivmuseet/qa-graphics/
+            arkivmuseet/qa-visit/leadership/results.json
+            arkivmuseet/dist/
+          retention-days: 1
