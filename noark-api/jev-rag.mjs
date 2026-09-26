@@ -1,4 +1,4 @@
-// Evaluation only: this module is deliberately not imported by the public Worker.
+// Shared bounded JEV primitives for offline evaluation and consented retrieval.
 // HTTP/Noul contract checked against https://docs.typesafe.ai/api on 2026-09-26.
 import { cleanConversation, retrievalQuery, ANSWER_LIMITS } from '../noark-assistent/rag-shared.mjs';
 

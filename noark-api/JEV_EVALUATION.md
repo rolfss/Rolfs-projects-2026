@@ -1,9 +1,9 @@
 # JEV-utprøving for Noark-assistenten
 
-Dette er første, avgrensede steg: mål om JEV velger nyttigere kildeposter og
-oppdager påstander som ikke støttes av de oppgitte kildene. Den offentlige appen
-bruker fortsatt sin eksisterende søke- og Luna-løsning. Ingen produksjonskode,
-bruksgrenser, personvernvalg, Worker-hemmeligheter eller brannmurregler endres.
+Evalueringsverktøyet måler om JEV velger nyttigere kildeposter og oppdager
+påstander som ikke støttes av de oppgitte kildene. Det aktiverer ikke appen.
+Appintegrasjonen har et separat [driftsoppsett](RAG_OPERATION.md) med samtykke,
+budsjettregnskap og valgfri Bonsai-reserve. Kildekontroll er fortsatt bare evaluering.
 
 Luna vurderer allerede relevansen til alle de 12 kildepostene den får. Derfor må
 JEV sammenlignes med Luna, ikke bare med det lokale ordsøket, før vi hevder at
@@ -121,8 +121,8 @@ Utvid med flere redigerte, ikke-sensitive norske eksempler og vurder faktiske
 svar med en fagperson. Sammenlign også forsinkelse og kostnad. Fast modellversjon
 kan velges med `--model jev-...`; standardaliaset `jev-latest` kan endres over tid.
 
-Hvis målingene viser verdi, er neste kodeendring en valgfri integrasjon i
-`LunaGate.fetch`, etter Turnstile og budsjettreservasjon. Før aktivering må den:
+Appintegrasjonen ligger i `LunaGate.fetch`, etter Turnstile og budsjettreservasjon.
+Den skal fortsatt:
 
 1. Ha en egen TypeSafe-hemmelighet på serveren og eksplisitt informasjon/samtykke
    til denne ekstra mottakeren av spørsmål og nødvendig kontekst.
@@ -130,10 +130,10 @@ Hvis målingene viser verdi, er neste kodeendring en valgfri integrasjon i
    eller duplisere `noark-global-budget-v1`; behold alle nåværende grenser.
 3. Beholde eksisterende kildelister, avtalekontekst, siteringskontroll og lokal modus.
 4. Falle tilbake til dagens kandidatløp ved JEV-feil, med korrekt status og uten
-   automatisk betalt omkjøring. Starte deaktivert og prøves på en liten andel trafikk.
+   automatisk betalt omkjøring. Kreve serveraktivering, nøkkel og gjeldende samtykke.
 
-Denne PR-en utfører ikke disse produksjonsendringene. Manglende API-nøkkel
-blokkerer live-målingen, men ikke installasjon eller kjøring av offline-testene.
+Manglende API-nøkkel blokkerer live-målingen, men ikke offline-testene. At en
+lokal API-nøkkel virker, betyr ikke at en Worker-hemmelighet er konfigurert.
 
 ## Kilder og tester
 
